@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/docker/client"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 )
 
@@ -18,12 +19,12 @@ const defaultDockerRequestTimeout = 60 * time.Second
 
 // ClientFactory is used to create Docker clients
 type ClientFactory struct {
-	signatureService     portaineree.DigitalSignatureService
+	signatureService     portainer.DigitalSignatureService
 	reverseTunnelService portaineree.ReverseTunnelService
 }
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *ClientFactory {
+func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *ClientFactory {
 	return &ClientFactory{
 		signatureService:     signatureService,
 		reverseTunnelService: reverseTunnelService,
@@ -70,7 +71,7 @@ func createTCPClient(endpoint *portaineree.Endpoint, timeout *time.Duration) (*c
 	)
 }
 
-func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, nodeName string, timeout *time.Duration) (*client.Client, error) {
+func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, nodeName string, timeout *time.Duration) (*client.Client, error) {
 	httpCli, err := httpClient(endpoint, timeout)
 	if err != nil {
 		return nil, err
@@ -105,7 +106,7 @@ func createEdgeClient(endpoint *portaineree.Endpoint, signatureService portainer
 	)
 }
 
-func createAgentClient(endpoint *portaineree.Endpoint, signatureService portaineree.DigitalSignatureService, nodeName string, timeout *time.Duration) (*client.Client, error) {
+func createAgentClient(endpoint *portaineree.Endpoint, signatureService portainer.DigitalSignatureService, nodeName string, timeout *time.Duration) (*client.Client, error) {
 	httpCli, err := httpClient(endpoint, timeout)
 	if err != nil {
 		return nil, err

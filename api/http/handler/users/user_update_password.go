@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -55,7 +56,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return httperror.BadRequest("Invalid user identifier route variable", err)
 	}
 
-	if handler.demoService.IsDemoUser(portaineree.UserID(userID)) {
+	if handler.demoService.IsDemoUser(portainer.UserID(userID)) {
 		return httperror.Forbidden(httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo)
 	}
 
@@ -64,7 +65,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to update user", httperrors.ErrUnauthorized)
 	}
 
@@ -74,7 +75,7 @@ func (handler *Handler) userUpdatePassword(w http.ResponseWriter, r *http.Reques
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portainer.UserID(userID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {

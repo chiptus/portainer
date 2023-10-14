@@ -178,7 +178,7 @@ func (handler *Handler) kubeClientMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+		endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 		if err != nil {
 			if handler.DataStore.IsErrObjectNotFound(err) {
 				httperror.WriteError(w, http.StatusNotFound,

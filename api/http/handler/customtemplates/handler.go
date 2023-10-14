@@ -22,7 +22,7 @@ type Handler struct {
 	FileService         portainer.FileService
 	GitService          portainer.GitService
 	userActivityService portaineree.UserActivityService
-	gitFetchMutexs      map[portaineree.TemplateID]*sync.Mutex
+	gitFetchMutexs      map[portainer.TemplateID]*sync.Mutex
 }
 
 // NewHandler creates a handler to manage environment(endpoint) group operations.
@@ -33,7 +33,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 		FileService:         fileService,
 		GitService:          gitService,
 		userActivityService: userActivityService,
-		gitFetchMutexs:      make(map[portaineree.TemplateID]*sync.Mutex),
+		gitFetchMutexs:      make(map[portainer.TemplateID]*sync.Mutex),
 	}
 
 	h.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
@@ -49,6 +49,6 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
-func userCanEditTemplate(customTemplate *portaineree.CustomTemplate, securityContext *security.RestrictedRequestContext) bool {
+func userCanEditTemplate(customTemplate *portainer.CustomTemplate, securityContext *security.RestrictedRequestContext) bool {
 	return securityContext.IsAdmin || customTemplate.CreatedByUserID == securityContext.UserID
 }

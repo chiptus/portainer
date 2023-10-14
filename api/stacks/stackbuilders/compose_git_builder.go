@@ -52,7 +52,7 @@ func (b *ComposeStackGitBuilder) SetUniqueInfo(payload *StackPayload) GitMethodS
 	return b
 }
 
-func (b *ComposeStackGitBuilder) SetGitRepository(payload *StackPayload, userID portaineree.UserID) GitMethodStackBuildProcess {
+func (b *ComposeStackGitBuilder) SetGitRepository(payload *StackPayload, userID portainer.UserID) GitMethodStackBuildProcess {
 	b.GitMethodStackBuilder.SetGitRepository(payload, userID)
 	return b
 }

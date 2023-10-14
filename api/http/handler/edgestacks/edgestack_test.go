@@ -93,7 +93,7 @@ func setupHandler(t *testing.T) (*Handler, string) {
 	return handler, rawAPIKey
 }
 
-func createEndpointWithId(t *testing.T, store dataservices.DataStore, endpointID portaineree.EndpointID) portaineree.Endpoint {
+func createEndpointWithId(t *testing.T, store dataservices.DataStore, endpointID portainer.EndpointID) portaineree.Endpoint {
 	t.Helper()
 
 	endpoint := portaineree.Endpoint{
@@ -117,7 +117,7 @@ func createEndpoint(t *testing.T, store dataservices.DataStore) portaineree.Endp
 	return createEndpointWithId(t, store, 5)
 }
 
-func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID portaineree.EndpointID) portaineree.EdgeStack {
+func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID portainer.EndpointID) portaineree.EdgeStack {
 	t.Helper()
 
 	edgeGroup := portaineree.EdgeGroup{
@@ -125,7 +125,7 @@ func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID port
 		Name:         "EdgeGroup 1",
 		Dynamic:      false,
 		TagIDs:       nil,
-		Endpoints:    []portaineree.EndpointID{endpointID},
+		Endpoints:    []portainer.EndpointID{endpointID},
 		PartialMatch: false,
 	}
 
@@ -134,13 +134,13 @@ func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID port
 		t.Fatal(err)
 	}
 
-	edgeStackID := portaineree.EdgeStackID(14)
+	edgeStackID := portainer.EdgeStackID(14)
 	edgeStack := portaineree.EdgeStack{
 		ID:             edgeStackID,
 		Name:           "test-edge-stack-" + strconv.Itoa(int(edgeStackID)),
-		Status:         map[portaineree.EndpointID]portainer.EdgeStackStatus{},
+		Status:         map[portainer.EndpointID]portainer.EdgeStackStatus{},
 		CreationDate:   time.Now().Unix(),
-		EdgeGroups:     []portaineree.EdgeGroupID{edgeGroup.ID},
+		EdgeGroups:     []portainer.EdgeGroupID{edgeGroup.ID},
 		ProjectPath:    "tmpDir",
 		EntryPoint:     "entrypoint",
 		Version:        237,
@@ -148,9 +148,9 @@ func createEdgeStack(t *testing.T, store dataservices.DataStore, endpointID port
 		DeploymentType: portaineree.EdgeStackDeploymentKubernetes,
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{
+		EdgeStacks: map[portainer.EdgeStackID]bool{
 			edgeStack.ID: true,
 		},
 	}

@@ -1,5 +1,5 @@
 package types
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import portainer "github.com/portainer/portainer/api"
 
-type StoreManifestFunc func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath, manifestPath, projectPath string, err error)
+type StoreManifestFunc func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath, manifestPath, projectPath string, err error)

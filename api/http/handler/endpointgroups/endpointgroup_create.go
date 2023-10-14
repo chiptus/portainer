@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -19,9 +19,9 @@ type endpointGroupCreatePayload struct {
 	// Environment(Endpoint) group description
 	Description string `example:"description"`
 	// List of environment(endpoint) identifiers that will be part of this group
-	AssociatedEndpoints []portaineree.EndpointID `example:"1,3"`
+	AssociatedEndpoints []portainer.EndpointID `example:"1,3"`
 	// List of tag identifiers to which this environment(endpoint) group is associated
-	TagIDs []portaineree.TagID `example:"1,2"`
+	TagIDs []portainer.TagID `example:"1,2"`
 }
 
 func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
@@ -30,7 +30,7 @@ func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
 	}
 
 	if payload.TagIDs == nil {
-		payload.TagIDs = []portaineree.TagID{}
+		payload.TagIDs = []portainer.TagID{}
 	}
 
 	return nil
@@ -45,7 +45,7 @@ func (payload *endpointGroupCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body endpointGroupCreatePayload true "Environment(Endpoint) Group details"
-// @success 200 {object} portaineree.EndpointGroup "Success"
+// @success 200 {object} portainer.EndpointGroup "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /endpoint_groups [post]
@@ -56,7 +56,7 @@ func (handler *Handler) endpointGroupCreate(w http.ResponseWriter, r *http.Reque
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	var endpointGroup *portaineree.EndpointGroup
+	var endpointGroup *portainer.EndpointGroup
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		endpointGroup, err = handler.createEndpointGroup(tx, payload)
 		return err
@@ -73,12 +73,12 @@ func (handler *Handler) endpointGroupCreate(w http.ResponseWriter, r *http.Reque
 	return response.JSON(w, endpointGroup)
 }
 
-func (handler *Handler) createEndpointGroup(tx dataservices.DataStoreTx, payload endpointGroupCreatePayload) (*portaineree.EndpointGroup, error) {
-	endpointGroup := &portaineree.EndpointGroup{
+func (handler *Handler) createEndpointGroup(tx dataservices.DataStoreTx, payload endpointGroupCreatePayload) (*portainer.EndpointGroup, error) {
+	endpointGroup := &portainer.EndpointGroup{
 		Name:               payload.Name,
 		Description:        payload.Description,
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 	}
 

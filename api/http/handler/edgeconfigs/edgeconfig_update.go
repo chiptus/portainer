@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/unique"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -17,7 +18,7 @@ import (
 
 type edgeConfigUpdatePayload struct {
 	Type         string
-	EdgeGroupIDs []portaineree.EdgeGroupID
+	EdgeGroupIDs []portainer.EdgeGroupID
 }
 
 func (p *edgeConfigUpdatePayload) Validate(r *http.Request) error {
@@ -72,7 +73,7 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid JWT token", err)
 	}
 
-	var endpointIDsToUpdate []portaineree.EndpointID
+	var endpointIDsToUpdate []portainer.EndpointID
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		nextRelatedEndpointIDs, err := h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
 		if err != nil {

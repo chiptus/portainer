@@ -3,7 +3,7 @@ package edgestacks
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -37,7 +37,7 @@ func (handler *Handler) edgeStackLogsStatusGet(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	edgeStackLog, err := handler.DataStore.EdgeStackLog().EdgeStackLog(portaineree.EdgeStackID(edgeStackID), portaineree.EndpointID(endpointID))
+	edgeStackLog, err := handler.DataStore.EdgeStackLog().EdgeStackLog(portainer.EdgeStackID(edgeStackID), portainer.EndpointID(endpointID))
 
 	resp := edgeStackLogsStatusResponse{"collected"}
 

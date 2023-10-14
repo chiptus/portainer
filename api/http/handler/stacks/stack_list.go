@@ -7,6 +7,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -68,14 +69,14 @@ func (handler *Handler) stackList(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to retrieve user information from the database", err)
 	}
 
-	_, hasEndpointResourcesAccess := user.EndpointAuthorizations[portaineree.EndpointID(filters.EndpointID)][portaineree.EndpointResourcesAccess]
+	_, hasEndpointResourcesAccess := user.EndpointAuthorizations[portainer.EndpointID(filters.EndpointID)][portaineree.EndpointResourcesAccess]
 
 	if !securityContext.IsAdmin && !hasEndpointResourcesAccess {
 		if filters.IncludeOrphanedStacks {
 			return httperror.Forbidden("Permission denied to access orphaned stacks", httperrors.ErrUnauthorized)
 		}
 
-		userTeamIDs := make([]portaineree.TeamID, 0)
+		userTeamIDs := make([]portainer.TeamID, 0)
 		for _, membership := range securityContext.UserMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
@@ -107,7 +108,7 @@ func filterStacks(stacks []portaineree.Stack, filters *stackListOperationFilters
 			continue
 		}
 
-		if stack.Type == portaineree.DockerComposeStack && stack.EndpointID == portaineree.EndpointID(filters.EndpointID) {
+		if stack.Type == portaineree.DockerComposeStack && stack.EndpointID == portainer.EndpointID(filters.EndpointID) {
 			filteredStacks = append(filteredStacks, stack)
 		}
 		if stack.Type == portaineree.DockerSwarmStack && stack.SwarmID == filters.SwarmID {

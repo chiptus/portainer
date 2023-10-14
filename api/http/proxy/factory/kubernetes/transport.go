@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -123,7 +124,7 @@ func (transport *baseTransport) RoundTrip(request *http.Request) (*http.Response
 	return transport.proxyKubernetesRequest(request)
 }
 
-func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpointID portaineree.EndpointID) (string, error) {
+func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpointID portainer.EndpointID) (string, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return "", err
@@ -172,7 +173,7 @@ func decorateAgentDockerHubRequest(r *http.Request, dataStore dataservices.DataS
 	}
 
 	if registryID != 0 {
-		registry, err = dataStore.Registry().Read(portaineree.RegistryID(registryID))
+		registry, err = dataStore.Registry().Read(portainer.RegistryID(registryID))
 		if err != nil {
 			return fmt.Errorf("failed fetching registry: %w", err)
 		}

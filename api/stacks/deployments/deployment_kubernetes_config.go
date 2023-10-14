@@ -12,6 +12,7 @@ import (
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/rs/zerolog/log"
@@ -22,7 +23,7 @@ type KubernetesStackDeploymentConfig struct {
 	stack                   *portaineree.Stack
 	kubernetesDeployer      portaineree.KubernetesDeployer
 	appLabel                k.KubeAppLabels
-	tokenData               *portaineree.TokenData
+	tokenData               *portainer.TokenData
 	endpoint                *portaineree.Endpoint
 	authorizationService    *authorization.Service
 	kubernetesClientFactory *cli.ClientFactory
@@ -32,7 +33,7 @@ type KubernetesStackDeploymentConfig struct {
 func CreateKubernetesStackDeploymentConfig(stack *portaineree.Stack,
 	kubeDeployer portaineree.KubernetesDeployer,
 	appLabels k.KubeAppLabels,
-	tokenData *portaineree.TokenData,
+	tokenData *portainer.TokenData,
 	endpoint *portaineree.Endpoint,
 	authService *authorization.Service,
 	k8sClientFactory *cli.ClientFactory) (*KubernetesStackDeploymentConfig, error) {

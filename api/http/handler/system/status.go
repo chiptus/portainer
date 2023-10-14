@@ -3,8 +3,8 @@ package system
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/demo"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
@@ -12,7 +12,7 @@ import (
 )
 
 type status struct {
-	*portaineree.Status
+	*portainer.Status
 	DemoEnvironment demo.EnvironmentDetails
 }
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -28,7 +28,7 @@ func (handler *Handler) deleteProfile(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Bad request", errors.New("missing 'id' query parameter"))
 	}
 
-	err = handler.DataStore.FDOProfile().Delete(portaineree.FDOProfileID(id))
+	err = handler.DataStore.FDOProfile().Delete(portainer.FDOProfileID(id))
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete Profile", err)
 	}

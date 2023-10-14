@@ -25,15 +25,15 @@ type edgeStackFromStringPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// List of identifiers of EdgeGroups
-	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
+	EdgeGroups []portainer.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// compose is enabled only for docker environments
 	// kubernetes is enabled only for kubernetes environments
 	// nomad is enabled only for nomad environments
-	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
+	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
-	Registries []portaineree.RegistryID
+	Registries []portainer.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
 	// Pre Pull image
@@ -125,12 +125,12 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 		return stack, nil
 	}
 
-	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+	return handler.edgeStacksService.PersistEdgeStack(tx, stack, func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 		return handler.storeFileContent(tx, stackFolder, payload.DeploymentType, relatedEndpointIds, []byte(payload.StackFileContent))
 	})
 }
 
-func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolder string, deploymentType portaineree.EdgeStackDeploymentType, relatedEndpointIds []portaineree.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
+func (handler *Handler) storeFileContent(tx dataservices.DataStoreTx, stackFolder string, deploymentType portainer.EdgeStackDeploymentType, relatedEndpointIds []portainer.EndpointID, fileContent []byte) (composePath, manifestPath, projectPath string, err error) {
 	hasWrongType, err := hasWrongEnvironmentType(tx.Endpoint(), relatedEndpointIds, deploymentType)
 	if err != nil {
 		return "", "", "", fmt.Errorf("unable to check for existence of non fitting environments: %w", err)

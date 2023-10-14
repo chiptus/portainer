@@ -18,14 +18,14 @@ import (
 type edgeStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
-	EdgeGroups       []portaineree.EdgeGroupID
+	EdgeGroups       []portainer.EdgeGroupID
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// compose is enabled only for docker environments
 	// kubernetes is enabled only for kubernetes environments
 	// nomad is enabled only for nomad environments
-	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
-	Registries     []portaineree.RegistryID
+	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
+	Registries     []portainer.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
 	// Pre Pull image
@@ -54,7 +54,7 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 	}
 	payload.StackFileContent = composeFileContent
 
-	var edgeGroups []portaineree.EdgeGroupID
+	var edgeGroups []portainer.EdgeGroupID
 	err = request.RetrieveMultiPartFormJSONValue(r, "EdgeGroups", &edgeGroups, false)
 	if err != nil || len(edgeGroups) == 0 {
 		return httperrors.NewInvalidPayloadError("Edge Groups are mandatory for an Edge stack")
@@ -65,12 +65,12 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 	if err != nil {
 		return httperrors.NewInvalidPayloadError("Invalid deployment type")
 	}
-	payload.DeploymentType = portaineree.EdgeStackDeploymentType(deploymentType)
+	payload.DeploymentType = portainer.EdgeStackDeploymentType(deploymentType)
 	if payload.DeploymentType != portaineree.EdgeStackDeploymentCompose && payload.DeploymentType != portaineree.EdgeStackDeploymentKubernetes && payload.DeploymentType != portaineree.EdgeStackDeploymentNomad {
 		return httperrors.NewInvalidPayloadError("Invalid deployment type")
 	}
 
-	var registries []portaineree.RegistryID
+	var registries []portainer.RegistryID
 	err = request.RetrieveMultiPartFormJSONValue(r, "Registries", &registries, true)
 	if err != nil {
 		return httperrors.NewInvalidPayloadError("Invalid registry type")
@@ -172,7 +172,7 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 	return handler.edgeStacksService.PersistEdgeStack(
 		tx,
 		stack,
-		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+		func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 			return handler.storeFileContent(tx, stackFolder, payload.DeploymentType, relatedEndpointIds, payload.StackFileContent)
 		},
 	)

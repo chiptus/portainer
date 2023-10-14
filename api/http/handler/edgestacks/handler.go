@@ -76,7 +76,7 @@ func NewHandler(
 	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
 
 	edgeStackAdminRouter := adminRouter.PathPrefix("/edge_stacks/{id}").Subrouter()
-	edgeStackAdminRouter.Use(middlewares.WithItem(func(id portaineree.EdgeStackID) (*portaineree.EdgeStack, error) {
+	edgeStackAdminRouter.Use(middlewares.WithItem(func(id portainer.EdgeStackID) (*portaineree.EdgeStack, error) {
 		return dataStore.EdgeStack().EdgeStack(id)
 	}, "id", contextKey))
 

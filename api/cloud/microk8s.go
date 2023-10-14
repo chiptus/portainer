@@ -12,17 +12,18 @@ import (
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
 
 type (
 	Microk8sUpgradeRequest struct {
-		EndpointID portaineree.EndpointID `json:"EndpointID"`
+		EndpointID portainer.EndpointID `json:"EndpointID"`
 	}
 
 	Microk8sUpdateAddonsRequest struct {
-		EndpointID portaineree.EndpointID `json:"EndpointID"`
+		EndpointID portainer.EndpointID `json:"EndpointID"`
 
 		Addons []portaineree.MicroK8sAddon `json:"addons,omitempty"`
 	}
@@ -431,10 +432,10 @@ func (service *CloudInfoService) Microk8sVersion(credential *models.CloudCredent
 		portaineree.CloudProviderMicrok8s,
 	).Msg("processing version request")
 
-	return mk8s.GetCurrentVersion(service.dataStore, credential, portaineree.EndpointID(environmentID))
+	return mk8s.GetCurrentVersion(service.dataStore, credential, portainer.EndpointID(environmentID))
 }
 
-func (service *CloudManagementService) GetSSHConnection(environmentID portaineree.EndpointID, credential *models.CloudCredential) (*sshUtil.SSHConnection, error) {
+func (service *CloudManagementService) GetSSHConnection(environmentID portainer.EndpointID, credential *models.CloudCredential) (*sshUtil.SSHConnection, error) {
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
@@ -464,13 +465,13 @@ func (service *CloudManagementService) GetSSHConnection(environmentID portainere
 	return sshClient, nil
 }
 
-func (service *CloudManagementService) Microk8sGetAddons(environmentID portaineree.EndpointID, credential *models.CloudCredential) (*mk8s.Microk8sStatusResponse, error) {
+func (service *CloudManagementService) Microk8sGetAddons(environmentID portainer.EndpointID, credential *models.CloudCredential) (*mk8s.Microk8sStatusResponse, error) {
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
 	).Msgf("Getting addons for environment %d", environmentID)
 
-	conn, err := service.GetSSHConnection(portaineree.EndpointID(environmentID), credential)
+	conn, err := service.GetSSHConnection(portainer.EndpointID(environmentID), credential)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +492,7 @@ func (service *CloudManagementService) Microk8sGetNodeIPs(credential *models.Clo
 		portaineree.CloudProviderMicrok8s,
 	).Msgf("Getting nodes for environment %d", environmentID)
 
-	conn, err := service.GetSSHConnection(portaineree.EndpointID(environmentID), credential)
+	conn, err := service.GetSSHConnection(portainer.EndpointID(environmentID), credential)
 	if err != nil {
 		return nil, err
 	}

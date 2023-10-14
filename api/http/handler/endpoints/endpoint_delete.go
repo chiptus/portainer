@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -43,12 +44,12 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid boolean query parameter", err)
 	}
 
-	if handler.demoService.IsDemoEnvironment(portaineree.EndpointID(endpointID)) {
+	if handler.demoService.IsDemoEnvironment(portainer.EndpointID(endpointID)) {
 		return httperror.Forbidden(httperrors.ErrNotAvailableInDemo.Error(), httperrors.ErrNotAvailableInDemo)
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.deleteEndpoint(tx, portaineree.EndpointID(endpointID), deleteCluster)
+		return handler.deleteEndpoint(tx, portainer.EndpointID(endpointID), deleteCluster)
 	})
 	if err != nil {
 		var handlerError *httperror.HandlerError
@@ -62,8 +63,8 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 	return response.Empty(w)
 }
 
-func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, deleteCluster bool) error {
-	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, deleteCluster bool) error {
+	endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -133,7 +134,7 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		var tag *portaineree.Tag
+		var tag *portainer.Tag
 		tag, err = tx.Tag().Read(tagID)
 		if err == nil {
 			delete(tag.Endpoints, endpoint.ID)
@@ -153,7 +154,7 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 	}
 
 	for _, edgeGroup := range edgeGroups {
-		edgeGroup.Endpoints = slices.DeleteFunc(edgeGroup.Endpoints, func(e portaineree.EndpointID) bool {
+		edgeGroup.Endpoints = slices.DeleteFunc(edgeGroup.Endpoints, func(e portainer.EndpointID) bool {
 			return e == endpoint.ID
 		})
 
@@ -220,7 +221,7 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 		return httperror.InternalServerError("Unable to update edge configurations", err)
 	}
 
-	err = tx.Endpoint().DeleteEndpoint(portaineree.EndpointID(endpointID))
+	err = tx.Endpoint().DeleteEndpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to delete the environment from the database", err)
 	}
@@ -248,7 +249,7 @@ func (handler *Handler) deleteAccessPolicies(endpoint portaineree.Endpoint) erro
 			return
 		}
 
-		emptyPolicies := make(map[string]portaineree.K8sNamespaceAccessPolicy)
+		emptyPolicies := make(map[string]portainer.K8sNamespaceAccessPolicy)
 		err = kcl.UpdateNamespaceAccessPolicies(emptyPolicies)
 		if err != nil {
 			log.Error().Err(err).Msgf("Unable to update environment namespace access while deleting environment @ %d", int(endpoint.ID))

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -46,21 +47,21 @@ func (handler *Handler) edgeStackLogsCollect(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
+	edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(edgeStackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("The edge stack was not found", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Could not retrieve the edge stack from the database", err)
 	}
 
-	err = handler.edgeAsyncService.AddLogCommand(edgeStack, portaineree.EndpointID(endpointID), tail)
+	err = handler.edgeAsyncService.AddLogCommand(edgeStack, portainer.EndpointID(endpointID), tail)
 	if err != nil {
 		return httperror.InternalServerError("Could not store the log collection request", err)
 	}
 
 	err = handler.DataStore.EdgeStackLog().Create(&portaineree.EdgeStackLog{
 		EdgeStackID: edgeStack.ID,
-		EndpointID:  portaineree.EndpointID(endpointID),
+		EndpointID:  portainer.EndpointID(endpointID),
 	})
 	if err != nil {
 		return httperror.InternalServerError("Could not store the log collection status", err)

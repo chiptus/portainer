@@ -3,31 +3,31 @@ package kubernetes
 import (
 	"sync"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // TokenCacheManager represents a service used to manage multiple tokenCache objects.
 type TokenCacheManager struct {
-	tokenCaches map[portaineree.EndpointID]*tokenCache
+	tokenCaches map[portainer.EndpointID]*tokenCache
 	mu          sync.Mutex
 }
 
 type tokenCache struct {
-	userTokenCache map[portaineree.UserID]string
+	userTokenCache map[portainer.UserID]string
 	mu             sync.Mutex
 }
 
 // NewTokenCacheManager returns a pointer to a new instance of TokenCacheManager
 func NewTokenCacheManager() *TokenCacheManager {
 	return &TokenCacheManager{
-		tokenCaches: make(map[portaineree.EndpointID]*tokenCache),
+		tokenCaches: make(map[portainer.EndpointID]*tokenCache),
 	}
 }
 
 // GetOrCreateTokenCache will get the tokenCache from the manager map of caches if it exists,
 // otherwise it will create a new tokenCache object, associate it to the manager map of caches
 // and return a pointer to that tokenCache instance.
-func (manager *TokenCacheManager) GetOrCreateTokenCache(endpointID portaineree.EndpointID) *tokenCache {
+func (manager *TokenCacheManager) GetOrCreateTokenCache(endpointID portainer.EndpointID) *tokenCache {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
 
@@ -36,7 +36,7 @@ func (manager *TokenCacheManager) GetOrCreateTokenCache(endpointID portaineree.E
 	}
 
 	tc := &tokenCache{
-		userTokenCache: make(map[portaineree.UserID]string),
+		userTokenCache: make(map[portainer.UserID]string),
 	}
 
 	manager.tokenCaches[endpointID] = tc
@@ -45,7 +45,7 @@ func (manager *TokenCacheManager) GetOrCreateTokenCache(endpointID portaineree.E
 }
 
 // RemoveUserFromCache will ensure that the specific userID is removed from all registered caches.
-func (manager *TokenCacheManager) RemoveUserFromCache(userID portaineree.UserID) {
+func (manager *TokenCacheManager) RemoveUserFromCache(userID portainer.UserID) {
 	manager.mu.Lock()
 	for _, tc := range manager.tokenCaches {
 		tc.removeToken(userID)
@@ -54,7 +54,7 @@ func (manager *TokenCacheManager) RemoveUserFromCache(userID portaineree.UserID)
 }
 
 // HandleEndpointAuthUpdate remove all tokens in an endpoint
-func (manager *TokenCacheManager) HandleEndpointAuthUpdate(endpointID portaineree.EndpointID) {
+func (manager *TokenCacheManager) HandleEndpointAuthUpdate(endpointID portainer.EndpointID) {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
 
@@ -62,24 +62,24 @@ func (manager *TokenCacheManager) HandleEndpointAuthUpdate(endpointID portainere
 		return
 	}
 
-	manager.tokenCaches[endpointID].userTokenCache = make(map[portaineree.UserID]string)
+	manager.tokenCaches[endpointID].userTokenCache = make(map[portainer.UserID]string)
 }
 
 // HandleUsersAuthUpdate remove all user's token when all users' auth are updated
 func (manager *TokenCacheManager) HandleUsersAuthUpdate() {
 	manager.mu.Lock()
 	for _, cache := range manager.tokenCaches {
-		cache.userTokenCache = make(map[portaineree.UserID]string)
+		cache.userTokenCache = make(map[portainer.UserID]string)
 	}
 	manager.mu.Unlock()
 }
 
 // remove a single user token when his auth is updated
-func (manager *TokenCacheManager) HandleUserAuthDelete(userID portaineree.UserID) {
+func (manager *TokenCacheManager) HandleUserAuthDelete(userID portainer.UserID) {
 	manager.RemoveUserFromCache(userID)
 }
 
-func (cache *tokenCache) getOrAddToken(userID portaineree.UserID, tokenGetFunc func() (string, error)) (string, error) {
+func (cache *tokenCache) getOrAddToken(userID portainer.UserID, tokenGetFunc func() (string, error)) (string, error) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
 
@@ -97,7 +97,7 @@ func (cache *tokenCache) getOrAddToken(userID portaineree.UserID, tokenGetFunc f
 	return tok, nil
 }
 
-func (cache *tokenCache) removeToken(userID portaineree.UserID) {
+func (cache *tokenCache) removeToken(userID portainer.UserID) {
 	cache.mu.Lock()
 	delete(cache.userTokenCache, userID)
 	cache.mu.Unlock()

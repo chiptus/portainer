@@ -19,7 +19,7 @@ import (
 )
 
 // autoUpdate checks if the git repository or env vars have changed and updates the stack if needed
-func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars []portainer.Pair) error {
+func (handler *Handler) autoUpdate(edgeStackId portainer.EdgeStackID, envVars []portainer.Pair) error {
 	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		edgeStack, err := tx.EdgeStack().EdgeStack(edgeStackId)
 		if err != nil {
@@ -120,7 +120,7 @@ func (handler *Handler) autoUpdate(edgeStackId portaineree.EdgeStackID, envVars 
 
 			go handler.staggerService.StartStaggerJobForAsyncUpdate(edgeStack.ID,
 				relatedEndpointIds,
-				set.Set[portaineree.EndpointID]{},
+				set.Set[portainer.EndpointID]{},
 				edgeStack.StackFileVersion)
 
 			return nil

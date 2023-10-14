@@ -4,6 +4,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type Service struct {
@@ -15,7 +16,7 @@ func NewService(store portaineree.UserActivityStore) portaineree.UserActivitySer
 }
 
 // LogAuthActivity logs a new authentication activity log
-func (service *Service) LogAuthActivity(username string, origin string, context portaineree.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) error {
+func (service *Service) LogAuthActivity(username string, origin string, context portainer.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) error {
 	activity := &portaineree.AuthActivityLog{
 		Type: activityType,
 		UserActivityLogBase: portaineree.UserActivityLogBase{

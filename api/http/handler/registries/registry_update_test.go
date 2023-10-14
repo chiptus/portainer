@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +39,7 @@ func TestHandler_registryUpdate(t *testing.T) {
 
 	restrictedContext := &security.RestrictedRequestContext{
 		IsAdmin: true,
-		UserID:  portaineree.UserID(1),
+		UserID:  portainer.UserID(1),
 	}
 
 	ctx := security.StoreRestrictedRequestContext(r, restrictedContext)
@@ -48,10 +49,10 @@ func TestHandler_registryUpdate(t *testing.T) {
 	handler := NewHandler(helper.NewTestRequestBouncer(), helper.NewUserActivityService())
 	handler.DataStore = testDataStore{
 		registry: &testRegistryService{
-			getRegistry: func(_ portaineree.RegistryID) (*portaineree.Registry, error) {
+			getRegistry: func(_ portainer.RegistryID) (*portaineree.Registry, error) {
 				return &registry, nil
 			},
-			updateRegistry: func(ID portaineree.RegistryID, r *portaineree.Registry) error {
+			updateRegistry: func(ID portainer.RegistryID, r *portaineree.Registry) error {
 				assert.Equal(t, ID, r.ID)
 				updatedRegistry = *r
 				return nil

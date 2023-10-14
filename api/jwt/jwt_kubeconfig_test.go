@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	i "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestService_GenerateTokenForKubeconfig(t *testing.T) {
 	}
 
 	type args struct {
-		data *portaineree.TokenData
+		data *portainer.TokenData
 	}
 
 	mySettings := &portaineree.Settings{
@@ -29,7 +30,7 @@ func TestService_GenerateTokenForKubeconfig(t *testing.T) {
 		dataStore:          i.NewDatastore(i.WithSettingsService(mySettings)),
 	}
 
-	myTokenData := &portaineree.TokenData{
+	myTokenData := &portainer.TokenData{
 		Username: "Joe",
 		ID:       1,
 		Role:     1,

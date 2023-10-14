@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -19,10 +20,10 @@ import (
 
 type webhookCreatePayload struct {
 	ResourceID string
-	EndpointID portaineree.EndpointID
-	RegistryID portaineree.RegistryID
+	EndpointID portainer.EndpointID
+	RegistryID portainer.RegistryID
 	// Type of webhook (1 - service, 2 - container)
-	WebhookType portaineree.WebhookType
+	WebhookType portainer.WebhookType
 }
 
 func (payload *webhookCreatePayload) Validate(r *http.Request) error {
@@ -46,7 +47,7 @@ func (payload *webhookCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body webhookCreatePayload true "Webhook data"
-// @success 200 {object} portaineree.Webhook
+// @success 200 {object} portainer.Webhook
 // @failure 400
 // @failure 409
 // @failure 500
@@ -77,7 +78,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
 
-	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookCreate}
+	authorizations := []portainer.Authorization{portaineree.OperationPortainerWebhookCreate}
 
 	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
 	if handlerErr != nil {
@@ -101,7 +102,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 		return httperror.InternalServerError("Error creating unique token", err)
 	}
 
-	webhook = &portaineree.Webhook{
+	webhook = &portainer.Webhook{
 		Token:       token.String(),
 		ResourceID:  payload.ResourceID,
 		EndpointID:  endpointID,

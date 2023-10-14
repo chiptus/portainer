@@ -171,15 +171,15 @@ type stubUserService struct {
 }
 
 func (s *stubUserService) BucketName() string                                        { return "users" }
-func (s *stubUserService) Read(ID portaineree.UserID) (*portaineree.User, error)     { return nil, nil }
+func (s *stubUserService) Read(ID portainer.UserID) (*portaineree.User, error)       { return nil, nil }
 func (s *stubUserService) UserByUsername(username string) (*portaineree.User, error) { return nil, nil }
 func (s *stubUserService) ReadAll() ([]portaineree.User, error)                      { return s.users, nil }
-func (s *stubUserService) UsersByRole(role portaineree.UserRole) ([]portaineree.User, error) {
+func (s *stubUserService) UsersByRole(role portainer.UserRole) ([]portaineree.User, error) {
 	return s.users, nil
 }
-func (s *stubUserService) Create(user *portaineree.User) error                        { return nil }
-func (s *stubUserService) Update(ID portaineree.UserID, user *portaineree.User) error { return nil }
-func (s *stubUserService) Delete(ID portaineree.UserID) error                         { return nil }
+func (s *stubUserService) Create(user *portaineree.User) error                      { return nil }
+func (s *stubUserService) Update(ID portainer.UserID, user *portaineree.User) error { return nil }
+func (s *stubUserService) Delete(ID portainer.UserID) error                         { return nil }
 
 // WithUsers testDatastore option that will instruct testDatastore to return provided users
 func WithUsers(us []portaineree.User) datastoreOption {
@@ -189,45 +189,45 @@ func WithUsers(us []portaineree.User) datastoreOption {
 }
 
 type stubEdgeJobService struct {
-	jobs []portaineree.EdgeJob
+	jobs []portainer.EdgeJob
 }
 
-func (s *stubEdgeJobService) BucketName() string                      { return "edgejobs" }
-func (s *stubEdgeJobService) ReadAll() ([]portaineree.EdgeJob, error) { return s.jobs, nil }
-func (s *stubEdgeJobService) Read(ID portaineree.EdgeJobID) (*portaineree.EdgeJob, error) {
+func (s *stubEdgeJobService) BucketName() string                    { return "edgejobs" }
+func (s *stubEdgeJobService) ReadAll() ([]portainer.EdgeJob, error) { return s.jobs, nil }
+func (s *stubEdgeJobService) Read(ID portainer.EdgeJobID) (*portainer.EdgeJob, error) {
 	return nil, nil
 }
-func (s *stubEdgeJobService) Create(edgeJob *portaineree.EdgeJob) error {
+func (s *stubEdgeJobService) Create(edgeJob *portainer.EdgeJob) error {
 	return nil
 }
-func (s *stubEdgeJobService) CreateWithID(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
+func (s *stubEdgeJobService) CreateWithID(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error {
 	return nil
 }
-func (s *stubEdgeJobService) Update(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
+func (s *stubEdgeJobService) Update(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error {
 	return nil
 }
-func (s *stubEdgeJobService) UpdateEdgeJobFunc(ID portaineree.EdgeJobID, updateFunc func(edgeJob *portaineree.EdgeJob)) error {
+func (s *stubEdgeJobService) UpdateEdgeJobFunc(ID portainer.EdgeJobID, updateFunc func(edgeJob *portainer.EdgeJob)) error {
 	return nil
 }
-func (s *stubEdgeJobService) Delete(ID portaineree.EdgeJobID) error { return nil }
-func (s *stubEdgeJobService) GetNextIdentifier() int                { return 0 }
+func (s *stubEdgeJobService) Delete(ID portainer.EdgeJobID) error { return nil }
+func (s *stubEdgeJobService) GetNextIdentifier() int              { return 0 }
 
 // WithEdgeJobs option will instruct testDatastore to return provided jobs
-func WithEdgeJobs(js []portaineree.EdgeJob) datastoreOption {
+func WithEdgeJobs(js []portainer.EdgeJob) datastoreOption {
 	return func(d *testDatastore) {
 		d.edgeJob = &stubEdgeJobService{jobs: js}
 	}
 }
 
 type stubEndpointRelationService struct {
-	relations []portaineree.EndpointRelation
+	relations []portainer.EndpointRelation
 }
 
 func (s *stubEndpointRelationService) BucketName() string { return "endpoint_relations" }
-func (s *stubEndpointRelationService) EndpointRelations() ([]portaineree.EndpointRelation, error) {
+func (s *stubEndpointRelationService) EndpointRelations() ([]portainer.EndpointRelation, error) {
 	return s.relations, nil
 }
-func (s *stubEndpointRelationService) EndpointRelation(ID portaineree.EndpointID) (*portaineree.EndpointRelation, error) {
+func (s *stubEndpointRelationService) EndpointRelation(ID portainer.EndpointID) (*portainer.EndpointRelation, error) {
 	for _, relation := range s.relations {
 		if relation.EndpointID == ID {
 			return &relation, nil
@@ -236,10 +236,10 @@ func (s *stubEndpointRelationService) EndpointRelation(ID portaineree.EndpointID
 
 	return nil, errors.ErrObjectNotFound
 }
-func (s *stubEndpointRelationService) Create(EndpointRelation *portaineree.EndpointRelation) error {
+func (s *stubEndpointRelationService) Create(EndpointRelation *portainer.EndpointRelation) error {
 	return nil
 }
-func (s *stubEndpointRelationService) UpdateEndpointRelation(ID portaineree.EndpointID, relation *portaineree.EndpointRelation) error {
+func (s *stubEndpointRelationService) UpdateEndpointRelation(ID portainer.EndpointID, relation *portainer.EndpointRelation) error {
 	for i, r := range s.relations {
 		if r.EndpointID == ID {
 			s.relations[i] = *relation
@@ -248,13 +248,13 @@ func (s *stubEndpointRelationService) UpdateEndpointRelation(ID portaineree.Endp
 
 	return nil
 }
-func (s *stubEndpointRelationService) DeleteEndpointRelation(ID portaineree.EndpointID) error {
+func (s *stubEndpointRelationService) DeleteEndpointRelation(ID portainer.EndpointID) error {
 	return nil
 }
 func (s *stubEndpointRelationService) GetNextIdentifier() int { return 0 }
 
 // WithEndpointRelations option will instruct testDatastore to return provided jobs
-func WithEndpointRelations(relations []portaineree.EndpointRelation) datastoreOption {
+func WithEndpointRelations(relations []portainer.EndpointRelation) datastoreOption {
 	return func(d *testDatastore) {
 		d.endpointRelation = &stubEndpointRelationService{relations: relations}
 	}
@@ -297,7 +297,7 @@ type stubEndpointService struct {
 }
 
 func (s *stubEndpointService) BucketName() string { return "endpoints" }
-func (s *stubEndpointService) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error) {
+func (s *stubEndpointService) Endpoint(ID portainer.EndpointID) (*portaineree.Endpoint, error) {
 	for _, endpoint := range s.endpoints {
 		if endpoint.ID == ID {
 			return &endpoint, nil
@@ -307,7 +307,7 @@ func (s *stubEndpointService) Endpoint(ID portaineree.EndpointID) (*portaineree.
 	return nil, errors.ErrObjectNotFound
 }
 
-func (s *stubEndpointService) EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool) {
+func (s *stubEndpointService) EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool) {
 	for _, endpoint := range s.endpoints {
 		if endpoint.EdgeID == edgeID {
 			return endpoint.ID, true
@@ -317,7 +317,7 @@ func (s *stubEndpointService) EndpointIDByEdgeID(edgeID string) (portaineree.End
 	return 0, false
 }
 
-func (s *stubEndpointService) Heartbeat(endpointID portaineree.EndpointID) (int64, bool) {
+func (s *stubEndpointService) Heartbeat(endpointID portainer.EndpointID) (int64, bool) {
 	for i, endpoint := range s.endpoints {
 		if endpoint.ID == endpointID {
 			return s.endpoints[i].LastCheckInDate, true
@@ -327,7 +327,7 @@ func (s *stubEndpointService) Heartbeat(endpointID portaineree.EndpointID) (int6
 	return 0, false
 }
 
-func (s *stubEndpointService) UpdateHeartbeat(endpointID portaineree.EndpointID) {
+func (s *stubEndpointService) UpdateHeartbeat(endpointID portainer.EndpointID) {
 	for i, endpoint := range s.endpoints {
 		if endpoint.ID == endpointID {
 			s.endpoints[i].LastCheckInDate = time.Now().Unix()
@@ -345,7 +345,7 @@ func (s *stubEndpointService) Create(endpoint *portaineree.Endpoint) error {
 	return nil
 }
 
-func (s *stubEndpointService) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
+func (s *stubEndpointService) UpdateEndpoint(ID portainer.EndpointID, endpoint *portaineree.Endpoint) error {
 	for i, e := range s.endpoints {
 		if e.ID == ID {
 			s.endpoints[i] = *endpoint
@@ -355,7 +355,7 @@ func (s *stubEndpointService) UpdateEndpoint(ID portaineree.EndpointID, endpoint
 	return nil
 }
 
-func (s *stubEndpointService) DeleteEndpoint(ID portaineree.EndpointID) error {
+func (s *stubEndpointService) DeleteEndpoint(ID portainer.EndpointID) error {
 	endpoints := []portaineree.Endpoint{}
 
 	for _, endpoint := range s.endpoints {
@@ -377,7 +377,7 @@ func (s *stubEndpointService) GetNextIdentifier() int {
 	return len(s.endpoints)
 }
 
-func (s *stubEndpointService) SetMessage(id portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+func (s *stubEndpointService) SetMessage(id portainer.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
 	endpoint, _ := s.Endpoint(id)
 	endpoint.StatusMessage = statusMessage
 

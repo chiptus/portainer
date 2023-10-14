@@ -30,7 +30,7 @@ func (migrator *Migrator) assignEdgeGroupsToEdgeUpdatesForDB100() error {
 			return err
 		}
 
-		environmentIds := make([]portaineree.EndpointID, len(update.EnvironmentsPreviousVersions))
+		environmentIds := make([]portainer.EndpointID, len(update.EnvironmentsPreviousVersions))
 		i := 0
 		for id := range update.EnvironmentsPreviousVersions {
 			environmentIds[i] = id
@@ -54,7 +54,7 @@ func (migrator *Migrator) assignEdgeGroupsToEdgeUpdatesForDB100() error {
 			return err
 		}
 
-		edgeStack.EdgeGroups = []portaineree.EdgeGroupID{edgeGroup.ID}
+		edgeStack.EdgeGroups = []portainer.EdgeGroupID{edgeGroup.ID}
 		err = migrator.edgeStackService.UpdateEdgeStack(edgeStack.ID, edgeStack, true)
 		if err != nil {
 			return err
@@ -231,7 +231,7 @@ func (m *Migrator) migrateCloudProviderAddonsForDB100() error {
 }
 
 func (m *Migrator) convertSeedToPrivateKeyForDB100() error {
-	var serverInfo *portaineree.TunnelServerInfo
+	var serverInfo *portainer.TunnelServerInfo
 
 	serverInfo, err := m.TunnelServerService.Info()
 	if err != nil {
@@ -363,7 +363,7 @@ func (m *Migrator) fixPotentialUpdateScheduleDBCorruptionForDB100() error {
 		return err
 	}
 
-	edgeStackIDs := make(map[portaineree.EdgeStackID]bool, len(edgeStacks))
+	edgeStackIDs := make(map[portainer.EdgeStackID]bool, len(edgeStacks))
 
 	for _, edgeStack := range edgeStacks {
 		edgeStackIDs[edgeStack.ID] = true

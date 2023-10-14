@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -36,7 +36,7 @@ func (handler *Handler) endpointGroupDeleteEndpoint(w http.ResponseWriter, r *ht
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.removeEndpoint(tx, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
+		return handler.removeEndpoint(tx, portainer.EndpointGroupID(endpointGroupID), portainer.EndpointID(endpointID))
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -50,22 +50,22 @@ func (handler *Handler) endpointGroupDeleteEndpoint(w http.ResponseWriter, r *ht
 	return response.Empty(w)
 }
 
-func (handler *Handler) removeEndpoint(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, endpointID portaineree.EndpointID) error {
-	_, err := tx.EndpointGroup().Read(portaineree.EndpointGroupID(endpointGroupID))
+func (handler *Handler) removeEndpoint(tx dataservices.DataStoreTx, endpointGroupID portainer.EndpointGroupID, endpointID portainer.EndpointID) error {
+	_, err := tx.EndpointGroup().Read(portainer.EndpointGroupID(endpointGroupID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment group with the specified identifier inside the database", err)
 	}
 
-	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	endpoint.GroupID = portaineree.EndpointGroupID(1)
+	endpoint.GroupID = portainer.EndpointGroupID(1)
 
 	err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {

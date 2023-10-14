@@ -2,6 +2,7 @@ package migrator
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -28,7 +29,7 @@ func (m *Migrator) addGpuInputFieldDB60() error {
 
 	for _, endpoint := range endpoints {
 		if endpoint.Gpus == nil {
-			endpoint.Gpus = []portaineree.Pair{}
+			endpoint.Gpus = []portainer.Pair{}
 			err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 			if err != nil {
 				return err
@@ -57,7 +58,7 @@ func (m *Migrator) updateLdapSettingsEE() error {
 
 	if settings.LDAPSettings.AdminGroupSearchSettings == nil {
 		// The front end requires a slice with a single empty element to allow configuration
-		settings.LDAPSettings.AdminGroupSearchSettings = []portaineree.LDAPGroupSearchSettings{
+		settings.LDAPSettings.AdminGroupSearchSettings = []portainer.LDAPGroupSearchSettings{
 			{},
 		}
 	}

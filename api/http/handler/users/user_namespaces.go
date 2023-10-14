@@ -6,13 +6,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 // namespaceMapping is a struct created only for swagger API generation purposes
-type namespaceMapping map[int]map[string]portaineree.Authorizations
+type namespaceMapping map[int]map[string]portainer.Authorizations
 
 // @id UserNamespaces
 // @summary Retrieves all k8s namespaces for an user
@@ -40,7 +41,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to retrieve user namespaces", errors.ErrUnauthorized)
 	}
 
@@ -50,7 +51,7 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 	}
 
 	// key: endpointID, value: a map between namespace and user's role authorizations
-	results := make(map[int]map[string]portaineree.Authorizations)
+	results := make(map[int]map[string]portainer.Authorizations)
 	for _, endpoint := range endpoints {
 
 		// skip non k8s environments(endpoints)

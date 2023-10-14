@@ -27,12 +27,12 @@ func (service ServiceTx) Update(edgeStackLog *portaineree.EdgeStackLog) error {
 }
 
 // Delete deletes an EdgeStackLog.
-func (service ServiceTx) Delete(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) error {
+func (service ServiceTx) Delete(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) error {
 	key := service.service.generateKey(edgeStackID, endpointID)
 	return service.tx.DeleteObject(BucketName, key)
 }
 
-func (service ServiceTx) EdgeStackLog(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) (*portaineree.EdgeStackLog, error) {
+func (service ServiceTx) EdgeStackLog(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) (*portaineree.EdgeStackLog, error) {
 	key := service.service.generateKey(edgeStackID, endpointID)
 	o := &portaineree.EdgeStackLog{}
 

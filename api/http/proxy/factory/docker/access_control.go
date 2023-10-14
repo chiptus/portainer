@@ -1,9 +1,11 @@
 package docker
 
 import (
-	"github.com/portainer/portainer-ee/api/docker/consts"
 	"net/http"
 	"strings"
+
+	"github.com/portainer/portainer-ee/api/docker/consts"
+	portainer "github.com/portainer/portainer/api"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
@@ -23,7 +25,7 @@ type (
 	resourceLabelsObjectSelector func(map[string]interface{}) map[string]interface{}
 	resourceOperationParameters  struct {
 		resourceIdentifierAttribute string
-		resourceType                portaineree.ResourceControlType
+		resourceType                portainer.ResourceControlType
 		labelsObjectSelector        resourceLabelsObjectSelector
 	}
 )
@@ -45,7 +47,7 @@ func getUniqueElements(items string) []string {
 	return result
 }
 
-func (transport *Transport) newResourceControlFromPortainerLabels(labelsObject map[string]interface{}, resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error) {
+func (transport *Transport) newResourceControlFromPortainerLabels(labelsObject map[string]interface{}, resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error) {
 	if labelsObject[resourceLabelForPortainerPublicResourceControl] != nil {
 		resourceControl := authorization.NewPublicResourceControl(resourceID, resourceType)
 
@@ -70,8 +72,8 @@ func (transport *Transport) newResourceControlFromPortainerLabels(labelsObject m
 	}
 
 	if len(teamNames) > 0 || len(userNames) > 0 {
-		teamIDs := make([]portaineree.TeamID, 0)
-		userIDs := make([]portaineree.UserID, 0)
+		teamIDs := make([]portainer.TeamID, 0)
+		userIDs := make([]portainer.UserID, 0)
 
 		for _, name := range teamNames {
 			team, err := transport.dataStore.Team().TeamByName(name)
@@ -114,7 +116,7 @@ func (transport *Transport) newResourceControlFromPortainerLabels(labelsObject m
 	return nil, nil
 }
 
-func (transport *Transport) createPrivateResourceControl(resourceIdentifier string, resourceType portaineree.ResourceControlType, userID portaineree.UserID) (*portaineree.ResourceControl, error) {
+func (transport *Transport) createPrivateResourceControl(resourceIdentifier string, resourceType portainer.ResourceControlType, userID portainer.UserID) (*portainer.ResourceControl, error) {
 	resourceControl := authorization.NewPrivateResourceControl(resourceIdentifier, resourceType, userID)
 
 	err := transport.dataStore.ResourceControl().Create(resourceControl)
@@ -130,7 +132,7 @@ func (transport *Transport) createPrivateResourceControl(resourceIdentifier stri
 	return resourceControl, nil
 }
 
-func (transport *Transport) getInheritedResourceControlFromServiceOrStack(resourceIdentifier, nodeName string, resourceType portaineree.ResourceControlType, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func (transport *Transport) getInheritedResourceControlFromServiceOrStack(resourceIdentifier, nodeName string, resourceType portainer.ResourceControlType, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nodeName, nil)
 	if err != nil {
 		return nil, err
@@ -200,7 +202,7 @@ func (transport *Transport) applyAccessControlOnResourceList(parameters *resourc
 	return transport.filterResourceList(parameters, resourceData, executor.operationContext)
 }
 
-func (transport *Transport) decorateResourceList(parameters *resourceOperationParameters, resourceData []interface{}, resourceControls []portaineree.ResourceControl) ([]interface{}, error) {
+func (transport *Transport) decorateResourceList(parameters *resourceOperationParameters, resourceData []interface{}, resourceControls []portainer.ResourceControl) ([]interface{}, error) {
 	decoratedResourceData := make([]interface{}, 0)
 
 	for _, resource := range resourceData {
@@ -287,7 +289,7 @@ func (transport *Transport) filterResourceList(parameters *resourceOperationPara
 	return filteredResourceData, nil
 }
 
-func (transport *Transport) findResourceControl(resourceIdentifier string, resourceType portaineree.ResourceControlType, resourceLabelsObject map[string]interface{}, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func (transport *Transport) findResourceControl(resourceIdentifier string, resourceType portainer.ResourceControlType, resourceLabelsObject map[string]interface{}, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	resourceControl := authorization.GetResourceControlByResourceIDAndType(resourceIdentifier, resourceType, resourceControls)
 	if resourceControl != nil {
 		return resourceControl, nil
@@ -329,7 +331,7 @@ func (transport *Transport) findResourceControl(resourceIdentifier string, resou
 	return nil, nil
 }
 
-func getStackResourceIDFromLabels(resourceLabelsObject map[string]string, endpointID portaineree.EndpointID) string {
+func getStackResourceIDFromLabels(resourceLabelsObject map[string]string, endpointID portainer.EndpointID) string {
 	if resourceLabelsObject[consts.SwarmStackNameLabel] != "" {
 		stackName := resourceLabelsObject[consts.SwarmStackNameLabel]
 		return stackutils.ResourceControlID(endpointID, stackName)
@@ -343,7 +345,7 @@ func getStackResourceIDFromLabels(resourceLabelsObject map[string]string, endpoi
 	return ""
 }
 
-func decorateObject(object map[string]interface{}, resourceControl *portaineree.ResourceControl) map[string]interface{} {
+func decorateObject(object map[string]interface{}, resourceControl *portainer.ResourceControl) map[string]interface{} {
 	if object["Portainer"] == nil {
 		object["Portainer"] = make(map[string]interface{})
 	}

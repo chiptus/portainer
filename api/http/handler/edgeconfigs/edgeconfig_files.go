@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -43,7 +44,7 @@ func (h *Handler) edgeConfigFiles(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.BadRequest("Invalid edge configuration identifier route variable", err)
 	}
 
-	endpoint, err := h.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := h.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment", err)
 	}

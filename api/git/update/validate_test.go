@@ -3,29 +3,29 @@ package update
 import (
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_ValidateAutoUpdate(t *testing.T) {
 	tests := []struct {
 		name    string
-		value   *portaineree.AutoUpdateSettings
+		value   *portainer.AutoUpdateSettings
 		wantErr bool
 	}{
 		{
 			name:    "webhook is not a valid UUID",
-			value:   &portaineree.AutoUpdateSettings{Webhook: "fake-webhook"},
+			value:   &portainer.AutoUpdateSettings{Webhook: "fake-webhook"},
 			wantErr: true,
 		},
 		{
 			name:    "incorrect interval value",
-			value:   &portaineree.AutoUpdateSettings{Interval: "1dd2hh3mm"},
+			value:   &portainer.AutoUpdateSettings{Interval: "1dd2hh3mm"},
 			wantErr: true,
 		},
 		{
 			name: "valid auto update",
-			value: &portaineree.AutoUpdateSettings{
+			value: &portainer.AutoUpdateSettings{
 				Webhook:  "8dce8c2f-9ca1-482b-ad20-271e86536ada",
 				Interval: "5h30m40s10ms",
 			},

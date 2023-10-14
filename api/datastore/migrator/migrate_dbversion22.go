@@ -1,7 +1,7 @@
 package migrator
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -15,8 +15,8 @@ func (m *Migrator) updateTagsToDBVersion23() error {
 	}
 
 	for _, tag := range tags {
-		tag.EndpointGroups = make(map[portaineree.EndpointGroupID]bool)
-		tag.Endpoints = make(map[portaineree.EndpointID]bool)
+		tag.EndpointGroups = make(map[portainer.EndpointGroupID]bool)
+		tag.Endpoints = make(map[portainer.EndpointID]bool)
 
 		err = m.tagService.Update(tag.ID, &tag)
 		if err != nil {
@@ -35,7 +35,7 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 		return err
 	}
 
-	tagsNameMap := make(map[string]portaineree.Tag)
+	tagsNameMap := make(map[string]portainer.Tag)
 	for _, tag := range tags {
 		tagsNameMap[tag.Name] = tag
 	}
@@ -46,7 +46,7 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 	}
 
 	for _, endpoint := range endpoints {
-		endpointTags := make([]portaineree.TagID, 0)
+		endpointTags := make([]portainer.TagID, 0)
 		for _, tagName := range endpoint.Tags {
 			tag, ok := tagsNameMap[tagName]
 			if ok {
@@ -60,9 +60,9 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 			return err
 		}
 
-		relation := &portaineree.EndpointRelation{
+		relation := &portainer.EndpointRelation{
 			EndpointID: endpoint.ID,
-			EdgeStacks: map[portaineree.EdgeStackID]bool{},
+			EdgeStacks: map[portainer.EdgeStackID]bool{},
 		}
 
 		err = m.endpointRelationService.Create(relation)
@@ -77,7 +77,7 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 	}
 
 	for _, endpointGroup := range endpointGroups {
-		endpointGroupTags := make([]portaineree.TagID, 0)
+		endpointGroupTags := make([]portainer.TagID, 0)
 		for _, tagName := range endpointGroup.Tags {
 			tag, ok := tagsNameMap[tagName]
 			if ok {

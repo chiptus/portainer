@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +29,7 @@ func TestHandler_webhookInvoke(t *testing.T) {
 	webhookID := newGuidString(t)
 	err = h.DataStore.EdgeStack().Create(1, &portaineree.EdgeStack{
 		ID: 1,
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			Webhook: webhookID,
 		},
 	})

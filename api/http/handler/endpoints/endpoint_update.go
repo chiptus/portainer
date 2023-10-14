@@ -29,7 +29,7 @@ type endpointUpdatePayload struct {
 	// Defaults to URL if not specified
 	PublicURL *string `example:"docker.mydomain.tld:2375"`
 	// GPUs information
-	Gpus []portaineree.Pair
+	Gpus []portainer.Pair
 	// Group identifier
 	GroupID *int `example:"1"`
 	// Require TLS to connect against this environment(endpoint)
@@ -47,9 +47,9 @@ type endpointUpdatePayload struct {
 	// Azure authentication key
 	AzureAuthenticationKey *string `example:"cOrXoK/1D35w8YQ8nH1/8ZGwzz45JIYD5jxHKXEQknk="`
 	// List of tag identifiers to which this environment(endpoint) is associated
-	TagIDs             []portaineree.TagID `example:"1,2"`
-	UserAccessPolicies portaineree.UserAccessPolicies
-	TeamAccessPolicies portaineree.TeamAccessPolicies
+	TagIDs             []portainer.TagID `example:"1,2"`
+	UserAccessPolicies portainer.UserAccessPolicies
+	TeamAccessPolicies portainer.TeamAccessPolicies
 	// Associated Kubernetes data
 	Kubernetes *portaineree.KubernetesData
 	// Whether GitOps update time restrictions are enabled
@@ -123,7 +123,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -216,7 +216,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		}
 
 		if payload.GroupID != nil {
-			groupID := portaineree.EndpointGroupID(*payload.GroupID)
+			groupID := portainer.EndpointGroupID(*payload.GroupID)
 
 			updateRelations = updateRelations || groupID != endpoint.GroupID
 			endpoint.GroupID = groupID
@@ -254,9 +254,9 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if payload.Status != nil {
 			switch *payload.Status {
 			case 1:
-				endpoint.Status = portaineree.EndpointStatusUp
+				endpoint.Status = portainer.EndpointStatusUp
 			case 2:
-				endpoint.Status = portaineree.EndpointStatusDown
+				endpoint.Status = portainer.EndpointStatusDown
 			}
 		}
 
@@ -344,7 +344,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		if endpoint.Type == portaineree.KubernetesLocalEnvironment || endpoint.Type == portaineree.AgentOnKubernetesEnvironment || endpoint.Type == portaineree.EdgeAgentOnKubernetesEnvironment {
 			err = handler.AuthorizationService.CleanNAPWithOverridePolicies(handler.DataStore, endpoint, nil)
 			if err != nil {
-				handler.PendingActionsService.Create(portaineree.PendingActions{
+				handler.PendingActionsService.Create(portainer.PendingActions{
 					EndpointID: endpoint.ID,
 					Action:     "CleanNAPWithOverridePolicies",
 					ActionData: nil,
@@ -382,7 +382,7 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 			err = kubeClient.UpsertPortainerK8sClusterRoles(endpoint.Kubernetes.Configuration)
 			if err != nil {
-				handler.PendingActionsService.Create(portaineree.PendingActions{
+				handler.PendingActionsService.Create(portainer.PendingActions{
 					EndpointID: endpoint.ID,
 					Action:     "UpsertPortainerK8sClusterRoles",
 					ActionData: nil,

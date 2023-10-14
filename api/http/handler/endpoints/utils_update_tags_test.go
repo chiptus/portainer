@@ -6,18 +6,19 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_updateTags(t *testing.T) {
 
-	createTags := func(store *datastore.Store, tagNames []string) ([]portaineree.Tag, error) {
-		tags := make([]portaineree.Tag, len(tagNames))
+	createTags := func(store *datastore.Store, tagNames []string) ([]portainer.Tag, error) {
+		tags := make([]portainer.Tag, len(tagNames))
 		for index, tagName := range tagNames {
-			tag := &portaineree.Tag{
+			tag := &portainer.Tag{
 				Name:           tagName,
-				Endpoints:      make(map[portaineree.EndpointID]bool),
-				EndpointGroups: make(map[portaineree.EndpointGroupID]bool),
+				Endpoints:      make(map[portainer.EndpointID]bool),
+				EndpointGroups: make(map[portainer.EndpointGroupID]bool),
 			}
 
 			err := store.Tag().Create(tag)
@@ -31,7 +32,7 @@ func Test_updateTags(t *testing.T) {
 		return tags, nil
 	}
 
-	checkTags := func(store *datastore.Store, is *assert.Assertions, tagIDs []portaineree.TagID, endpointID portaineree.EndpointID) {
+	checkTags := func(store *datastore.Store, is *assert.Assertions, tagIDs []portainer.TagID, endpointID portainer.EndpointID) {
 		for _, tagID := range tagIDs {
 			tag, err := store.Tag().Read(tagID)
 			is.NoError(err)
@@ -41,8 +42,8 @@ func Test_updateTags(t *testing.T) {
 		}
 	}
 
-	tagsByName := func(tags []portaineree.Tag, tagNames []string) []portaineree.Tag {
-		result := make([]portaineree.Tag, len(tagNames))
+	tagsByName := func(tags []portainer.Tag, tagNames []string) []portainer.Tag {
+		result := make([]portainer.Tag, len(tagNames))
 		for i, tagName := range tagNames {
 			for j, tag := range tags {
 				if tag.Name == tagName {
@@ -55,8 +56,8 @@ func Test_updateTags(t *testing.T) {
 		return result
 	}
 
-	getIDs := func(tags []portaineree.Tag) []portaineree.TagID {
-		ids := make([]portaineree.TagID, len(tags))
+	getIDs := func(tags []portainer.Tag) []portainer.TagID {
+		ids := make([]portainer.TagID, len(tags))
 		for i, tag := range tags {
 			ids[i] = tag.ID
 		}
@@ -97,7 +98,7 @@ func Test_updateTags(t *testing.T) {
 		is.NoError(err)
 
 		expectedTags := tagsByName(tags, testCase.tagsToApply)
-		expectedTagIDs := make([]portaineree.TagID, len(expectedTags))
+		expectedTagIDs := make([]portainer.TagID, len(expectedTags))
 		for i, tag := range expectedTags {
 			expectedTagIDs[i] = tag.ID
 		}

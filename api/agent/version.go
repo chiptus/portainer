@@ -11,12 +11,13 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/url"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // GetAgentVersionAndPlatform returns the agent version and platform
 //
 // it sends a ping to the agent and parses the version and platform from the headers
-func GetAgentVersionAndPlatform(endpointUrl string, tlsConfig *tls.Config) (portaineree.AgentPlatform, string, error) {
+func GetAgentVersionAndPlatform(endpointUrl string, tlsConfig *tls.Config) (portainer.AgentPlatform, string, error) {
 	httpCli := &http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -70,5 +71,5 @@ func GetAgentVersionAndPlatform(endpointUrl string, tlsConfig *tls.Config) (port
 		return 0, "", errors.New("Agent platform is invalid")
 	}
 
-	return portaineree.AgentPlatform(agentPlatformNumber), version, nil
+	return portainer.AgentPlatform(agentPlatformNumber), version, nil
 }

@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	log "github.com/rs/zerolog/log"
 )
 
@@ -52,14 +53,14 @@ func IsAgentEndpoint(endpoint *portaineree.Endpoint) bool {
 }
 
 // FilterByExcludeIDs receives an environment(endpoint) array and returns a filtered array using an excludeIds param
-func FilterByExcludeIDs(endpoints []portaineree.Endpoint, excludeIds []portaineree.EndpointID) []portaineree.Endpoint {
+func FilterByExcludeIDs(endpoints []portaineree.Endpoint, excludeIds []portainer.EndpointID) []portaineree.Endpoint {
 	if len(excludeIds) == 0 {
 		return endpoints
 	}
 
 	filteredEndpoints := make([]portaineree.Endpoint, 0)
 
-	idsSet := make(map[portaineree.EndpointID]bool)
+	idsSet := make(map[portainer.EndpointID]bool)
 	for _, id := range excludeIds {
 		idsSet[id] = true
 	}
@@ -73,8 +74,8 @@ func FilterByExcludeIDs(endpoints []portaineree.Endpoint, excludeIds []portainer
 }
 
 // EndpointSet receives an environment(endpoint) array and returns a set
-func EndpointSet(endpointIDs []portaineree.EndpointID) map[portaineree.EndpointID]bool {
-	set := map[portaineree.EndpointID]bool{}
+func EndpointSet(endpointIDs []portainer.EndpointID) map[portainer.EndpointID]bool {
+	set := map[portainer.EndpointID]bool{}
 
 	for _, endpointID := range endpointIDs {
 		set[endpointID] = true
@@ -90,7 +91,7 @@ func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointServic
 	defer func() {
 		endpoint.Kubernetes.Flags.IsServerIngressClassDetected = true
 		endpointService.UpdateEndpoint(
-			portaineree.EndpointID(endpoint.ID),
+			portainer.EndpointID(endpoint.ID),
 			endpoint,
 		)
 	}()
@@ -106,9 +107,9 @@ func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointServic
 		return
 	}
 
-	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	var updatedClasses []portainer.KubernetesIngressClassConfig
 	for i := range controllers {
-		var updatedClass portaineree.KubernetesIngressClassConfig
+		var updatedClass portainer.KubernetesIngressClassConfig
 		updatedClass.Name = controllers[i].ClassName
 		updatedClass.Type = controllers[i].Type
 		updatedClasses = append(updatedClasses, updatedClass)
@@ -116,7 +117,7 @@ func InitialIngressClassDetection(endpoint *portaineree.Endpoint, endpointServic
 
 	endpoint.Kubernetes.Configuration.IngressClasses = updatedClasses
 	err = endpointService.UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
+		portainer.EndpointID(endpoint.ID),
 		endpoint,
 	)
 	if err != nil {
@@ -132,7 +133,7 @@ func InitialMetricsDetection(endpoint *portaineree.Endpoint, endpointService dat
 	defer func() {
 		endpoint.Kubernetes.Flags.IsServerMetricsDetected = true
 		endpointService.UpdateEndpoint(
-			portaineree.EndpointID(endpoint.ID),
+			portainer.EndpointID(endpoint.ID),
 			endpoint,
 		)
 	}()
@@ -161,7 +162,7 @@ func storageDetect(endpoint *portaineree.Endpoint, endpointService dataservices.
 	defer func() {
 		endpoint.Kubernetes.Flags.IsServerStorageDetected = true
 		endpointService.UpdateEndpoint(
-			portaineree.EndpointID(endpoint.ID),
+			portainer.EndpointID(endpoint.ID),
 			endpoint,
 		)
 	}()

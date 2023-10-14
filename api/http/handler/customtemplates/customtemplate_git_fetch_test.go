@@ -111,7 +111,7 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	dir, err := os.Getwd()
 	is.NoError(err, "error to get working directory")
 
-	template1 := &portaineree.CustomTemplate{ID: 1, Title: "custom-template-1", ProjectPath: filepath.Join(dir, "fixtures/custom_template_1"), GitConfig: &gittypes.RepoConfig{ConfigFilePath: "test-config-path.txt"}}
+	template1 := &portainer.CustomTemplate{ID: 1, Title: "custom-template-1", ProjectPath: filepath.Join(dir, "fixtures/custom_template_1"), GitConfig: &gittypes.RepoConfig{ConfigFilePath: "test-config-path.txt"}}
 	err = store.CustomTemplateService.Create(template1)
 	is.NoError(err, "error creating custom template 1")
 
@@ -134,8 +134,8 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	h := NewHandler(requestBouncer, store, fileService, gitService, testhelpers.NewUserActivityService())
 
 	// generate two standard users' tokens
-	jwt1, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})
-	jwt2, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user2.ID, Username: user2.Username, Role: user2.Role})
+	jwt1, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})
+	jwt2, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user2.ID, Username: user2.Username, Role: user2.Role})
 
 	t.Run("can return the expected file content by a single call from one user", func(t *testing.T) {
 		singleAPIRequest(h, jwt1, is, "abcdefg")

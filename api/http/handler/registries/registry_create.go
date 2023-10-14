@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -27,7 +28,7 @@ type registryCreatePayload struct {
 	//	6 (DockerHub)
 	//	7 (ECR)
 	//	8 (Github registry)
-	Type portaineree.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8"`
+	Type portainer.RegistryType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8"`
 	// URL or IP address of the Docker registry
 	URL string `example:"registry.mydomain.tld:2375/feed" validate:"required"`
 	// BaseURL required for ProGet registry
@@ -39,13 +40,13 @@ type registryCreatePayload struct {
 	// Password used to authenticate against this registry. required when Authentication is true
 	Password string `example:"registry_password"`
 	// Gitlab specific details, required when type = 4
-	Gitlab portaineree.GitlabRegistryData
+	Gitlab portainer.GitlabRegistryData
 	// Quay specific details, required when type = 1
-	Quay portaineree.QuayRegistryData
+	Quay portainer.QuayRegistryData
 	// Github specific details, required when type = 8
 	Github portaineree.GithubRegistryData
 	// ECR specific details, required when type = 7
-	Ecr portaineree.EcrData
+	Ecr portainer.EcrData
 }
 
 func (payload *registryCreatePayload) Validate(_ *http.Request) error {
@@ -110,7 +111,7 @@ func (handler *Handler) registryCreate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	registry := &portaineree.Registry{
-		Type:             portaineree.RegistryType(payload.Type),
+		Type:             portainer.RegistryType(payload.Type),
 		Name:             payload.Name,
 		URL:              payload.URL,
 		BaseURL:          payload.BaseURL,
@@ -120,7 +121,7 @@ func (handler *Handler) registryCreate(w http.ResponseWriter, r *http.Request) *
 		Gitlab:           payload.Gitlab,
 		Quay:             payload.Quay,
 		Github:           payload.Github,
-		RegistryAccesses: portaineree.RegistryAccesses{},
+		RegistryAccesses: portainer.RegistryAccesses{},
 		Ecr:              payload.Ecr,
 	}
 

@@ -12,7 +12,7 @@ import (
 
 type StaggerPoolKey string
 
-func GetStaggerPoolKey(edgeStackID portaineree.EdgeStackID, stackFileVersion int) StaggerPoolKey {
+func GetStaggerPoolKey(edgeStackID portainer.EdgeStackID, stackFileVersion int) StaggerPoolKey {
 	return StaggerPoolKey(fmt.Sprintf("%d-%d", edgeStackID, stackFileVersion))
 }
 
@@ -74,8 +74,8 @@ func (service *Service) startStaggerPool() {
 				edgeStackID:         newJob.EdgeStackID,
 				currentIndex:        0,
 				length:              0,
-				endpointStatus:      make(map[portaineree.EndpointID]portainer.EdgeStackStatusType, 0),
-				timeoutTimerMap:     make(map[portaineree.EndpointID]*time.Timer, 0),
+				endpointStatus:      make(map[portainer.EndpointID]portainer.EdgeStackStatusType, 0),
+				timeoutTimerMap:     make(map[portainer.EndpointID]*time.Timer, 0),
 				timeout:             timeoutDuration,
 				updateDelay:         updateDelayDuration,
 				updateDelayMap:      make(map[int]time.Time, 0),

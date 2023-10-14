@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libcrypto"
 
 	"github.com/dchest/uniuri"
@@ -40,7 +41,7 @@ func randomInt(min, max int) int {
 }
 
 // NOTE: it needs to be called with the lock acquired
-func (service *Service) getTunnelDetails(endpointID portaineree.EndpointID) *portaineree.TunnelDetails {
+func (service *Service) getTunnelDetails(endpointID portainer.EndpointID) *portaineree.TunnelDetails {
 	if tunnel, ok := service.tunnelDetailsMap[endpointID]; ok {
 		return tunnel
 	}
@@ -57,7 +58,7 @@ func (service *Service) getTunnelDetails(endpointID portaineree.EndpointID) *por
 }
 
 // GetTunnelDetails returns information about the tunnel associated to an environment(endpoint).
-func (service *Service) GetTunnelDetails(endpointID portaineree.EndpointID) portaineree.TunnelDetails {
+func (service *Service) GetTunnelDetails(endpointID portainer.EndpointID) portaineree.TunnelDetails {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -100,7 +101,7 @@ func (service *Service) GetActiveTunnel(endpoint *portaineree.Endpoint) (portain
 
 // SetTunnelStatusToActive update the status of the tunnel associated to the specified environment(endpoint).
 // It sets the status to ACTIVE.
-func (service *Service) SetTunnelStatusToActive(endpointID portaineree.EndpointID) {
+func (service *Service) SetTunnelStatusToActive(endpointID portainer.EndpointID) {
 	service.mu.Lock()
 	tunnel := service.getTunnelDetails(endpointID)
 	tunnel.Status = portaineree.EdgeAgentActive
@@ -114,7 +115,7 @@ func (service *Service) SetTunnelStatusToActive(endpointID portaineree.EndpointI
 // SetTunnelStatusToIdle update the status of the tunnel associated to the specified environment(endpoint).
 // It sets the status to IDLE.
 // It removes any existing credentials associated to the tunnel.
-func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID) {
+func (service *Service) SetTunnelStatusToIdle(endpointID portainer.EndpointID) {
 	service.mu.Lock()
 
 	tunnel := service.getTunnelDetails(endpointID)
@@ -143,7 +144,7 @@ func (service *Service) SetTunnelStatusToIdle(endpointID portaineree.EndpointID)
 // If no port is currently associated to the tunnel, it will associate a random unused port to the tunnel
 // and generate temporary credentials that can be used to establish a reverse tunnel on that port.
 // Credentials are encrypted using the Edge ID associated to the environment(endpoint).
-func (service *Service) SetTunnelStatusToRequired(endpointID portaineree.EndpointID) error {
+func (service *Service) SetTunnelStatusToRequired(endpointID portainer.EndpointID) error {
 	defer cache.Del(endpointID)
 
 	tunnel := service.getTunnelDetails(endpointID)

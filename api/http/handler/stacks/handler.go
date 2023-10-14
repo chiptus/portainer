@@ -95,13 +95,13 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
-func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID, resourceControl *portaineree.ResourceControl) (bool, error) {
+func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedRequestContext, endpointID portainer.EndpointID, resourceControl *portainer.ResourceControl) (bool, error) {
 	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return false, err
 	}
 
-	userTeamIDs := make([]portaineree.TeamID, 0)
+	userTeamIDs := make([]portainer.TeamID, 0)
 	for _, membership := range securityContext.UserMemberships {
 		userTeamIDs = append(userTeamIDs, membership.TeamID)
 	}
@@ -113,7 +113,7 @@ func (handler *Handler) userCanAccessStack(securityContext *security.RestrictedR
 	return stackutils.UserIsAdminOrEndpointAdmin(user, endpointID)
 }
 
-func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
+func (handler *Handler) userIsAdmin(userID portainer.UserID) (bool, error) {
 	user, err := handler.DataStore.User().Read(userID)
 	if err != nil {
 		return false, err
@@ -124,7 +124,7 @@ func (handler *Handler) userIsAdmin(userID portaineree.UserID) (bool, error) {
 	return isAdmin, nil
 }
 
-func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portaineree.EndpointID) (bool, error) {
+func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedRequestContext, endpointID portainer.EndpointID) (bool, error) {
 	user, err := handler.DataStore.User().Read(securityContext.UserID)
 	if err != nil {
 		return false, err
@@ -142,7 +142,7 @@ func (handler *Handler) userCanManageStacks(securityContext *security.Restricted
 	}
 
 	if endpointutils.IsDockerEndpoint(endpoint) && !endpoint.SecuritySettings.AllowStackManagementForRegularUsers {
-		canCreate, err := handler.userCanCreateStack(securityContext, portaineree.EndpointID(endpoint.ID))
+		canCreate, err := handler.userCanCreateStack(securityContext, portainer.EndpointID(endpoint.ID))
 
 		if err != nil {
 			return false, fmt.Errorf("failed to get user from the database: %w", err)
@@ -153,7 +153,7 @@ func (handler *Handler) userCanManageStacks(securityContext *security.Restricted
 	return true, nil
 }
 
-func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID) (bool, error) {
+func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, name string, stackID portainer.StackID) (bool, error) {
 	stacks, err := handler.DataStore.Stack().ReadAll()
 	if err != nil {
 		return false, err
@@ -168,7 +168,7 @@ func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, nam
 	return true, nil
 }
 
-func (handler *Handler) checkUniqueStackNameInKubernetes(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID, namespace string) (bool, error) {
+func (handler *Handler) checkUniqueStackNameInKubernetes(endpoint *portaineree.Endpoint, name string, stackID portainer.StackID, namespace string) (bool, error) {
 	isUniqueStackName, err := handler.checkUniqueStackName(endpoint, name, stackID)
 	if err != nil {
 		return false, err
@@ -193,7 +193,7 @@ func (handler *Handler) checkUniqueStackNameInKubernetes(endpoint *portaineree.E
 	return isUniqueStackName, nil
 }
 
-func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpoint, name string, stackID portaineree.StackID, swarmMode bool) (bool, error) {
+func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpoint, name string, stackID portainer.StackID, swarmMode bool) (bool, error) {
 	isUniqueStackName, err := handler.checkUniqueStackName(endpoint, name, stackID)
 	if err != nil {
 		return false, err

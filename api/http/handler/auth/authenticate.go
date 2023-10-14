@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -212,7 +213,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 func (handler *Handler) writeToken(
 	w http.ResponseWriter,
 	user *portaineree.User,
-	method portaineree.AuthenticationMethod,
+	method portainer.AuthenticationMethod,
 	forceChangePassword bool,
 ) (*authMiddlewareResponse, *httperror.HandlerError) {
 	tokenData := composeTokenData(user, forceChangePassword)
@@ -220,7 +221,7 @@ func (handler *Handler) writeToken(
 	return handler.persistAndWriteToken(w, tokenData, nil, method)
 }
 
-func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portaineree.TokenData, expiryTime *time.Time, method portaineree.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portainer.TokenData, expiryTime *time.Time, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
 		Username: tokenData.Username,
 		Method:   method,
@@ -271,7 +272,7 @@ func (handler *Handler) syncUserTeamsWithLDAPGroups(user *portaineree.User, sett
 				continue
 			}
 
-			membership := &portaineree.TeamMembership{
+			membership := &portainer.TeamMembership{
 				UserID: user.ID,
 				TeamID: team.ID,
 				Role:   portaineree.TeamMember,
@@ -314,7 +315,7 @@ func isLDAPAdmin(username string, ldapService portaineree.LDAPService, ldapSetti
 	return false, nil
 }
 
-func (handler *Handler) updateUserRole(user *portaineree.User, role portaineree.UserRole) error {
+func (handler *Handler) updateUserRole(user *portaineree.User, role portainer.UserRole) error {
 	user.Role = role
 	err := handler.DataStore.User().Update(user.ID, user)
 	return errors.Wrap(err, "unable to update user role inside the database")
@@ -330,7 +331,7 @@ func teamExists(teamName string, ldapGroups []string) bool {
 	return false
 }
 
-func teamMembershipExists(teamID portaineree.TeamID, memberships []portaineree.TeamMembership) bool {
+func teamMembershipExists(teamID portainer.TeamID, memberships []portainer.TeamMembership) bool {
 	for _, membership := range memberships {
 		if membership.TeamID == teamID {
 			return true
@@ -340,8 +341,8 @@ func teamMembershipExists(teamID portaineree.TeamID, memberships []portaineree.T
 	return false
 }
 
-func composeTokenData(user *portaineree.User, forceChangePassword bool) *portaineree.TokenData {
-	return &portaineree.TokenData{
+func composeTokenData(user *portaineree.User, forceChangePassword bool) *portainer.TokenData {
+	return &portainer.TokenData{
 		ID:                  user.ID,
 		Username:            user.Username,
 		Role:                user.Role,

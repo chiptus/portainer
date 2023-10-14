@@ -11,6 +11,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/pkg/errors"
@@ -30,7 +31,7 @@ type (
 		AuthorizedEndpointOperation(*http.Request, *portaineree.Endpoint, bool) error
 		AuthorizedEdgeEndpointOperation(*http.Request, *portaineree.Endpoint) error
 		TrustedEdgeEnvironmentAccess(dataservices.DataStoreTx, *portaineree.Endpoint) error
-		JWTAuthLookup(*http.Request) *portaineree.TokenData
+		JWTAuthLookup(*http.Request) *portainer.TokenData
 	}
 
 	// RequestBouncer represents an entity that manages API request accesses
@@ -47,12 +48,12 @@ type (
 	RestrictedRequestContext struct {
 		IsAdmin         bool
 		IsTeamLeader    bool
-		UserID          portaineree.UserID
-		UserMemberships []portaineree.TeamMembership
+		UserID          portainer.UserID
+		UserMemberships []portainer.TeamMembership
 	}
 
 	// tokenLookup looks up a token in the request
-	tokenLookup func(*http.Request) *portaineree.TokenData
+	tokenLookup func(*http.Request) *portainer.TokenData
 )
 
 const apiKeyHeader = "X-API-KEY"
@@ -360,7 +361,7 @@ func (bouncer *RequestBouncer) mwIsTeamLeader(next http.Handler) http.Handler {
 // A result of a first succeded token lookup would be used for the authentication.
 func (bouncer *RequestBouncer) mwAuthenticateFirst(tokenLookups []tokenLookup, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var token *portaineree.TokenData
+		var token *portainer.TokenData
 
 		for _, lookup := range tokenLookups {
 			token = lookup(r)
@@ -387,7 +388,7 @@ func (bouncer *RequestBouncer) mwAuthenticateFirst(tokenLookups []tokenLookup, n
 }
 
 // JWTAuthLookup looks up a valid bearer in the request.
-func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portaineree.TokenData {
+func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portainer.TokenData {
 	// get token from the Authorization header or query parameter
 	token, err := extractBearerToken(r)
 	if err != nil {
@@ -409,7 +410,7 @@ func (bouncer *RequestBouncer) JWTAuthLookup(r *http.Request) *portaineree.Token
 // If the key is valid/verified, the last updated time of the key is updated.
 // Successful verification of the key will return a TokenData object - since the downstream handlers
 // utilise the token injected in the request context.
-func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portaineree.TokenData {
+func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portainer.TokenData {
 	rawAPIKey, ok := extractAPIKey(r)
 	if !ok {
 		return nil
@@ -422,7 +423,7 @@ func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) *portaineree.TokenD
 		return nil
 	}
 
-	tokenData := &portaineree.TokenData{
+	tokenData := &portainer.TokenData{
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
@@ -492,7 +493,7 @@ func mwSecureHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portaineree.UserID, userRole portaineree.UserRole) (*RestrictedRequestContext, error) {
+func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portainer.UserID, userRole portainer.UserRole) (*RestrictedRequestContext, error) {
 	if userRole == portaineree.AdministratorRole {
 		return &RestrictedRequestContext{
 			IsAdmin: true,

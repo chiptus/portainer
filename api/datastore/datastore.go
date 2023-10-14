@@ -96,7 +96,7 @@ func (store *Store) CheckCurrentEdition() error {
 	edition := portaineree.PortainerCE
 	v, _ := store.VersionService.Version()
 	if v != nil {
-		edition = portaineree.SoftwareEdition(v.Edition)
+		edition = portainer.SoftwareEdition(v.Edition)
 	}
 
 	if edition == portaineree.PortainerCE {

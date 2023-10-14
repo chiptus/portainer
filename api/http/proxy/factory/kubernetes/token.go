@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const defaultServiceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -57,7 +58,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 	userID int, endpointID int,
 ) (string, error) {
 	tokenFunc := func() (string, error) {
-		user, err := manager.dataStore.User().Read(portaineree.UserID(userID))
+		user, err := manager.dataStore.User().Read(portainer.UserID(userID))
 		if err != nil || user == nil {
 			return "", err
 		}
@@ -67,7 +68,7 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 			return "", err
 		}
 
-		endpoint, err := manager.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+		endpoint, err := manager.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 		if err != nil {
 			return "", err
 		}
@@ -111,5 +112,5 @@ func (manager *tokenManager) GetUserServiceAccountToken(
 		return manager.kubecli.GetServiceAccountBearerToken(userID)
 	}
 
-	return manager.tokenCache.getOrAddToken(portaineree.UserID(userID), tokenFunc)
+	return manager.tokenCache.getOrAddToken(portainer.UserID(userID), tokenFunc)
 }

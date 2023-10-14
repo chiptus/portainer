@@ -1,7 +1,6 @@
 package fdoprofile
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -11,7 +10,7 @@ const BucketName = "fdo_profiles"
 
 // Service represents a service for managingFDO Profiles data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.FDOProfile, portaineree.FDOProfileID]
+	dataservices.BaseDataService[portainer.FDOProfile, portainer.FDOProfileID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +21,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.FDOProfile, portaineree.FDOProfileID]{
+		BaseDataService: dataservices.BaseDataService[portainer.FDOProfile, portainer.FDOProfileID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -30,11 +29,11 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // Create assign an ID to a new FDO Profile and saves it.
-func (service *Service) Create(fdoProfile *portaineree.FDOProfile) error {
+func (service *Service) Create(fdoProfile *portainer.FDOProfile) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			fdoProfile.ID = portaineree.FDOProfileID(id)
+			fdoProfile.ID = portainer.FDOProfileID(id)
 			return int(fdoProfile.ID), fdoProfile
 		},
 	)

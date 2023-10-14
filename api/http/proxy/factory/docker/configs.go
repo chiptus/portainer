@@ -9,13 +9,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
 	configObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromConfigLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, configID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromConfigLabels(dockerClient *client.Client, endpointID portainer.EndpointID, configID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	config, _, err := dockerClient.ConfigInspectWithRaw(context.Background(), configID)
 	if err != nil {
 		return nil, err

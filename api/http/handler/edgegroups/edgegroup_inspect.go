@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -29,14 +30,14 @@ func (handler *Handler) edgeGroupInspect(w http.ResponseWriter, r *http.Request)
 
 	var edgeGroup *portaineree.EdgeGroup
 	err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-		edgeGroup, err = getEdgeGroup(tx, portaineree.EdgeGroupID(edgeGroupID))
+		edgeGroup, err = getEdgeGroup(tx, portainer.EdgeGroupID(edgeGroupID))
 		return err
 	})
 
 	return txResponse(w, edgeGroup, err)
 }
 
-func getEdgeGroup(tx dataservices.DataStoreTx, ID portaineree.EdgeGroupID) (*portaineree.EdgeGroup, error) {
+func getEdgeGroup(tx dataservices.DataStoreTx, ID portainer.EdgeGroupID) (*portaineree.EdgeGroup, error) {
 	edgeGroup, err := tx.EdgeGroup().Read(ID)
 	if tx.IsErrObjectNotFound(err) {
 		return nil, httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)

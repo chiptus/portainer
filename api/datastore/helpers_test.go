@@ -4,8 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -32,7 +31,7 @@ func updateVersion(store *Store, v string) {
 	}
 }
 
-func updateEdition(store *Store, edition portaineree.SoftwareEdition) {
+func updateEdition(store *Store, edition portainer.SoftwareEdition) {
 	version, err := store.VersionService.Version()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
@@ -57,12 +56,12 @@ func testVersion(store *Store, versionWant string, t *testing.T) {
 	}
 }
 
-func testEdition(store *Store, editionWant portaineree.SoftwareEdition, t *testing.T) {
+func testEdition(store *Store, editionWant portainer.SoftwareEdition, t *testing.T) {
 	v, err := store.VersionService.Version()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
-	if portaineree.SoftwareEdition(v.Edition) != editionWant {
-		t.Errorf("Expect store edition to be %s but was %s", editionWant.GetEditionLabel(), portaineree.SoftwareEdition(v.Edition).GetEditionLabel())
+	if portainer.SoftwareEdition(v.Edition) != editionWant {
+		t.Errorf("Expect store edition to be %s but was %s", editionWant.GetEditionLabel(), portainer.SoftwareEdition(v.Edition).GetEditionLabel())
 	}
 }

@@ -28,7 +28,7 @@ type (
 // NewManager initializes a new proxy Service
 func NewManager(
 	dataStore dataservices.DataStore,
-	signatureService portaineree.DigitalSignatureService,
+	signatureService portainer.DigitalSignatureService,
 	tunnelService portaineree.ReverseTunnelService,
 	clientFactory *client.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,
@@ -85,7 +85,7 @@ func (manager *Manager) GetEndpointProxy(endpoint *portaineree.Endpoint) http.Ha
 // DeleteEndpointProxy deletes the proxy associated to a key
 // and cleans the k8s environment(endpoint) client cache. DeleteEndpointProxy
 // is currently only called for edge connection clean up and when endpoint is updated
-func (manager *Manager) DeleteEndpointProxy(endpointID portaineree.EndpointID) {
+func (manager *Manager) DeleteEndpointProxy(endpointID portainer.EndpointID) {
 	manager.endpointProxies.Remove(fmt.Sprint(endpointID))
 
 	if manager.k8sClientFactory != nil {

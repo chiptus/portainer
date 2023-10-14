@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +36,7 @@ func (handler *Handler) edgeStackFile(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid edge stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
+	stack, err := handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(stackID))
 	if err != nil {
 		return handler.handlerDBErr(err, "Unable to find an edge stack with the specified identifier inside the database")
 	}

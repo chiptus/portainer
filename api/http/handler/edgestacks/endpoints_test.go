@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,19 +23,19 @@ func Test_hasKubeEndpoint(t *testing.T) {
 	datastore := testhelpers.NewDatastore(testhelpers.WithEndpoints(endpoints))
 
 	tests := []struct {
-		endpointIds []portaineree.EndpointID
+		endpointIds []portainer.EndpointID
 		expected    bool
 	}{
-		{endpointIds: []portaineree.EndpointID{1}, expected: false},
-		{endpointIds: []portaineree.EndpointID{2}, expected: false},
-		{endpointIds: []portaineree.EndpointID{3}, expected: false},
-		{endpointIds: []portaineree.EndpointID{4}, expected: false},
-		{endpointIds: []portaineree.EndpointID{5}, expected: true},
-		{endpointIds: []portaineree.EndpointID{6}, expected: true},
-		{endpointIds: []portaineree.EndpointID{7}, expected: true},
-		{endpointIds: []portaineree.EndpointID{7, 2}, expected: true},
-		{endpointIds: []portaineree.EndpointID{6, 4, 1}, expected: true},
-		{endpointIds: []portaineree.EndpointID{1, 2, 3}, expected: false},
+		{endpointIds: []portainer.EndpointID{1}, expected: false},
+		{endpointIds: []portainer.EndpointID{2}, expected: false},
+		{endpointIds: []portainer.EndpointID{3}, expected: false},
+		{endpointIds: []portainer.EndpointID{4}, expected: false},
+		{endpointIds: []portainer.EndpointID{5}, expected: true},
+		{endpointIds: []portainer.EndpointID{6}, expected: true},
+		{endpointIds: []portainer.EndpointID{7}, expected: true},
+		{endpointIds: []portainer.EndpointID{7, 2}, expected: true},
+		{endpointIds: []portainer.EndpointID{6, 4, 1}, expected: true},
+		{endpointIds: []portainer.EndpointID{1, 2, 3}, expected: false},
 	}
 
 	for _, test := range tests {
@@ -49,7 +50,7 @@ func Test_hasKubeEndpoint(t *testing.T) {
 func Test_hasKubeEndpoint_failWhenEndpointDontExist(t *testing.T) {
 	datastore := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portaineree.Endpoint{}))
 
-	_, err := hasKubeEndpoint(datastore.Endpoint(), []portaineree.EndpointID{1})
+	_, err := hasKubeEndpoint(datastore.Endpoint(), []portainer.EndpointID{1})
 	assert.Error(t, err, "hasKubeEndpoint should fail")
 }
 
@@ -67,19 +68,19 @@ func Test_hasDockerEndpoint(t *testing.T) {
 	datastore := testhelpers.NewDatastore(testhelpers.WithEndpoints(endpoints))
 
 	tests := []struct {
-		endpointIds []portaineree.EndpointID
+		endpointIds []portainer.EndpointID
 		expected    bool
 	}{
-		{endpointIds: []portaineree.EndpointID{1}, expected: true},
-		{endpointIds: []portaineree.EndpointID{2}, expected: true},
-		{endpointIds: []portaineree.EndpointID{3}, expected: false},
-		{endpointIds: []portaineree.EndpointID{4}, expected: true},
-		{endpointIds: []portaineree.EndpointID{5}, expected: false},
-		{endpointIds: []portaineree.EndpointID{6}, expected: false},
-		{endpointIds: []portaineree.EndpointID{7}, expected: false},
-		{endpointIds: []portaineree.EndpointID{7, 2}, expected: true},
-		{endpointIds: []portaineree.EndpointID{6, 4, 1}, expected: true},
-		{endpointIds: []portaineree.EndpointID{1, 2, 3}, expected: true},
+		{endpointIds: []portainer.EndpointID{1}, expected: true},
+		{endpointIds: []portainer.EndpointID{2}, expected: true},
+		{endpointIds: []portainer.EndpointID{3}, expected: false},
+		{endpointIds: []portainer.EndpointID{4}, expected: true},
+		{endpointIds: []portainer.EndpointID{5}, expected: false},
+		{endpointIds: []portainer.EndpointID{6}, expected: false},
+		{endpointIds: []portainer.EndpointID{7}, expected: false},
+		{endpointIds: []portainer.EndpointID{7, 2}, expected: true},
+		{endpointIds: []portainer.EndpointID{6, 4, 1}, expected: true},
+		{endpointIds: []portainer.EndpointID{1, 2, 3}, expected: true},
 	}
 
 	for _, test := range tests {
@@ -94,6 +95,6 @@ func Test_hasDockerEndpoint(t *testing.T) {
 func Test_hasDockerEndpoint_failWhenEndpointDontExist(t *testing.T) {
 	datastore := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portaineree.Endpoint{}))
 
-	_, err := hasDockerEndpoint(datastore.Endpoint(), []portaineree.EndpointID{1})
+	_, err := hasDockerEndpoint(datastore.Endpoint(), []portainer.EndpointID{1})
 	assert.Error(t, err, "hasDockerEndpoint should fail")
 }

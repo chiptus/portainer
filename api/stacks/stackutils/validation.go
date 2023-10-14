@@ -8,7 +8,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
-func IsValidStackFile(stackFileContent []byte, securitySettings *portaineree.EndpointSecuritySettings) error {
+func IsValidStackFile(stackFileContent []byte, securitySettings *portainer.EndpointSecuritySettings) error {
 	composeConfigYAML, err := loader.ParseYAML(stackFileContent)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func IsValidStackFile(stackFileContent []byte, securitySettings *portaineree.End
 	return nil
 }
 
-func ValidateStackFiles(stack *portaineree.Stack, securitySettings *portaineree.EndpointSecuritySettings, fileService portainer.FileService) error {
+func ValidateStackFiles(stack *portaineree.Stack, securitySettings *portainer.EndpointSecuritySettings, fileService portainer.FileService) error {
 	for _, file := range GetStackFilePaths(stack, false) {
 		commitHash := ""
 		if stack.GitConfig != nil {

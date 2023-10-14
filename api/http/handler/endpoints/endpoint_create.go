@@ -50,7 +50,7 @@ type endpointCreatePayload struct {
 	URL                    string
 	EndpointCreationType   endpointCreationEnum
 	PublicURL              string
-	Gpus                   []portaineree.Pair
+	Gpus                   []portainer.Pair
 	GroupID                int
 	TLS                    bool
 	TLSSkipVerify          bool
@@ -61,7 +61,7 @@ type endpointCreatePayload struct {
 	AzureApplicationID     string
 	AzureTenantID          string
 	AzureAuthenticationKey string
-	TagIDs                 []portaineree.TagID
+	TagIDs                 []portainer.TagID
 	EdgeCheckinInterval    int
 	Edge                   struct {
 		AsyncMode           bool
@@ -70,10 +70,10 @@ type endpointCreatePayload struct {
 		CommandInterval     int
 		TunnelServerAddress string
 	}
-	InitialStatus        portaineree.EndpointStatus
+	InitialStatus        portainer.EndpointStatus
 	InitialStatusMessage portaineree.EndpointStatusMessage
 
-	CustomTemplateID      portaineree.CustomTemplateID
+	CustomTemplateID      portainer.CustomTemplateID
 	CustomTemplateContent string
 
 	KubeConfig string
@@ -110,14 +110,14 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	}
 	payload.GroupID = groupID
 
-	var tagIDs []portaineree.TagID
+	var tagIDs []portainer.TagID
 	err = request.RetrieveMultiPartFormJSONValue(r, "TagIds", &tagIDs, true)
 	if err != nil {
 		return errors.New("invalid TagIds parameter")
 	}
 	payload.TagIDs = tagIDs
 	if payload.TagIDs == nil {
-		payload.TagIDs = make([]portaineree.TagID, 0)
+		payload.TagIDs = make([]portainer.TagID, 0)
 	}
 
 	useTLS, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLS", true)
@@ -190,7 +190,7 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		payload.PublicURL = publicURL
 	}
 
-	gpus := make([]portaineree.Pair, 0)
+	gpus := make([]portainer.Pair, 0)
 	err = request.RetrieveMultiPartFormJSONValue(r, "Gpus", &gpus, true)
 	if err != nil {
 		return errors.New("invalid Gpus parameter")
@@ -208,7 +208,7 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	payload.Edge.AsyncMode = asyncMode
 
 	customTemplateID, _ := request.RetrieveNumericMultiPartFormValue(r, "CustomTemplateID", true)
-	payload.CustomTemplateID = portaineree.CustomTemplateID(customTemplateID)
+	payload.CustomTemplateID = portainer.CustomTemplateID(customTemplateID)
 
 	customTemplateContent, _ := request.RetrieveMultiPartFormValue(r, "CustomTemplateContent", true)
 	payload.CustomTemplateContent = customTemplateContent
@@ -391,7 +391,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return httperror.Conflict("Name is not unique", nil)
 	}
 
-	payload.InitialStatus = portaineree.EndpointStatusUp
+	payload.InitialStatus = portainer.EndpointStatusUp
 	payload.InitialStatusMessage = portaineree.EndpointStatusMessage{}
 	if payload.CustomTemplateID != 0 {
 		payload.InitialStatus = portaineree.EndpointStatusProvisioning
@@ -431,9 +431,9 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
 
-	relationObject := &portaineree.EndpointRelation{
+	relationObject := &portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
+		EdgeStacks: map[portainer.EdgeStackID]bool{},
 	}
 
 	if endpointutils.IsEdgeEndpoint(endpoint) {
@@ -540,7 +540,7 @@ func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *end
 }
 
 func (handler *Handler) createAzureEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portaineree.Endpoint, *httperror.HandlerError) {
-	credentials := portaineree.AzureCredentials{
+	credentials := portainer.AzureCredentials{
 		ApplicationID:     payload.AzureApplicationID,
 		TenantID:          payload.AzureTenantID,
 		AuthenticationKey: payload.AzureAuthenticationKey,
@@ -554,15 +554,15 @@ func (handler *Handler) createAzureEndpoint(tx dataservices.DataStoreTx, payload
 
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:                 portaineree.EndpointID(endpointID),
+		ID:                 portainer.EndpointID(endpointID),
 		Name:               payload.Name,
 		URL:                "https://management.azure.com",
 		Type:               portaineree.AzureEnvironment,
-		GroupID:            portaineree.EndpointGroupID(payload.GroupID),
+		GroupID:            portainer.EndpointGroupID(payload.GroupID),
 		PublicURL:          payload.PublicURL,
 		Gpus:               payload.Gpus,
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		AzureCredentials:   credentials,
 		TagIDs:             payload.TagIDs,
 		Status:             payload.InitialStatus,
@@ -612,19 +612,19 @@ func (handler *Handler) createEdgeAgentEndpoint(tx dataservices.DataStoreTx, pay
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(apiServerURL, tunnelServerAddr, endpointID)
 
 	endpoint := &portaineree.Endpoint{
-		ID:      portaineree.EndpointID(endpointID),
+		ID:      portainer.EndpointID(endpointID),
 		Name:    payload.Name,
 		URL:     apiServerURL,
 		Type:    portaineree.EdgeAgentOnDockerEnvironment,
-		GroupID: portaineree.EndpointGroupID(payload.GroupID),
+		GroupID: portainer.EndpointGroupID(payload.GroupID),
 		Gpus:    payload.Gpus,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS: payload.TLS,
 		},
-		AuthorizedUsers:     []portaineree.UserID{},
-		AuthorizedTeams:     []portaineree.TeamID{},
-		UserAccessPolicies:  portaineree.UserAccessPolicies{},
-		TeamAccessPolicies:  portaineree.TeamAccessPolicies{},
+		AuthorizedUsers:     []portainer.UserID{},
+		AuthorizedTeams:     []portainer.TeamID{},
+		UserAccessPolicies:  portainer.UserAccessPolicies{},
+		TeamAccessPolicies:  portainer.TeamAccessPolicies{},
 		TagIDs:              payload.TagIDs,
 		Status:              payload.InitialStatus,
 		StatusMessage:       payload.InitialStatusMessage,
@@ -684,18 +684,18 @@ func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, pay
 
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:        portaineree.EndpointID(endpointID),
+		ID:        portainer.EndpointID(endpointID),
 		Name:      payload.Name,
 		URL:       payload.URL,
 		Type:      endpointType,
-		GroupID:   portaineree.EndpointGroupID(payload.GroupID),
+		GroupID:   portainer.EndpointGroupID(payload.GroupID),
 		PublicURL: payload.PublicURL,
 		Gpus:      payload.Gpus,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS: false,
 		},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             payload.InitialStatus,
 		StatusMessage:      payload.InitialStatusMessage,
@@ -723,19 +723,19 @@ func (handler *Handler) createKubernetesEndpoint(tx dataservices.DataStoreTx, pa
 	endpointID := tx.Endpoint().GetNextIdentifier()
 
 	endpoint := &portaineree.Endpoint{
-		ID:        portaineree.EndpointID(endpointID),
+		ID:        portainer.EndpointID(endpointID),
 		Name:      payload.Name,
 		URL:       payload.URL,
 		Type:      portaineree.KubernetesLocalEnvironment,
-		GroupID:   portaineree.EndpointGroupID(payload.GroupID),
+		GroupID:   portainer.EndpointGroupID(payload.GroupID),
 		PublicURL: payload.PublicURL,
 		Gpus:      payload.Gpus,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS:           payload.TLS,
 			TLSSkipVerify: payload.TLSSkipVerify,
 		},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             payload.InitialStatus,
 		StatusMessage:      payload.InitialStatusMessage,
@@ -776,16 +776,16 @@ func (handler *Handler) createKubeConfigEndpoint(tx dataservices.DataStoreTx, pa
 
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:      portaineree.EndpointID(endpointID),
+		ID:      portainer.EndpointID(endpointID),
 		Name:    payload.Name,
 		Type:    portaineree.AgentOnKubernetesEnvironment,
-		GroupID: portaineree.EndpointGroupID(payload.GroupID),
-		TLSConfig: portaineree.TLSConfiguration{
+		GroupID: portainer.EndpointGroupID(payload.GroupID),
+		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             portaineree.EndpointStatusProvisioning,
 		StatusMessage: portaineree.EndpointStatusMessage{
@@ -821,22 +821,22 @@ func (handler *Handler) createKubeConfigEndpoint(tx dataservices.DataStoreTx, pa
 	return endpoint, nil
 }
 
-func (handler *Handler) createTLSSecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload, endpointType portaineree.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createTLSSecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload, endpointType portainer.EndpointType, agentVersion string) (*portaineree.Endpoint, *httperror.HandlerError) {
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:        portaineree.EndpointID(endpointID),
+		ID:        portainer.EndpointID(endpointID),
 		Name:      payload.Name,
 		URL:       payload.URL,
 		Type:      endpointType,
-		GroupID:   portaineree.EndpointGroupID(payload.GroupID),
+		GroupID:   portainer.EndpointGroupID(payload.GroupID),
 		PublicURL: payload.PublicURL,
 		Gpus:      payload.Gpus,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS:           payload.TLS,
 			TLSSkipVerify: payload.TLSSkipVerify,
 		},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             payload.TagIDs,
 		Status:             payload.InitialStatus,
 		StatusMessage:      payload.InitialStatusMessage,
@@ -882,7 +882,7 @@ func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, 
 }
 
 func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint) error {
-	endpoint.SecuritySettings = portaineree.EndpointSecuritySettings{
+	endpoint.SecuritySettings = portainer.EndpointSecuritySettings{
 		AllowVolumeBrowserForRegularUsers: false,
 		EnableHostManagementFeatures:      false,
 
@@ -913,7 +913,7 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.Data
 	}
 
 	for _, tagID := range endpoint.TagIDs {
-		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portaineree.Tag) {
+		err = handler.DataStore.Tag().UpdateTagFunc(tagID, func(tag *portainer.Tag) {
 			tag.Endpoints[endpoint.ID] = true
 		})
 		if err != nil {
@@ -963,7 +963,7 @@ func (handler *Handler) createEdgeConfigs(tx dataservices.DataStoreTx, endpoint 
 		return err
 	}
 
-	edgeGroupsToEdgeConfigs := make(map[portaineree.EdgeGroupID][]portaineree.EdgeConfigID)
+	edgeGroupsToEdgeConfigs := make(map[portainer.EdgeGroupID][]portaineree.EdgeConfigID)
 	for _, edgeConfig := range edgeConfigs {
 		for _, edgeGroupID := range edgeConfig.EdgeGroupIDs {
 			edgeGroupsToEdgeConfigs[edgeGroupID] = append(edgeGroupsToEdgeConfigs[edgeGroupID], edgeConfig.ID)

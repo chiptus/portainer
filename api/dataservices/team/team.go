@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
@@ -15,7 +14,7 @@ const BucketName = "teams"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.Team, portaineree.TeamID]
+	dataservices.BaseDataService[portainer.Team, portainer.TeamID]
 }
 
 // NewService creates a new instance of a service.
@@ -26,7 +25,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Team, portaineree.TeamID]{
+		BaseDataService: dataservices.BaseDataService[portainer.Team, portainer.TeamID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -34,13 +33,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // TeamByName returns a team by name.
-func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
-	var t portaineree.Team
+func (service *Service) TeamByName(name string) (*portainer.Team, error) {
+	var t portainer.Team
 
 	err := service.Connection.GetAll(
 		BucketName,
-		&portaineree.Team{},
-		dataservices.FirstFn(&t, func(e portaineree.Team) bool {
+		&portainer.Team{},
+		dataservices.FirstFn(&t, func(e portainer.Team) bool {
 			return strings.EqualFold(e.Name, name)
 		}),
 	)
@@ -57,11 +56,11 @@ func (service *Service) TeamByName(name string) (*portaineree.Team, error) {
 }
 
 // CreateTeam creates a new Team.
-func (service *Service) Create(team *portaineree.Team) error {
+func (service *Service) Create(team *portainer.Team) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			team.ID = portaineree.TeamID(id)
+			team.ID = portainer.TeamID(id)
 			return int(team.ID), team
 		},
 	)

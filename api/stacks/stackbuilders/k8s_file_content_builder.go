@@ -21,7 +21,7 @@ type K8sStackFileContentBuilder struct {
 	FileContentMethodStackBuilder
 	stackCreateMut          *sync.Mutex
 	KuberneteDeployer       portaineree.KubernetesDeployer
-	TokenData               *portaineree.TokenData
+	TokenData               *portainer.TokenData
 	AuthorizationService    *authorization.Service
 	KubernetesClientFactory *cli.ClientFactory
 }
@@ -31,7 +31,7 @@ func CreateK8sStackFileContentBuilder(dataStore dataservices.DataStore,
 	fileService portainer.FileService,
 	stackDeployer deployments.StackDeployer,
 	kuberneteDeployer portaineree.KubernetesDeployer,
-	tokenData *portaineree.TokenData,
+	tokenData *portainer.TokenData,
 	AuthorizationService *authorization.Service,
 	KubernetesClientFactory *cli.ClientFactory) *K8sStackFileContentBuilder {
 

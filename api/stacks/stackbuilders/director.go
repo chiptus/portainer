@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -18,7 +19,7 @@ func NewStackBuilderDirector(b interface{}) *StackBuilderDirector {
 	}
 }
 
-func (d *StackBuilderDirector) Build(payload *StackPayload, endpoint *portaineree.Endpoint, userID portaineree.UserID) (*portaineree.Stack, *httperror.HandlerError) {
+func (d *StackBuilderDirector) Build(payload *StackPayload, endpoint *portaineree.Endpoint, userID portainer.UserID) (*portaineree.Stack, *httperror.HandlerError) {
 
 	switch builder := d.builder.(type) {
 	case GitMethodStackBuildProcess:

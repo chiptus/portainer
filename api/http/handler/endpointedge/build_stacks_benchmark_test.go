@@ -17,12 +17,12 @@ import (
 func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error) {
 	_, store := datastore.MustNewTestStore(b, true, false)
 
-	edgeStackID := portaineree.EdgeStackID(1)
+	edgeStackID := portainer.EdgeStackID(1)
 
 	edgeStack := &portaineree.EdgeStack{
 		ID:      edgeStackID,
 		Name:    "myEdgeStack",
-		Status:  make(map[portaineree.EndpointID]portainer.EdgeStackStatus),
+		Status:  make(map[portainer.EndpointID]portainer.EdgeStackStatus),
 		Version: 2,
 	}
 
@@ -32,7 +32,7 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error
 	}
 
 	for i := 1; i < endpointsCount; i++ {
-		endpointID := portaineree.EndpointID(i)
+		endpointID := portainer.EndpointID(i)
 
 		err = store.Endpoint().Create(&portaineree.Endpoint{
 			ID:   endpointID,
@@ -43,9 +43,9 @@ func setupBuildEdgeStacksTest(b testing.TB, endpointsCount int) (*Handler, error
 			return nil, err
 		}
 
-		err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+		err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 			EndpointID: endpointID,
-			EdgeStacks: map[portaineree.EdgeStackID]bool{
+			EdgeStacks: map[portainer.EdgeStackID]bool{
 				edgeStackID: true,
 			},
 		})
@@ -90,7 +90,7 @@ func BenchmarkBuildEdgeStacks(b *testing.B) {
 
 	skipCache := false
 	for i := 0; i < b.N; i++ {
-		h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, &skipCache)
+		h.buildEdgeStacks(h.DataStore, portainer.EndpointID(1), time.UTC, &skipCache)
 	}
 }
 
@@ -112,7 +112,7 @@ func BenchmarkBuildEdgeStacksParallel(b *testing.B) {
 	skipCache := false
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			h.buildEdgeStacks(h.DataStore, portaineree.EndpointID(1), time.UTC, &skipCache)
+			h.buildEdgeStacks(h.DataStore, portainer.EndpointID(1), time.UTC, &skipCache)
 		}
 	})
 }

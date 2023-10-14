@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +36,7 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid Custom template identifier route variable", err)
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().Read(portaineree.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().Read(portainer.CustomTemplateID(customTemplateID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a custom template with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -47,10 +48,10 @@ func (handler *Handler) customTemplateGitFetch(w http.ResponseWriter, r *http.Re
 	}
 
 	// If multiple users are trying to fetch the same custom template simultaneously, a lock needs to be added
-	mu, ok := handler.gitFetchMutexs[portaineree.TemplateID(customTemplateID)]
+	mu, ok := handler.gitFetchMutexs[portainer.TemplateID(customTemplateID)]
 	if !ok {
 		mu = &sync.Mutex{}
-		handler.gitFetchMutexs[portaineree.TemplateID(customTemplateID)] = mu
+		handler.gitFetchMutexs[portainer.TemplateID(customTemplateID)] = mu
 	}
 	mu.Lock()
 	defer mu.Unlock()

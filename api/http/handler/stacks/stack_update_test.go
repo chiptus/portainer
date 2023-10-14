@@ -42,7 +42,7 @@ func testCreateEndpoint(store *datastore.Store) (*portaineree.Endpoint, error) {
 	endpoint := &portaineree.Endpoint{
 		ID:   1,
 		Name: "testEndpoint",
-		SecuritySettings: portaineree.EndpointSecuritySettings{
+		SecuritySettings: portainer.EndpointSecuritySettings{
 			AllowBindMountsForRegularUsers:            true,
 			AllowPrivilegedModeForRegularUsers:        true,
 			AllowVolumeBrowserForRegularUsers:         true,
@@ -126,7 +126,7 @@ func testCreateStackFromAppTemplate(store *datastore.Store, gitService portainer
 		Name:       "testStack1",
 		EndpointID: 1,
 		EntryPoint: "stacks/wordpress/docker-compose.yml",
-		Env: []portaineree.Pair{
+		Env: []portainer.Pair{
 			{Name: "MYSQL_DATABASE_PASSWORD", Value: "wordpress"},
 		},
 		FromAppTemplate: true,
@@ -238,7 +238,7 @@ func testCreatUpdateStackRequest(stackID int, payload []byte) *http.Request {
 
 	ctx := security.StoreRestrictedRequestContext(req, &security.RestrictedRequestContext{
 		IsAdmin: true,
-		UserID:  portaineree.UserID(1),
+		UserID:  portainer.UserID(1),
 	})
 
 	return req.WithContext(ctx)
@@ -285,7 +285,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		yamlContentWithChange := testGetYAMLContentDeployedByGitRepo("FOO: ${FOO}")
 		data := &updateStackPayload{
 			StackFileContent: yamlContentWithChange,
-			Env: []portaineree.Pair{
+			Env: []portainer.Pair{
 				{
 					Name: "MYSQL_DATABASE_PASSWORD", Value: "wordpress"},
 				{

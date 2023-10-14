@@ -9,13 +9,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
 	secretObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromSecretLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, secretID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromSecretLabels(dockerClient *client.Client, endpointID portainer.EndpointID, secretID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	secret, _, err := dockerClient.SecretInspectWithRaw(context.Background(), secretID)
 	if err != nil {
 		return nil, err

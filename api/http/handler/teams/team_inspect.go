@@ -3,9 +3,9 @@ package teams
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -20,7 +20,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Team identifier"
-// @success 200 {object} portaineree.Team "Success"
+// @success 200 {object} portainer.Team "Success"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -38,11 +38,11 @@ func (handler *Handler) teamInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !security.AuthorizedTeamManagement(portaineree.TeamID(teamID), securityContext) {
+	if !security.AuthorizedTeamManagement(portainer.TeamID(teamID), securityContext) {
 		return httperror.Forbidden("Access denied to team", errors.ErrResourceAccessDenied)
 	}
 
-	team, err := handler.DataStore.Team().Read(portaineree.TeamID(teamID))
+	team, err := handler.DataStore.Team().Read(portainer.TeamID(teamID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a team with the specified identifier inside the database", err)
 	} else if err != nil {

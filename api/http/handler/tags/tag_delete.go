@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +36,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return deleteTag(tx, portaineree.TagID(id))
+		return deleteTag(tx, portainer.TagID(id))
 	})
 	if err != nil {
 		var handlerError *httperror.HandlerError
@@ -49,7 +50,7 @@ func (handler *Handler) tagDelete(w http.ResponseWriter, r *http.Request) *httpe
 	return response.Empty(w)
 }
 
-func deleteTag(tx dataservices.DataStoreTx, tagID portaineree.TagID) error {
+func deleteTag(tx dataservices.DataStoreTx, tagID portainer.TagID) error {
 	tag, err := tx.Tag().Read(tagID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a tag with the specified identifier inside the database", err)
@@ -63,7 +64,7 @@ func deleteTag(tx dataservices.DataStoreTx, tagID portaineree.TagID) error {
 			return httperror.InternalServerError("Unable to retrieve environment from the database", err)
 		}
 
-		endpoint.TagIDs = slices.DeleteFunc(endpoint.TagIDs, func(t portaineree.TagID) bool {
+		endpoint.TagIDs = slices.DeleteFunc(endpoint.TagIDs, func(t portainer.TagID) bool {
 			return t == tagID
 		})
 
@@ -79,7 +80,7 @@ func deleteTag(tx dataservices.DataStoreTx, tagID portaineree.TagID) error {
 			return httperror.InternalServerError("Unable to retrieve environment group from the database", err)
 		}
 
-		endpointGroup.TagIDs = slices.DeleteFunc(endpointGroup.TagIDs, func(t portaineree.TagID) bool {
+		endpointGroup.TagIDs = slices.DeleteFunc(endpointGroup.TagIDs, func(t portainer.TagID) bool {
 			return t == tagID
 		})
 
@@ -114,7 +115,7 @@ func deleteTag(tx dataservices.DataStoreTx, tagID portaineree.TagID) error {
 	}
 
 	for _, edgeGroup := range edgeGroups {
-		edgeGroup.TagIDs = slices.DeleteFunc(edgeGroup.TagIDs, func(t portaineree.TagID) bool {
+		edgeGroup.TagIDs = slices.DeleteFunc(edgeGroup.TagIDs, func(t portainer.TagID) bool {
 			return t == tagID
 		})
 
@@ -144,7 +145,7 @@ func updateEndpointRelations(tx dataservices.DataStoreTx, endpoint portaineree.E
 	}
 
 	endpointStacks := edge.EndpointRelatedEdgeStacks(&endpoint, endpointGroup, edgeGroups, edgeStacks)
-	stacksSet := map[portaineree.EdgeStackID]bool{}
+	stacksSet := map[portainer.EdgeStackID]bool{}
 	for _, edgeStackID := range endpointStacks {
 		stacksSet[edgeStackID] = true
 	}

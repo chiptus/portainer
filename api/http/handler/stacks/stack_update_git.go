@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -20,8 +21,8 @@ import (
 )
 
 type stackGitUpdatePayload struct {
-	AutoUpdate                *portaineree.AutoUpdateSettings
-	Env                       []portaineree.Pair
+	AutoUpdate                *portainer.AutoUpdateSettings
+	Env                       []portainer.Pair
 	Prune                     bool
 	RepositoryReferenceName   string
 	RepositoryAuthentication  bool
@@ -68,7 +69,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -86,7 +87,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portaineree.EndpointID(endpointID)
+		stack.EndpointID = portainer.EndpointID(endpointID)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
@@ -150,7 +151,7 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 	stack.UpdateDate = time.Now().Unix()
 
 	if stack.Type == portaineree.DockerSwarmStack {
-		stack.Option = &portaineree.StackOption{
+		stack.Option = &portainer.StackOption{
 			Prune: payload.Prune,
 		}
 	}

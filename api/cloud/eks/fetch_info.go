@@ -8,13 +8,12 @@ import (
 	"strings"
 	"sync"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/pkg/errors"
+	portainer "github.com/portainer/portainer/api"
 	log "github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -83,7 +82,7 @@ func formatMemorySize(sizeInMiB int64) string {
 	return fmt.Sprintf("%dTB", sizeInMiB/1024/1024)
 }
 
-func getRegions(cfg aws.Config) ([]portaineree.Pair, error) {
+func getRegions(cfg aws.Config) ([]portainer.Pair, error) {
 	// Get a list of regions from our default region
 	svc := ec2.NewFromConfig(cfg)
 	result, err := svc.DescribeRegions(context.TODO(), &ec2.DescribeRegionsInput{})
@@ -94,7 +93,7 @@ func getRegions(cfg aws.Config) ([]portaineree.Pair, error) {
 	var lock sync.Mutex
 	errs, _ := errgroup.WithContext(context.TODO())
 
-	var regions []portaineree.Pair
+	var regions []portainer.Pair
 	for _, r := range result.Regions {
 		region := *r.RegionName
 
@@ -106,7 +105,7 @@ func getRegions(cfg aws.Config) ([]portaineree.Pair, error) {
 			}
 
 			lock.Lock()
-			regions = append(regions, portaineree.Pair{Name: longName, Value: region})
+			regions = append(regions, portainer.Pair{Name: longName, Value: region})
 			lock.Unlock()
 
 			return nil
@@ -253,11 +252,11 @@ func createInstanceType(v ec2types.InstanceTypeInfo) InstanceType {
 	return t
 }
 
-func getAmiTypes() []portaineree.Pair {
+func getAmiTypes() []portainer.Pair {
 
 	// a predefined list of AMI types, unfortunately I can't find anywhere in the API to read this
 	// https://docs.aws.amazon.com/eks/latest/APIReference/API_Nodegroup.html
-	return []portaineree.Pair{
+	return []portainer.Pair{
 		{Name: "Amazon Linux 2 (AL2_x86_64)", Value: "AL2_x86_64"},
 		{Name: "Amazon Linux 2 GPU Enabled (AL2_x86_64_GPU)", Value: "AL2_x86_64_GPU"},
 		{Name: "Amazon Linux 2 Arm (AL2_ARM_64)", Value: "AL2_ARM_64"},
@@ -291,8 +290,8 @@ func getInstanceTypesInput() *ec2.DescribeInstanceTypesInput {
 // This list comes from eksctl which I can't import due to some dependency issues
 // When you upgrade eksctl, ensure this table matches what's in the release in this file:
 // See: https://github.com/weaveworks/eksctl/blob/main/pkg/apis/eksctl.io/v1alpha5/types.go
-func supportedVersions() []portaineree.Pair {
-	return []portaineree.Pair{
+func supportedVersions() []portainer.Pair {
+	return []portainer.Pair{
 		// display name, val
 		withValue("1.27", "1.27"),
 		withValue("1.26", "1.26"),
@@ -302,6 +301,6 @@ func supportedVersions() []portaineree.Pair {
 	}
 }
 
-func withValue(name, value string) portaineree.Pair {
-	return portaineree.Pair{Name: name, Value: value}
+func withValue(name, value string) portainer.Pair {
+	return portainer.Pair{Name: name, Value: value}
 }

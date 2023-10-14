@@ -8,15 +8,16 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type agentTransport struct {
 	*baseTransport
-	signatureService portaineree.DigitalSignatureService
+	signatureService portainer.DigitalSignatureService
 }
 
 // NewAgentTransport returns a new transport that can be used to send signed requests to a Portainer agent
-func NewAgentTransport(dataStore dataservices.DataStore, signatureService portaineree.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portaineree.Endpoint, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory) *agentTransport {
+func NewAgentTransport(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, tlsConfig *tls.Config, tokenManager *tokenManager, endpoint *portaineree.Endpoint, userActivityService portaineree.UserActivityService, k8sClientFactory *cli.ClientFactory) *agentTransport {
 	transport := &agentTransport{
 		signatureService: signatureService,
 		baseTransport: newBaseTransport(

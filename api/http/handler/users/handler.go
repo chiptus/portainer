@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -42,7 +43,7 @@ type Handler struct {
 	bouncer                 security.BouncerService
 	apiKeyService           apikey.APIKeyService
 	AuthorizationService    *authorization.Service
-	CryptoService           portaineree.CryptoService
+	CryptoService           portainer.CryptoService
 	DataStore               dataservices.DataStore
 	K8sClientFactory        *cli.ClientFactory
 	userActivityService     portaineree.UserActivityService

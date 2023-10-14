@@ -14,6 +14,7 @@ import (
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer-ee/api/kubernetes"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libhelm/binary/test"
 	"github.com/portainer/portainer/pkg/libhelm/options"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +49,7 @@ func Test_helmDelete(t *testing.T) {
 
 	t.Run("helmDelete fails for unauthorized user", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/1/kubernetes/helm/%s", options.Name), nil)
-		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "non-admin", Role: 2})
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "non-admin", Role: 2})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 
@@ -60,7 +61,7 @@ func Test_helmDelete(t *testing.T) {
 
 	t.Run("helmDelete succeeds with admin user", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/1/kubernetes/helm/%s", options.Name), nil)
-		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 

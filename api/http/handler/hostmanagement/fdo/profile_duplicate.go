@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -31,7 +31,7 @@ func (handler *Handler) duplicateProfile(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Bad request", errors.New("missing 'id' query parameter"))
 	}
 
-	originalProfile, err := handler.DataStore.FDOProfile().Read(portaineree.FDOProfileID(id))
+	originalProfile, err := handler.DataStore.FDOProfile().Read(portainer.FDOProfileID(id))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a FDO Profile with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -48,8 +48,8 @@ func (handler *Handler) duplicateProfile(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable to duplicate Profile", err)
 	}
 
-	newProfile := &portaineree.FDOProfile{
-		ID:   portaineree.FDOProfileID(profileID),
+	newProfile := &portainer.FDOProfile{
+		ID:   portainer.FDOProfileID(profileID),
 		Name: fmt.Sprintf("%s - copy", originalProfile.Name),
 	}
 

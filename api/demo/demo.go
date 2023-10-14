@@ -1,17 +1,17 @@
 package demo
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
 type EnvironmentDetails struct {
-	Enabled      bool                     `json:"enabled"`
-	Users        []portaineree.UserID     `json:"users"`
-	Environments []portaineree.EndpointID `json:"environments"`
+	Enabled      bool                   `json:"enabled"`
+	Users        []portainer.UserID     `json:"users"`
+	Environments []portainer.EndpointID `json:"environments"`
 }
 
 type Service struct {
@@ -26,7 +26,7 @@ func (service *Service) Details() EnvironmentDetails {
 	return service.details
 }
 
-func (service *Service) Init(store dataservices.DataStore, cryptoService portaineree.CryptoService) error {
+func (service *Service) Init(store dataservices.DataStore, cryptoService portainer.CryptoService) error {
 	log.Info().Msg("starting demo environment")
 
 	isClean, err := isCleanStore(store)
@@ -55,7 +55,7 @@ func (service *Service) Init(store dataservices.DataStore, cryptoService portain
 
 	service.details = EnvironmentDetails{
 		Enabled:      true,
-		Users:        []portaineree.UserID{id},
+		Users:        []portainer.UserID{id},
 		Environments: endpointIds,
 	}
 
@@ -88,7 +88,7 @@ func (service *Service) IsDemo() bool {
 	return service.details.Enabled
 }
 
-func (service *Service) IsDemoEnvironment(environmentID portaineree.EndpointID) bool {
+func (service *Service) IsDemoEnvironment(environmentID portainer.EndpointID) bool {
 	if !service.IsDemo() {
 		return false
 	}
@@ -102,7 +102,7 @@ func (service *Service) IsDemoEnvironment(environmentID portaineree.EndpointID) 
 	return false
 }
 
-func (service *Service) IsDemoUser(userID portaineree.UserID) bool {
+func (service *Service) IsDemoUser(userID portainer.UserID) bool {
 	if !service.IsDemo() {
 		return false
 	}

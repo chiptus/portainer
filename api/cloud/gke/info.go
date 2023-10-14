@@ -9,7 +9,7 @@ import (
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"github.com/fvbommel/sortorder"
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -20,11 +20,11 @@ type Info struct {
 	// Zones are referring to GKE "zones" since we're using zonal provisioning
 	// at the moment. We call them "regions" in the response for now so the FE
 	// can treat GKE similarly to the other providers.
-	Zones []portaineree.Pair `json:"regions"`
+	Zones []portainer.Pair `json:"regions"`
 
 	// NodeSizes is a small selected list of GKE Machine Types for users that
 	// do not want to use "custom".
-	NodeSizes []portaineree.Pair `json:"nodeSizes"`
+	NodeSizes []portainer.Pair `json:"nodeSizes"`
 
 	// RAM is in Gigabytes with 0.25 increments.
 	RAM Spec `json:"ram"`
@@ -36,7 +36,7 @@ type Info struct {
 	HDD Spec `json:"hdd"`
 
 	// KubernetesVersions is a list of valid stable kubernetes versions for GKE.
-	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
+	KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
 
 	// Networks is a list of individual networks, with an ID, Name, and Region.
 	Networks []Network `json:"networks"`
@@ -96,7 +96,7 @@ func (s SubnetByName) Less(i, j int) bool {
 // whole cluster) will exist. A region is a grouping of these zones. Basically
 // region = us-east, zone = us-east-a; so we want zones as that's where we're
 // actually provisioning the clusters.
-func (k Key) FetchZones(ctx context.Context) ([]portaineree.Pair, error) {
+func (k Key) FetchZones(ctx context.Context) ([]portainer.Pair, error) {
 	zoneClient, err := compute.NewZonesRESTClient(
 		ctx,
 		option.WithCredentialsJSON(k.Bytes),
@@ -110,7 +110,7 @@ func (k Key) FetchZones(ctx context.Context) ([]portaineree.Pair, error) {
 		Project: k.ProjectID,
 	}
 
-	regions := make([]portaineree.Pair, 0)
+	regions := make([]portainer.Pair, 0)
 	zoneIt := zoneClient.List(ctx, zoneReq)
 	for {
 		resp, err := zoneIt.Next()
@@ -127,7 +127,7 @@ func (k Key) FetchZones(ctx context.Context) ([]portaineree.Pair, error) {
 		prettyName = strings.ReplaceAll(prettyName, "Us", "US")
 		prettyName = strings.ReplaceAll(prettyName, "america", " America")
 
-		r := portaineree.Pair{
+		r := portainer.Pair{
 			Name:  prettyName,
 			Value: id,
 		}
@@ -214,8 +214,8 @@ func (k Key) FetchNetworks(ctx context.Context) ([]Network, error) {
 
 // FetchMachines gets a list of machine types which can be used to provision
 // a GKE cluster instead of a custom type.
-func (k Key) FetchMachines(ctx context.Context, zone string) ([]portaineree.Pair, error) {
-	machines := make([]portaineree.Pair, 0)
+func (k Key) FetchMachines(ctx context.Context, zone string) ([]portainer.Pair, error) {
+	machines := make([]portainer.Pair, 0)
 
 	zoneClient, err := compute.NewMachineTypesRESTClient(
 		ctx,
@@ -242,7 +242,7 @@ func (k Key) FetchMachines(ctx context.Context, zone string) ([]portaineree.Pair
 			return nil, err
 		}
 		for _, mt := range resp.Value.MachineTypes {
-			var machine portaineree.Pair
+			var machine portainer.Pair
 
 			desc := strings.Replace(*mt.Description, "Efficient Instance, ", "", 1)
 
@@ -253,7 +253,7 @@ func (k Key) FetchMachines(ctx context.Context, zone string) ([]portaineree.Pair
 	}
 
 	// Add default "custom" type.
-	machines = append(machines, portaineree.Pair{
+	machines = append(machines, portainer.Pair{
 		Name:  "custom",
 		Value: "custom",
 	})
@@ -271,7 +271,7 @@ func (k Key) FetchMachines(ctx context.Context, zone string) ([]portaineree.Pair
 //
 // Additionally, for portainer we only fetch versions which are part of the
 // STABLE channel.
-func (k Key) FetchVersions(ctx context.Context, zone string) ([]portaineree.Pair, error) {
+func (k Key) FetchVersions(ctx context.Context, zone string) ([]portainer.Pair, error) {
 	var versions []string
 	containerService, err := container.NewService(
 		ctx,
@@ -298,9 +298,9 @@ func (k Key) FetchVersions(ctx context.Context, zone string) ([]portaineree.Pair
 		return nil, fmt.Errorf("failed parsing list of kubernetes versions")
 	}
 
-	pairs := make([]portaineree.Pair, 0)
+	pairs := make([]portainer.Pair, 0)
 	for _, v := range versions {
-		pair := portaineree.Pair{
+		pair := portainer.Pair{
 			Name:  v,
 			Value: v,
 		}

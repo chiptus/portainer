@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -26,7 +27,7 @@ type updateStackPayload struct {
 	// New content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 	// Prune services that are no longer referenced (only available for Swarm stacks)
 	Prune bool `example:"true"`
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
@@ -68,7 +69,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -83,7 +84,7 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portaineree.EndpointID(endpointID)
+		stack.EndpointID = portainer.EndpointID(endpointID)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +35,7 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.deleteEdgeJob(tx, portaineree.EdgeJobID(edgeJobID))
+		return handler.deleteEdgeJob(tx, portainer.EdgeJobID(edgeJobID))
 	})
 	if err != nil {
 		var handlerError *httperror.HandlerError
@@ -49,8 +49,8 @@ func (handler *Handler) edgeJobDelete(w http.ResponseWriter, r *http.Request) *h
 	return response.Empty(w)
 }
 
-func (handler *Handler) deleteEdgeJob(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID) error {
-	edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
+func (handler *Handler) deleteEdgeJob(tx dataservices.DataStoreTx, edgeJobID portainer.EdgeJobID) error {
+	edgeJob, err := tx.EdgeJob().Read(portainer.EdgeJobID(edgeJobID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -65,7 +65,7 @@ func (handler *Handler) deleteEdgeJob(tx dataservices.DataStoreTx, edgeJobID por
 
 	handler.ReverseTunnelService.RemoveEdgeJob(edgeJob.ID)
 
-	var endpointsMap map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta
+	var endpointsMap map[portainer.EndpointID]portainer.EdgeJobEndpointMeta
 	if len(edgeJob.EdgeGroups) > 0 {
 		endpoints, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, tx)
 		if err != nil {

@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func getAzureOperationAuthorization(url, method string) portaineree.Authorization {
+func getAzureOperationAuthorization(url, method string) portainer.Authorization {
 	url = strings.Split(url, "?")[0]
 	if matched, _ := path.Match("/subscriptions", url); matched {
 		return azureSubscriptionsOperationAuthorization(url, method)
@@ -30,7 +31,7 @@ func getAzureOperationAuthorization(url, method string) portaineree.Authorizatio
 }
 
 // /subscriptions
-func azureSubscriptionsOperationAuthorization(url, method string) portaineree.Authorization {
+func azureSubscriptionsOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureSubscriptionsList
@@ -40,7 +41,7 @@ func azureSubscriptionsOperationAuthorization(url, method string) portaineree.Au
 }
 
 // /subscriptions/*
-func azureSubscriptionOperationAuthorization(url, method string) portaineree.Authorization {
+func azureSubscriptionOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureSubscriptionGet
@@ -50,7 +51,7 @@ func azureSubscriptionOperationAuthorization(url, method string) portaineree.Aut
 }
 
 // /subscriptions/*/resourcegroups
-func azureResourceGroupsOperationAuthorization(url, method string) portaineree.Authorization {
+func azureResourceGroupsOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureResourceGroupsList
@@ -60,7 +61,7 @@ func azureResourceGroupsOperationAuthorization(url, method string) portaineree.A
 }
 
 // /subscriptions/*/resourcegroups/*
-func azureResourceGroupOperationAuthorization(url, method string) portaineree.Authorization {
+func azureResourceGroupOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureResourceGroupGet
@@ -70,7 +71,7 @@ func azureResourceGroupOperationAuthorization(url, method string) portaineree.Au
 }
 
 // /subscriptions/*/providers/*
-func azureProviderOperationAuthorization(url, method string) portaineree.Authorization {
+func azureProviderOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureProviderGet
@@ -80,7 +81,7 @@ func azureProviderOperationAuthorization(url, method string) portaineree.Authori
 }
 
 // /subscriptions/*/providers/Microsoft.ContainerInstance/containerGroups
-func azureContainerGroupsOperationAuthorization(url, method string) portaineree.Authorization {
+func azureContainerGroupsOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodGet:
 		return portaineree.OperationAzureContainerGroupsList
@@ -90,7 +91,7 @@ func azureContainerGroupsOperationAuthorization(url, method string) portaineree.
 }
 
 // /subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*
-func azureContainerGroupOperationAuthorization(url, method string) portaineree.Authorization {
+func azureContainerGroupOperationAuthorization(url, method string) portainer.Authorization {
 	switch method {
 	case http.MethodPut:
 		return portaineree.OperationAzureContainerGroupCreate

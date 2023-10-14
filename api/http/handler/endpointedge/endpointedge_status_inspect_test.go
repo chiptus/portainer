@@ -25,14 +25,14 @@ import (
 
 type endpointTestCase struct {
 	endpoint           portaineree.Endpoint
-	endpointRelation   portaineree.EndpointRelation
+	endpointRelation   portainer.EndpointRelation
 	expectedStatusCode int
 }
 
 var endpointTestCases = []endpointTestCase{
 	{
 		portaineree.Endpoint{},
-		portaineree.EndpointRelation{},
+		portainer.EndpointRelation{},
 		http.StatusForbidden,
 	},
 	{
@@ -43,7 +43,7 @@ var endpointTestCases = []endpointTestCase{
 			URL:    "https://portainer.io:9443",
 			EdgeID: "edge-id",
 		},
-		portaineree.EndpointRelation{
+		portainer.EndpointRelation{
 			EndpointID: -1,
 		},
 		http.StatusForbidden,
@@ -56,7 +56,7 @@ var endpointTestCases = []endpointTestCase{
 			URL:    "https://portainer.io:9443",
 			EdgeID: "",
 		},
-		portaineree.EndpointRelation{
+		portainer.EndpointRelation{
 			EndpointID: 2,
 		},
 		http.StatusForbidden,
@@ -69,7 +69,7 @@ var endpointTestCases = []endpointTestCase{
 			URL:    "https://portainer.io:9443",
 			EdgeID: "edge-id",
 		},
-		portaineree.EndpointRelation{
+		portainer.EndpointRelation{
 			EndpointID: 4,
 		},
 		http.StatusOK,
@@ -130,7 +130,7 @@ func mustSetupHandler(t *testing.T) *Handler {
 	return handler
 }
 
-func createEndpoint(handler *Handler, endpoint portaineree.Endpoint, endpointRelation portaineree.EndpointRelation) (err error) {
+func createEndpoint(handler *Handler, endpoint portaineree.Endpoint, endpointRelation portainer.EndpointRelation) (err error) {
 	// Avoid setting ID below 0 to generate invalid test cases
 	if endpoint.ID <= 0 {
 		return nil
@@ -146,7 +146,7 @@ func createEndpoint(handler *Handler, endpoint portaineree.Endpoint, endpointRel
 
 func TestMissingEdgeIdentifier(t *testing.T) {
 	handler := mustSetupHandler(t)
-	endpointID := portaineree.EndpointID(45)
+	endpointID := portainer.EndpointID(45)
 
 	err := createEndpoint(handler, portaineree.Endpoint{
 		ID:     endpointID,
@@ -154,7 +154,7 @@ func TestMissingEdgeIdentifier(t *testing.T) {
 		Type:   portaineree.EdgeAgentOnDockerEnvironment,
 		URL:    "https://portainer.io:9443",
 		EdgeID: "edge-id",
-	}, portaineree.EndpointRelation{EndpointID: endpointID})
+	}, portainer.EndpointRelation{EndpointID: endpointID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func TestWithEndpoints(t *testing.T) {
 func TestLastCheckInDateIncreases(t *testing.T) {
 	handler := mustSetupHandler(t)
 
-	endpointID := portaineree.EndpointID(56)
+	endpointID := portainer.EndpointID(56)
 	endpoint := portaineree.Endpoint{
 		ID:              endpointID,
 		Name:            "test-endpoint-56",
@@ -210,7 +210,7 @@ func TestLastCheckInDateIncreases(t *testing.T) {
 		LastCheckInDate: time.Now().Unix(),
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
 	}
 
@@ -246,7 +246,7 @@ func TestLastCheckInDateIncreases(t *testing.T) {
 func TestEmptyEdgeIdWithAgentPlatformHeader(t *testing.T) {
 	handler := mustSetupHandler(t)
 
-	endpointID := portaineree.EndpointID(44)
+	endpointID := portainer.EndpointID(44)
 	edgeId := "edge-id"
 	endpoint := portaineree.Endpoint{
 		ID:     endpointID,
@@ -255,7 +255,7 @@ func TestEmptyEdgeIdWithAgentPlatformHeader(t *testing.T) {
 		URL:    "https://portainer.io:9443",
 		EdgeID: "",
 	}
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
 	}
 
@@ -289,7 +289,7 @@ func TestEmptyEdgeIdWithAgentPlatformHeader(t *testing.T) {
 func TestEdgeStackStatus(t *testing.T) {
 	handler := mustSetupHandler(t)
 
-	endpointID := portaineree.EndpointID(7)
+	endpointID := portainer.EndpointID(7)
 	endpoint := portaineree.Endpoint{
 		ID:              endpointID,
 		Name:            "test-endpoint-7",
@@ -299,11 +299,11 @@ func TestEdgeStackStatus(t *testing.T) {
 		LastCheckInDate: time.Now().Unix(),
 	}
 
-	edgeStackID := portaineree.EdgeStackID(17)
+	edgeStackID := portainer.EdgeStackID(17)
 	edgeStack := portaineree.EdgeStack{
 		ID:   edgeStackID,
 		Name: "test-edge-stack-17",
-		Status: map[portaineree.EndpointID]portainer.EdgeStackStatus{
+		Status: map[portainer.EndpointID]portainer.EdgeStackStatus{
 			endpointID: {
 				Status:         []portainer.EdgeStackDeploymentStatus{},
 				EndpointID:     portainer.EndpointID(endpointID),
@@ -311,7 +311,7 @@ func TestEdgeStackStatus(t *testing.T) {
 			},
 		},
 		CreationDate:     time.Now().Unix(),
-		EdgeGroups:       []portaineree.EdgeGroupID{1, 2},
+		EdgeGroups:       []portainer.EdgeGroupID{1, 2},
 		ProjectPath:      "/project/path",
 		EntryPoint:       "entrypoint",
 		Version:          237,
@@ -320,9 +320,9 @@ func TestEdgeStackStatus(t *testing.T) {
 		DeploymentType:   1,
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{
+		EdgeStacks: map[portainer.EdgeStackID]bool{
 			edgeStack.ID: true,
 		},
 	}
@@ -361,7 +361,7 @@ func TestEdgeStackStatus(t *testing.T) {
 func TestEdgeJobsResponse(t *testing.T) {
 	handler := mustSetupHandler(t)
 
-	endpointID := portaineree.EndpointID(77)
+	endpointID := portainer.EndpointID(77)
 	endpoint := portaineree.Endpoint{
 		ID:              endpointID,
 		Name:            "test-endpoint-77",
@@ -371,7 +371,7 @@ func TestEdgeJobsResponse(t *testing.T) {
 		LastCheckInDate: time.Now().Unix(),
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
 	}
 
@@ -385,8 +385,8 @@ func TestEdgeJobsResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	edgeJobID := portaineree.EdgeJobID(35)
-	edgeJob := portaineree.EdgeJob{
+	edgeJobID := portainer.EdgeJobID(35)
+	edgeJob := portainer.EdgeJob{
 		ID:             edgeJobID,
 		Created:        time.Now().Unix(),
 		CronExpression: "* * * * *",

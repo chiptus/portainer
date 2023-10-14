@@ -4,6 +4,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
@@ -28,7 +29,7 @@ type UrlMethodStackBuilder struct {
 
 func (b *UrlMethodStackBuilder) SetGeneralInfo(payload *StackPayload, endpoint *portaineree.Endpoint) UrlMethodStackBuildProcess {
 	stackID := b.dataStore.Stack().GetNextIdentifier()
-	b.stack.ID = portaineree.StackID(stackID)
+	b.stack.ID = portainer.StackID(stackID)
 	b.stack.EndpointID = endpoint.ID
 	b.stack.Status = portaineree.StackStatusActive
 	b.stack.CreationDate = time.Now().Unix()

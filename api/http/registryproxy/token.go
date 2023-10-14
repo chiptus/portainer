@@ -8,11 +8,12 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
 	tokenSecuredTransport struct {
-		config        *portaineree.RegistryManagementConfiguration
+		config        *portainer.RegistryManagementConfiguration
 		client        *http.Client
 		httpTransport http.RoundTripper
 	}
@@ -26,7 +27,7 @@ type (
 	}
 )
 
-func newTokenSecuredRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
+func newTokenSecuredRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	parsedURL, err := url.Parse("https://" + uri)
 	if err != nil {
 		return nil, err

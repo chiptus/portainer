@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/unique"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -20,8 +21,8 @@ import (
 type edgeGroupUpdatePayload struct {
 	Name         string
 	Dynamic      bool
-	TagIDs       []portaineree.TagID
-	Endpoints    []portaineree.EndpointID
+	TagIDs       []portainer.TagID
+	Endpoints    []portainer.EndpointID
 	PartialMatch *bool
 }
 
@@ -65,7 +66,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 
 	var edgeGroup *portaineree.EdgeGroup
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeGroup, err = tx.EdgeGroup().Read(portaineree.EdgeGroupID(edgeGroupID))
+		edgeGroup, err = tx.EdgeGroup().Read(portainer.EdgeGroupID(edgeGroupID))
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find an Edge group with the specified identifier inside the database", err)
 		} else if err != nil {
@@ -79,7 +80,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 
 		if payload.Name != "" {
 			for _, edgeGroup := range edgeGroups {
-				if edgeGroup.Name == payload.Name && edgeGroup.ID != portaineree.EdgeGroupID(edgeGroupID) {
+				if edgeGroup.Name == payload.Name && edgeGroup.ID != portainer.EdgeGroupID(edgeGroupID) {
 					return httperror.BadRequest("Edge group name must be unique", errors.New("edge group name must be unique"))
 				}
 			}
@@ -186,7 +187,7 @@ func (handler *Handler) updateEndpointStacks(tx dataservices.DataStoreTx, endpoi
 		return err
 	}
 
-	edgeStackSet := map[portaineree.EdgeStackID]bool{}
+	edgeStackSet := map[portainer.EdgeStackID]bool{}
 
 	endpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 	for _, edgeStackID := range endpointEdgeStacks {
@@ -228,7 +229,7 @@ func (handler *Handler) updateEndpointStacks(tx dataservices.DataStoreTx, endpoi
 	return tx.EndpointRelation().UpdateEndpointRelation(endpoint.ID, relation)
 }
 
-func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edgeGroupID portaineree.EdgeGroupID, endpoint *portaineree.Endpoint, edgeJobs []portaineree.EdgeJob, operation string) error {
+func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edgeGroupID portainer.EdgeGroupID, endpoint *portaineree.Endpoint, edgeJobs []portainer.EdgeJob, operation string) error {
 	for _, edgeJob := range edgeJobs {
 		if !slices.Contains(edgeJob.EdgeGroups, edgeGroupID) {
 			continue

@@ -7,12 +7,13 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/slices"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
 type filterTest struct {
 	title    string
-	expected []portaineree.EndpointID
+	expected []portainer.EndpointID
 	query    EnvironmentsQuery
 }
 
@@ -45,26 +46,26 @@ func Test_Filter_AgentVersion(t *testing.T) {
 	tests := []filterTest{
 		{
 			"should show version 1 endpoints",
-			[]portaineree.EndpointID{version1Endpoint.ID},
+			[]portainer.EndpointID{version1Endpoint.ID},
 			EnvironmentsQuery{
 				agentVersions: []string{version1Endpoint.Agent.Version},
-				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+				types:         []portainer.EndpointType{portaineree.AgentOnDockerEnvironment},
 			},
 		},
 		{
 			"should show version 2 endpoints",
-			[]portaineree.EndpointID{version2Endpoint.ID},
+			[]portainer.EndpointID{version2Endpoint.ID},
 			EnvironmentsQuery{
 				agentVersions: []string{version2Endpoint.Agent.Version},
-				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+				types:         []portainer.EndpointType{portaineree.AgentOnDockerEnvironment},
 			},
 		},
 		{
 			"should show version 1 and 2 endpoints",
-			[]portaineree.EndpointID{version2Endpoint.ID, version1Endpoint.ID},
+			[]portainer.EndpointID{version2Endpoint.ID, version1Endpoint.ID},
 			EnvironmentsQuery{
 				agentVersions: []string{version2Endpoint.Agent.Version, version1Endpoint.Agent.Version},
-				types:         []portaineree.EndpointType{portaineree.AgentOnDockerEnvironment},
+				types:         []portainer.EndpointType{portaineree.AgentOnDockerEnvironment},
 			},
 		},
 	}
@@ -74,10 +75,10 @@ func Test_Filter_AgentVersion(t *testing.T) {
 
 func Test_Filter_edgeFilter(t *testing.T) {
 
-	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
 	regularEndpoint := portaineree.Endpoint{ID: 5, GroupID: 1, Type: portaineree.DockerEnvironment}
 
 	endpoints := []portaineree.Endpoint{
@@ -93,21 +94,21 @@ func Test_Filter_edgeFilter(t *testing.T) {
 	tests := []filterTest{
 		{
 			"should show all edge endpoints except of the untrusted edge",
-			[]portaineree.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID},
+			[]portainer.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID},
 			EnvironmentsQuery{
-				types: []portaineree.EndpointType{portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.EdgeAgentOnNomadEnvironment},
+				types: []portainer.EndpointType{portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment, portaineree.EdgeAgentOnNomadEnvironment},
 			},
 		},
 		{
 			"should show only trusted edge devices and other regular endpoints",
-			[]portaineree.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
+			[]portainer.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
 			EnvironmentsQuery{
 				edgeAsync: BoolAddr(true),
 			},
 		},
 		{
 			"should show only untrusted edge devices and other regular endpoints",
-			[]portaineree.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
+			[]portainer.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
 			EnvironmentsQuery{
 				edgeAsync:           BoolAddr(true),
 				edgeDeviceUntrusted: true,
@@ -115,7 +116,7 @@ func Test_Filter_edgeFilter(t *testing.T) {
 		},
 		{
 			"should show no edge devices",
-			[]portaineree.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
+			[]portainer.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
 			EnvironmentsQuery{
 				edgeAsync: BoolAddr(false),
 			},
@@ -126,9 +127,9 @@ func Test_Filter_edgeFilter(t *testing.T) {
 }
 
 func Test_Filter_excludeIDs(t *testing.T) {
-	ids := []portaineree.EndpointID{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	ids := []portainer.EndpointID{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-	environments := slices.Map(ids, func(id portaineree.EndpointID) portaineree.Endpoint {
+	environments := slices.Map(ids, func(id portainer.EndpointID) portaineree.Endpoint {
 		return portaineree.Endpoint{ID: id, GroupID: 1, Type: portaineree.DockerEnvironment}
 	})
 
@@ -137,9 +138,9 @@ func Test_Filter_excludeIDs(t *testing.T) {
 	tests := []filterTest{
 		{
 			title:    "should exclude IDs 2,5,8",
-			expected: []portaineree.EndpointID{1, 3, 4, 6, 7, 9},
+			expected: []portainer.EndpointID{1, 3, 4, 6, 7, 9},
 			query: EnvironmentsQuery{
-				excludeIds: []portaineree.EndpointID{2, 5, 8},
+				excludeIds: []portainer.EndpointID{2, 5, 8},
 			},
 		},
 	}
@@ -161,7 +162,7 @@ func runTest(t *testing.T, test filterTest, handler *Handler, endpoints []portai
 	filteredEndpoints, _, err := handler.filterEndpointsByQuery(
 		endpoints,
 		test.query,
-		[]portaineree.EndpointGroup{},
+		[]portainer.EndpointGroup{},
 		[]portaineree.EdgeGroup{},
 		&portaineree.Settings{},
 	)
@@ -170,7 +171,7 @@ func runTest(t *testing.T, test filterTest, handler *Handler, endpoints []portai
 
 	is.Equal(len(test.expected), len(filteredEndpoints))
 
-	respIds := []portaineree.EndpointID{}
+	respIds := []portainer.EndpointID{}
 
 	for _, endpoint := range filteredEndpoints {
 		respIds = append(respIds, endpoint.ID)

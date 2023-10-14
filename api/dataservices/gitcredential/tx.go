@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
@@ -25,7 +26,7 @@ func (service ServiceTx) Create(record *portaineree.GitCredential) error {
 }
 
 // GetGitCredentialsByUserID returns an array containing all git-credentials owned by a specific user
-func (service ServiceTx) GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredentialsByUserID(userID portainer.UserID) ([]portaineree.GitCredential, error) {
 	var result = make([]portaineree.GitCredential, 0)
 
 	return result, service.Tx.GetAll(
@@ -38,7 +39,7 @@ func (service ServiceTx) GetGitCredentialsByUserID(userID portaineree.UserID) ([
 }
 
 // GetGitCredentialByName retrieves a single GitCredential object owned by a specific user with a unique git credential name
-func (service ServiceTx) GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error) {
+func (service ServiceTx) GetGitCredentialByName(userID portainer.UserID, name string) (*portaineree.GitCredential, error) {
 	var credential portaineree.GitCredential
 
 	err := service.Tx.GetAll(

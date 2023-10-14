@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/stretchr/testify/assert"
 	core "k8s.io/api/core/v1"
@@ -164,8 +164,8 @@ func Test_ToggleSystemState(t *testing.T) {
 		assert.True(t, exists, "system label should exists")
 		assert.Equal(t, "true", labelValue)
 
-		expectedPolicies := map[string]portaineree.K8sNamespaceAccessPolicy{
-			"ns2": {UserAccessPolicies: portaineree.UserAccessPolicies{2: {RoleID: 0}}},
+		expectedPolicies := map[string]portainer.K8sNamespaceAccessPolicy{
+			"ns2": {UserAccessPolicies: portainer.UserAccessPolicies{2: {RoleID: 0}}},
 		}
 
 		actualPolicies, err := kcl.GetNamespaceAccessPolicies()

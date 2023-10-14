@@ -15,7 +15,7 @@ const BucketName = "endpoints"
 type Service struct {
 	connection portainer.Connection
 	mu         sync.RWMutex
-	idxEdgeID  map[string]portaineree.EndpointID
+	idxEdgeID  map[string]portainer.EndpointID
 	heartbeats sync.Map
 }
 
@@ -32,7 +32,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 	s := &Service{
 		connection: connection,
-		idxEdgeID:  make(map[string]portaineree.EndpointID),
+		idxEdgeID:  make(map[string]portainer.EndpointID),
 	}
 
 	es, err := s.endpoints()
@@ -59,7 +59,7 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 }
 
 // Endpoint returns an environment(endpoint) by ID.
-func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error) {
+func (service *Service) Endpoint(ID portainer.EndpointID) (*portaineree.Endpoint, error) {
 	var endpoint *portaineree.Endpoint
 	var err error
 
@@ -76,21 +76,21 @@ func (service *Service) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoi
 	return endpoint, nil
 }
 
-func (service *Service) SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+func (service *Service) SetMessage(ID portainer.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
 	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
 		return service.Tx(tx).SetMessage(ID, statusMessage)
 	})
 }
 
 // UpdateEndpoint updates an environment(endpoint).
-func (service *Service) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
+func (service *Service) UpdateEndpoint(ID portainer.EndpointID, endpoint *portaineree.Endpoint) error {
 	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
 		return service.Tx(tx).UpdateEndpoint(ID, endpoint)
 	})
 }
 
 // DeleteEndpoint deletes an environment(endpoint).
-func (service *Service) DeleteEndpoint(ID portaineree.EndpointID) error {
+func (service *Service) DeleteEndpoint(ID portainer.EndpointID) error {
 	return service.connection.UpdateTx(func(tx portainer.Transaction) error {
 		return service.Tx(tx).DeleteEndpoint(ID)
 	})
@@ -124,7 +124,7 @@ func (service *Service) Endpoints() ([]portaineree.Endpoint, error) {
 }
 
 // EndpointIDByEdgeID returns the EndpointID from the given EdgeID using an in-memory index
-func (service *Service) EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool) {
+func (service *Service) EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool) {
 	service.mu.RLock()
 	endpointID, ok := service.idxEdgeID[edgeID]
 	service.mu.RUnlock()
@@ -132,7 +132,7 @@ func (service *Service) EndpointIDByEdgeID(edgeID string) (portaineree.EndpointI
 	return endpointID, ok
 }
 
-func (service *Service) Heartbeat(endpointID portaineree.EndpointID) (int64, bool) {
+func (service *Service) Heartbeat(endpointID portainer.EndpointID) (int64, bool) {
 	if t, ok := service.heartbeats.Load(endpointID); ok {
 		return t.(int64), true
 	}
@@ -140,7 +140,7 @@ func (service *Service) Heartbeat(endpointID portaineree.EndpointID) (int64, boo
 	return 0, false
 }
 
-func (service *Service) UpdateHeartbeat(endpointID portaineree.EndpointID) {
+func (service *Service) UpdateHeartbeat(endpointID portainer.EndpointID) {
 	service.heartbeats.Store(endpointID, time.Now().Unix())
 }
 

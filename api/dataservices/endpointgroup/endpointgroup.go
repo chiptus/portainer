@@ -1,7 +1,6 @@
 package endpointgroup
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -11,7 +10,7 @@ const BucketName = "endpoint_groups"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.EndpointGroup, portaineree.EndpointGroupID]
+	dataservices.BaseDataService[portainer.EndpointGroup, portainer.EndpointGroupID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +21,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.EndpointGroup, portaineree.EndpointGroupID]{
+		BaseDataService: dataservices.BaseDataService[portainer.EndpointGroup, portainer.EndpointGroupID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -31,7 +30,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EndpointGroup, portaineree.EndpointGroupID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portainer.EndpointGroup, portainer.EndpointGroupID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -40,11 +39,11 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 }
 
 // CreateEndpointGroup assign an ID to a new environment(endpoint) group and saves it.
-func (service *Service) Create(endpointGroup *portaineree.EndpointGroup) error {
+func (service *Service) Create(endpointGroup *portainer.EndpointGroup) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			endpointGroup.ID = portaineree.EndpointGroupID(id)
+			endpointGroup.ID = portainer.EndpointGroupID(id)
 			return int(endpointGroup.ID), endpointGroup
 		},
 	)

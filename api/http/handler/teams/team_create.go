@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -16,7 +17,7 @@ type teamCreatePayload struct {
 	// Name
 	Name string `example:"developers" validate:"required"`
 	// TeamLeaders
-	TeamLeaders []portaineree.UserID `example:"3,5"`
+	TeamLeaders []portainer.UserID `example:"3,5"`
 }
 
 func (payload *teamCreatePayload) Validate(r *http.Request) error {
@@ -36,7 +37,7 @@ func (payload *teamCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body teamCreatePayload true "details"
-// @success 200 {object} portaineree.Team "Success"
+// @success 200 {object} portainer.Team "Success"
 // @failure 400 "Invalid request"
 // @failure 409 "Team already exists"
 // @failure 500 "Server error"
@@ -56,7 +57,7 @@ func (handler *Handler) teamCreate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.Conflict("A team with the same name already exists", errors.New("Team already exists"))
 	}
 
-	team = &portaineree.Team{
+	team = &portainer.Team{
 		Name: payload.Name,
 	}
 
@@ -66,7 +67,7 @@ func (handler *Handler) teamCreate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	for _, teamLeader := range payload.TeamLeaders {
-		membership := &portaineree.TeamMembership{
+		membership := &portainer.TeamMembership{
 			UserID: teamLeader,
 			TeamID: team.ID,
 			Role:   portaineree.TeamLeader,

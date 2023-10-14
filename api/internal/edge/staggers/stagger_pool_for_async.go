@@ -9,22 +9,23 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
 type StaggerJobForAsyncRollback struct {
-	EdgeStackID portaineree.EdgeStackID
+	EdgeStackID portainer.EdgeStackID
 	Version     int
-	Endpoints   map[portaineree.EndpointID]*portaineree.Endpoint
+	Endpoints   map[portainer.EndpointID]*portaineree.Endpoint
 }
 
 // StartStaggerJobForAsyncUpdate starts a background goroutine for managing potential async edge agents' stack
 // updates. If there are no async edge agents in the related endpoints, this function will return immediately.
 // The purpose of this function is to prevent from slowing down the api /edge_stacks/{id} endpoint.
 // Additionally, it is safe to process stagger job for async edge agents in an asynchrnous manner.
-func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.EdgeStackID,
-	relatedEndpointIds []portaineree.EndpointID,
-	endpointsToAdd set.Set[portaineree.EndpointID],
+func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portainer.EdgeStackID,
+	relatedEndpointIds []portainer.EndpointID,
+	endpointsToAdd set.Set[portainer.EndpointID],
 	stackFileVersion int) {
 
 	err := retry(func(retryTime int) error {
@@ -72,7 +73,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 	// To keep a list of endpoints that have been updated
 	// If a rollback is needed, we can only work on the endpoints in this list
-	updatedEndpoints := make(map[portaineree.EndpointID]*portaineree.Endpoint, 0)
+	updatedEndpoints := make(map[portainer.EndpointID]*portaineree.Endpoint, 0)
 	updatedEndpointsMtx := sync.Mutex{}
 
 	endpoints := []*portaineree.Endpoint{}
@@ -95,7 +96,7 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 	for _, endpoint := range endpoints {
 		wg.Add(1)
-		go func(edgeStackID portaineree.EdgeStackID, stackFileVersion int, endpoint *portaineree.Endpoint) {
+		go func(edgeStackID portainer.EdgeStackID, stackFileVersion int, endpoint *portaineree.Endpoint) {
 			defer wg.Done()
 
 			nextCheckInterval := calculateNextStaggerCheckIntervalForAsyncUpdate(&endpoint.Edge)
@@ -198,9 +199,9 @@ func (service *Service) StartStaggerJobForAsyncUpdate(edgeStackID portaineree.Ed
 
 func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context,
 	wg *sync.WaitGroup,
-	edgeStackID portaineree.EdgeStackID,
+	edgeStackID portainer.EdgeStackID,
 	stackFileVersion int,
-	endpoints map[portaineree.EndpointID]*portaineree.Endpoint) {
+	endpoints map[portainer.EndpointID]*portaineree.Endpoint) {
 
 	defer wg.Done()
 	log.Info().
@@ -230,7 +231,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context,
 	for endpointID, endpoint := range endpoints {
 		wg.Add(1)
 
-		go func(edgeStackID portaineree.EdgeStackID, rollbackTo int, endpointID portaineree.EndpointID, endpoint *portaineree.Endpoint) {
+		go func(edgeStackID portainer.EdgeStackID, rollbackTo int, endpointID portainer.EndpointID, endpoint *portaineree.Endpoint) {
 			defer wg.Done()
 
 			nextCheckInterval := calculateNextStaggerCheckIntervalForAsyncUpdate(&endpoint.Edge)
@@ -291,7 +292,7 @@ func (service *Service) StartStaggerJobForAsyncRollback(ctx context.Context,
 	}
 }
 
-func (service *Service) replaceStackCommands(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID, endpointsToAdd set.Set[portaineree.EndpointID]) error {
+func (service *Service) replaceStackCommands(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID, endpointsToAdd set.Set[portainer.EndpointID]) error {
 	for _, endpointID := range relatedEndpointIds {
 		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {

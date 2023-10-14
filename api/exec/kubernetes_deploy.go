@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/pkg/errors"
@@ -28,7 +29,7 @@ type KubernetesDeployer struct {
 	binaryPath                  string
 	dataStore                   dataservices.DataStore
 	reverseTunnelService        portaineree.ReverseTunnelService
-	signatureService            portaineree.DigitalSignatureService
+	signatureService            portainer.DigitalSignatureService
 	kubernetesClientFactory     *cli.ClientFactory
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	authService                 *authorization.Service
@@ -36,7 +37,7 @@ type KubernetesDeployer struct {
 }
 
 // NewKubernetesDeployer initializes a new KubernetesDeployer service.
-func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore dataservices.DataStore, reverseTunnelService portaineree.ReverseTunnelService, signatureService portaineree.DigitalSignatureService, proxyManager *proxy.Manager, binaryPath string) *KubernetesDeployer {
+func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore dataservices.DataStore, reverseTunnelService portaineree.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager, binaryPath string) *KubernetesDeployer {
 	return &KubernetesDeployer{
 		binaryPath:                  binaryPath,
 		dataStore:                   datastore,
@@ -49,7 +50,7 @@ func NewKubernetesDeployer(authService *authorization.Service, kubernetesTokenCa
 	}
 }
 
-func (deployer *KubernetesDeployer) getToken(userID portaineree.UserID, endpoint *portaineree.Endpoint, setLocalAdminToken bool) (string, error) {
+func (deployer *KubernetesDeployer) getToken(userID portainer.UserID, endpoint *portaineree.Endpoint, setLocalAdminToken bool) (string, error) {
 	kubeCLI, err := deployer.kubernetesClientFactory.GetKubeClient(endpoint)
 	if err != nil {
 		return "", err
@@ -115,22 +116,22 @@ func (deployer *KubernetesDeployer) DeployViaKubeConfig(kubeConfig string, clust
 }
 
 // Deploy upserts Kubernetes resources defined in manifest(s)
-func (deployer *KubernetesDeployer) Deploy(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) Deploy(userID portainer.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return deployer.kubectl("apply", "", manifestFilesToArgs(manifestFiles), namespace, endpoint, userID)
 }
 
 // Restart calls restart a kubernetes resource. Valid resource types are: deployment, statefulset, daemonset
 // call with
-func (deployer *KubernetesDeployer) Restart(userID portaineree.UserID, endpoint *portaineree.Endpoint, resourceList []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) Restart(userID portainer.UserID, endpoint *portaineree.Endpoint, resourceList []string, namespace string) (string, error) {
 	return deployer.kubectl("rollout", "restart", resourceList, namespace, endpoint, userID)
 }
 
 // Remove deletes Kubernetes resources defined in manifest(s)
-func (deployer *KubernetesDeployer) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
+func (deployer *KubernetesDeployer) Remove(userID portainer.UserID, endpoint *portaineree.Endpoint, manifestFiles []string, namespace string) (string, error) {
 	return deployer.kubectl("delete", "", manifestFilesToArgs(manifestFiles), namespace, endpoint, userID)
 }
 
-func (deployer *KubernetesDeployer) kubectl(cmd, subcmd string, args []string, namespace string, endpoint *portaineree.Endpoint, userID portaineree.UserID) (string, error) {
+func (deployer *KubernetesDeployer) kubectl(cmd, subcmd string, args []string, namespace string, endpoint *portaineree.Endpoint, userID portainer.UserID) (string, error) {
 	kubectlCmd := path.Join(deployer.binaryPath, "kubectl")
 	if runtime.GOOS == "windows" {
 		kubectlCmd = path.Join(deployer.binaryPath, "kubectl.exe")

@@ -3,7 +3,7 @@ package endpointgroups
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -18,7 +18,7 @@ import (
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) group identifier"
-// @success 200 {object} portaineree.EndpointGroup "Success"
+// @success 200 {object} portainer.EndpointGroup "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "EndpointGroup not found"
 // @failure 500 "Server error"
@@ -29,7 +29,7 @@ func (handler *Handler) endpointGroupInspect(w http.ResponseWriter, r *http.Requ
 		return httperror.BadRequest("Invalid environment group identifier route variable", err)
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().Read(portaineree.EndpointGroupID(endpointGroupID))
+	endpointGroup, err := handler.DataStore.EndpointGroup().Read(portainer.EndpointGroupID(endpointGroupID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {

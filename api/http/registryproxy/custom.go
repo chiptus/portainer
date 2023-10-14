@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"net/url"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type customTransport struct {
-	config        *portaineree.RegistryManagementConfiguration
+	config        *portainer.RegistryManagementConfiguration
 	httpTransport http.RoundTripper
 }
 
-func newCustomRegistryProxy(uri string, config *portaineree.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
+func newCustomRegistryProxy(uri string, config *portainer.RegistryManagementConfiguration, httpTransport http.RoundTripper) (http.Handler, error) {
 	scheme := "http"
 	if config.TLSConfig.TLS {
 		scheme = "https"

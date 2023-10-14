@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestIntersection(t *testing.T) {
@@ -16,33 +16,33 @@ func TestIntersection(t *testing.T) {
 	}{
 		{
 			name:     "positive numbers set intersection",
-			setA:     Set([]portaineree.TagID{1, 2, 3, 4, 5}),
-			setB:     Set([]portaineree.TagID{4, 5, 6, 7}),
-			expected: Set([]portaineree.TagID{4, 5}),
+			setA:     Set([]portainer.TagID{1, 2, 3, 4, 5}),
+			setB:     Set([]portainer.TagID{4, 5, 6, 7}),
+			expected: Set([]portainer.TagID{4, 5}),
 		},
 		{
 			name:     "empty setA intersection",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{}),
-			expected: Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{}),
+			expected: Set([]portainer.TagID{}),
 		},
 		{
 			name:     "empty setB intersection",
-			setA:     Set([]portaineree.TagID{}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
-			expected: Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
+			expected: Set([]portainer.TagID{}),
 		},
 		{
 			name:     "no common elements sets intersection",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{4, 5, 6}),
-			expected: Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{4, 5, 6}),
+			expected: Set([]portainer.TagID{}),
 		},
 		{
 			name:     "equal sets intersection",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 	}
 
@@ -65,33 +65,33 @@ func TestUnion(t *testing.T) {
 	}{
 		{
 			name:     "non-duplicate set union",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{4, 5, 6}),
-			expected: Set([]portaineree.TagID{1, 2, 3, 4, 5, 6}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{4, 5, 6}),
+			expected: Set([]portainer.TagID{1, 2, 3, 4, 5, 6}),
 		},
 		{
 			name:     "empty setA union",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 		{
 			name:     "empty setB union",
-			setA:     Set([]portaineree.TagID{}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 		{
 			name:     "duplicate elements in set union",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{3, 4, 5}),
-			expected: Set([]portaineree.TagID{1, 2, 3, 4, 5}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{3, 4, 5}),
+			expected: Set([]portainer.TagID{1, 2, 3, 4, 5}),
 		},
 		{
 			name:     "equal sets union",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 	}
 
@@ -114,44 +114,44 @@ func TestContains(t *testing.T) {
 	}{
 		{
 			name:     "setA contains setB",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{1, 2}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{1, 2}),
 			expected: true,
 		},
 		{
 			name:     "setA equals to setB",
-			setA:     Set([]portaineree.TagID{1, 2}),
-			setB:     Set([]portaineree.TagID{1, 2}),
+			setA:     Set([]portainer.TagID{1, 2}),
+			setB:     Set([]portainer.TagID{1, 2}),
 			expected: true,
 		},
 		{
 			name:     "setA contains parts of setB",
-			setA:     Set([]portaineree.TagID{1, 2}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
 			expected: false,
 		},
 		{
 			name:     "setA does not contain setB",
-			setA:     Set([]portaineree.TagID{1, 2}),
-			setB:     Set([]portaineree.TagID{3, 4}),
+			setA:     Set([]portainer.TagID{1, 2}),
+			setB:     Set([]portainer.TagID{3, 4}),
 			expected: false,
 		},
 		{
 			name:     "setA is empty and setB is not empty",
-			setA:     Set([]portaineree.TagID{}),
-			setB:     Set([]portaineree.TagID{1, 2}),
+			setA:     Set([]portainer.TagID{}),
+			setB:     Set([]portainer.TagID{1, 2}),
 			expected: false,
 		},
 		{
 			name:     "setA is not empty and setB is empty",
-			setA:     Set([]portaineree.TagID{1, 2}),
-			setB:     Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{1, 2}),
+			setB:     Set([]portainer.TagID{}),
 			expected: false,
 		},
 		{
 			name:     "setA is empty and setB is empty",
-			setA:     Set([]portaineree.TagID{}),
-			setB:     Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{}),
+			setB:     Set([]portainer.TagID{}),
 			expected: false,
 		},
 	}
@@ -175,21 +175,21 @@ func TestDifference(t *testing.T) {
 	}{
 		{
 			name:     "positive numbers set difference",
-			setA:     Set([]portaineree.TagID{1, 2, 3, 4, 5}),
-			setB:     Set([]portaineree.TagID{4, 5, 6, 7}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2, 3, 4, 5}),
+			setB:     Set([]portainer.TagID{4, 5, 6, 7}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 		{
 			name:     "empty set difference",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{}),
-			expected: Set([]portaineree.TagID{1, 2, 3}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{}),
+			expected: Set([]portainer.TagID{1, 2, 3}),
 		},
 		{
 			name:     "equal sets difference",
-			setA:     Set([]portaineree.TagID{1, 2, 3}),
-			setB:     Set([]portaineree.TagID{1, 2, 3}),
-			expected: Set([]portaineree.TagID{}),
+			setA:     Set([]portainer.TagID{1, 2, 3}),
+			setB:     Set([]portainer.TagID{1, 2, 3}),
+			expected: Set([]portainer.TagID{}),
 		},
 	}
 

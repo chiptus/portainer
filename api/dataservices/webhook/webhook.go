@@ -3,7 +3,6 @@ package webhook
 import (
 	"errors"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
@@ -14,7 +13,7 @@ const BucketName = "webhooks"
 
 // Service represents a service for managing webhook data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.Webhook, portaineree.WebhookID]
+	dataservices.BaseDataService[portainer.Webhook, portainer.WebhookID]
 }
 
 // NewService creates a new instance of a service.
@@ -25,7 +24,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Webhook, portaineree.WebhookID]{
+		BaseDataService: dataservices.BaseDataService[portainer.Webhook, portainer.WebhookID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -33,13 +32,13 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // WebhookByResourceID returns a webhook by the ResourceID it is associated with.
-func (service *Service) WebhookByResourceID(ID string) (*portaineree.Webhook, error) {
-	var w portaineree.Webhook
+func (service *Service) WebhookByResourceID(ID string) (*portainer.Webhook, error) {
+	var w portainer.Webhook
 
 	err := service.Connection.GetAll(
 		BucketName,
-		&portaineree.Webhook{},
-		dataservices.FirstFn(&w, func(e portaineree.Webhook) bool {
+		&portainer.Webhook{},
+		dataservices.FirstFn(&w, func(e portainer.Webhook) bool {
 			return e.ResourceID == ID
 		}),
 	)
@@ -56,13 +55,13 @@ func (service *Service) WebhookByResourceID(ID string) (*portaineree.Webhook, er
 }
 
 // WebhookByToken returns a webhook by the random token it is associated with.
-func (service *Service) WebhookByToken(token string) (*portaineree.Webhook, error) {
-	var w portaineree.Webhook
+func (service *Service) WebhookByToken(token string) (*portainer.Webhook, error) {
+	var w portainer.Webhook
 
 	err := service.Connection.GetAll(
 		BucketName,
-		&portaineree.Webhook{},
-		dataservices.FirstFn(&w, func(e portaineree.Webhook) bool {
+		&portainer.Webhook{},
+		dataservices.FirstFn(&w, func(e portainer.Webhook) bool {
 			return e.Token == token
 		}),
 	)
@@ -79,11 +78,11 @@ func (service *Service) WebhookByToken(token string) (*portaineree.Webhook, erro
 }
 
 // CreateWebhook assign an ID to a new webhook and saves it.
-func (service *Service) Create(webhook *portaineree.Webhook) error {
+func (service *Service) Create(webhook *portainer.Webhook) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			webhook.ID = portaineree.WebhookID(id)
+			webhook.ID = portainer.WebhookID(id)
 			return int(webhook.ID), webhook
 		},
 	)

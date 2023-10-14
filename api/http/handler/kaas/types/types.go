@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
@@ -14,10 +15,10 @@ type (
 	CloudProviders map[CloudProviderShortName]portaineree.CloudProvider
 
 	EnvironmentMetadata struct {
-		GroupId               portaineree.EndpointGroupID  `json:"groupId"`
-		TagIds                []portaineree.TagID          `json:"tagIds"`
-		CustomTemplateID      portaineree.CustomTemplateID `json:"customTemplateID"`
-		CustomTemplateContent string                       `json:"customTemplateContent"`
+		GroupId               portainer.EndpointGroupID  `json:"groupId"`
+		TagIds                []portainer.TagID          `json:"tagIds"`
+		CustomTemplateID      portainer.CustomTemplateID `json:"customTemplateID"`
+		CustomTemplateContent string                     `json:"customTemplateContent"`
 	}
 
 	Microk8sAddonsPayload struct {

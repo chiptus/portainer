@@ -9,13 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
 	testType = portaineree.AuthenticationActivityType(0)
 )
 
-func createAuthLog(username, origin string, context portaineree.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) *portaineree.AuthActivityLog {
+func createAuthLog(username, origin string, context portainer.AuthenticationMethod, activityType portaineree.AuthenticationActivityType) *portaineree.AuthActivityLog {
 	return &portaineree.AuthActivityLog{
 		Type: activityType,
 		UserActivityLogBase: portaineree.UserActivityLogBase{
@@ -225,7 +226,7 @@ func TestGetAuthLogsByContext(t *testing.T) {
 
 	// one type
 	shouldHaveLog2, _, err := store.GetAuthLogs(portaineree.AuthLogsQuery{
-		ContextTypes: []portaineree.AuthenticationMethod{
+		ContextTypes: []portainer.AuthenticationMethod{
 			portaineree.AuthenticationLDAP,
 		},
 	})
@@ -238,7 +239,7 @@ func TestGetAuthLogsByContext(t *testing.T) {
 
 	// two types
 	shouldHaveLog1And3, _, err := store.GetAuthLogs(portaineree.AuthLogsQuery{
-		ContextTypes: []portaineree.AuthenticationMethod{
+		ContextTypes: []portainer.AuthenticationMethod{
 			portaineree.AuthenticationInternal,
 			portaineree.AuthenticationOAuth,
 		},

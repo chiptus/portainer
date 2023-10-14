@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/httpclient"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libhelm"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -55,7 +56,7 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
-	userID := portaineree.UserID(tokenData.ID)
+	userID := portainer.UserID(tokenData.ID)
 
 	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmRepoCreate)
 	if httperr != nil {
@@ -118,7 +119,7 @@ func (handler *Handler) userGetHelmRepos(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
-	userID := portaineree.UserID(tokenData.ID)
+	userID := portainer.UserID(tokenData.ID)
 
 	httperr := handler.authoriseHelmOperation(r, portaineree.OperationHelmRepoList)
 	if httperr != nil {

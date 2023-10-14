@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackbuilders"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -52,12 +53,12 @@ type kubernetesGitDeploymentPayload struct {
 	RepositoryGitCredentialID int
 	ManifestFile              string
 	AdditionalFiles           []string
-	AutoUpdate                *portaineree.AutoUpdateSettings
+	AutoUpdate                *portainer.AutoUpdateSettings
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
 }
 
-func createStackPayloadFromK8sGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication, composeFormat bool, namespace, manifest string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, repoTLSSkipVerify bool) stackbuilders.StackPayload {
+func createStackPayloadFromK8sGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication, composeFormat bool, namespace, manifest string, additionalFiles []string, autoUpdate *portainer.AutoUpdateSettings, repoTLSSkipVerify bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		StackName: name,
 		RepositoryConfigPayload: stackbuilders.RepositoryConfigPayload{
@@ -350,7 +351,7 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	return response.JSON(w, resp)
 }
 
-func (handler *Handler) deployKubernetesStack(tokenData *portaineree.TokenData, endpoint *portaineree.Endpoint, stack *portaineree.Stack, appLabels k.KubeAppLabels) (string, *httperror.HandlerError) {
+func (handler *Handler) deployKubernetesStack(tokenData *portainer.TokenData, endpoint *portaineree.Endpoint, stack *portaineree.Stack, appLabels k.KubeAppLabels) (string, *httperror.HandlerError) {
 	handler.stackCreationMutex.Lock()
 	defer handler.stackCreationMutex.Unlock()
 

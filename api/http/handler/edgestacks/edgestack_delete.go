@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -30,7 +31,7 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.deleteEdgeStack(tx, portaineree.EdgeStackID(edgeStackID))
+		return handler.deleteEdgeStack(tx, portainer.EdgeStackID(edgeStackID))
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -44,8 +45,8 @@ func (handler *Handler) edgeStackDelete(w http.ResponseWriter, r *http.Request) 
 	return response.Empty(w)
 }
 
-func (handler *Handler) deleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID) error {
-	edgeStack, err := tx.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
+func (handler *Handler) deleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID) error {
+	edgeStack, err := tx.EdgeStack().EdgeStack(portainer.EdgeStackID(edgeStackID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an edge stack with the specified identifier inside the database", err)
 	} else if err != nil {

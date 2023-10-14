@@ -21,7 +21,7 @@ import (
 type updateStatusPayload struct {
 	Error      string
 	Status     *portainer.EdgeStackStatusType
-	EndpointID portaineree.EndpointID
+	EndpointID portainer.EndpointID
 	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
 	RollbackTo *int
 	Time       int64
@@ -75,7 +75,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 
 	var stack *portaineree.EdgeStack
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		stack, err = handler.updateEdgeStackStatus(tx, r, portaineree.EdgeStackID(stackID), payload)
+		stack, err = handler.updateEdgeStackStatus(tx, r, portainer.EdgeStackID(stackID), payload)
 		return err
 	})
 	if err != nil {
@@ -90,7 +90,7 @@ func (handler *Handler) edgeStackStatusUpdate(w http.ResponseWriter, r *http.Req
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *http.Request, stackID portaineree.EdgeStackID, payload updateStatusPayload) (*portaineree.EdgeStack, error) {
+func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *http.Request, stackID portainer.EdgeStackID, payload updateStatusPayload) (*portaineree.EdgeStack, error) {
 	stack, err := tx.EdgeStack().EdgeStack(stackID)
 	if err != nil {
 		if dataservices.IsErrObjectNotFound(err) {

@@ -6,6 +6,7 @@ import (
 
 	cmap "github.com/orcaman/concurrent-map"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 )
 
@@ -25,7 +26,7 @@ func NewService(userActivityService portaineree.UserActivityService) *Service {
 
 // GetProxy returns the registry proxy associated to a key if it exists.
 // Otherwise, it will create it and return it.
-func (service *Service) GetProxy(key, uri string, config *portaineree.RegistryManagementConfiguration, forceCreate bool) (http.Handler, error) {
+func (service *Service) GetProxy(key, uri string, config *portainer.RegistryManagementConfiguration, forceCreate bool) (http.Handler, error) {
 	proxy, ok := service.proxies.Get(key)
 	if ok && !forceCreate {
 		return proxy.(http.Handler), nil
@@ -39,7 +40,7 @@ func (service *Service) DeleteProxy(key string) {
 	service.proxies.Remove(key)
 }
 
-func (service *Service) createProxy(key, uri string, config *portaineree.RegistryManagementConfiguration) (http.Handler, error) {
+func (service *Service) createProxy(key, uri string, config *portainer.RegistryManagementConfiguration) (http.Handler, error) {
 	var proxy http.Handler
 	var err error
 	transport := &http.Transport{

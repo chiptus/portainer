@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -37,7 +37,7 @@ func (handler *Handler) updateProfile(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	profile, err := handler.DataStore.FDOProfile().Read(portaineree.FDOProfileID(id))
+	profile, err := handler.DataStore.FDOProfile().Read(portainer.FDOProfileID(id))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a FDO Profile with the specified identifier inside the database", err)
 	} else if err != nil {

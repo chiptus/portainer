@@ -3,7 +3,7 @@ package teams
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -29,7 +29,7 @@ func (payload *teamUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Team identifier"
 // @param body body teamUpdatePayload true "Team details"
-// @success 200 {object} portaineree.Team "Success"
+// @success 200 {object} portainer.Team "Success"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -48,7 +48,7 @@ func (handler *Handler) teamUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	team, err := handler.DataStore.Team().Read(portaineree.TeamID(teamID))
+	team, err := handler.DataStore.Team().Read(portainer.TeamID(teamID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a team with the specified identifier inside the database", err)
 	} else if err != nil {

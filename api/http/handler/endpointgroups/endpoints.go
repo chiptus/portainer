@@ -6,15 +6,16 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/endpoints"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) error {
+func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, endpointGroup *portainer.EndpointGroup) error {
 	if !endpointutils.IsEdgeEndpoint(endpoint) {
 		return nil
 	}
 
 	if endpointGroup == nil {
-		unassignedGroup, err := tx.EndpointGroup().Read(portaineree.EndpointGroupID(1))
+		unassignedGroup, err := tx.EndpointGroup().Read(portainer.EndpointGroupID(1))
 		if err != nil {
 			return err
 		}
@@ -38,7 +39,7 @@ func (handler *Handler) updateEndpointRelations(tx dataservices.DataStoreTx, end
 	}
 
 	endpointStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
-	stacksSet := map[portaineree.EdgeStackID]bool{}
+	stacksSet := map[portainer.EdgeStackID]bool{}
 	for _, edgeStackID := range endpointStacks {
 		stacksSet[edgeStackID] = true
 	}

@@ -9,6 +9,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -46,7 +47,7 @@ func (handler *Handler) webhookExecute(w http.ResponseWriter, r *http.Request) *
 	registryID := webhook.RegistryID
 	webhookType := webhook.WebhookType
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -71,7 +72,7 @@ func (handler *Handler) executeServiceWebhook(
 	w http.ResponseWriter,
 	endpoint *portaineree.Endpoint,
 	resourceID string,
-	registryID portaineree.RegistryID,
+	registryID portainer.RegistryID,
 	imageTag string,
 ) *httperror.HandlerError {
 	dockerClient, err := handler.DockerClientFactory.CreateClient(endpoint, "", nil)
@@ -134,7 +135,7 @@ func (handler *Handler) executeServiceWebhook(
 	return response.Empty(w)
 }
 
-func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint *portaineree.Endpoint, webhook *portaineree.Webhook, imageTag, nodeName string) *httperror.HandlerError {
+func (handler *Handler) executeContainerWebhook(w http.ResponseWriter, endpoint *portaineree.Endpoint, webhook *portainer.Webhook, imageTag, nodeName string) *httperror.HandlerError {
 	newContainer, err := handler.containerService.Recreate(context.Background(), endpoint, webhook.ResourceID, true, imageTag, nodeName)
 	if err != nil {
 		return httperror.InternalServerError("Error updating service", err)

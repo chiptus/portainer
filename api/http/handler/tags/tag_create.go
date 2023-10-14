@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -34,7 +34,7 @@ func (payload *tagCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body tagCreatePayload true "Tag details"
-// @success 200 {object} portaineree.Tag "Success"
+// @success 200 {object} portainer.Tag "Success"
 // @failure 409 "Tag name exists"
 // @failure 500 "Server error"
 // @router /tags [post]
@@ -45,7 +45,7 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	var tag *portaineree.Tag
+	var tag *portainer.Tag
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		tag, err = createTag(tx, payload)
 		return err
@@ -54,7 +54,7 @@ func (handler *Handler) tagCreate(w http.ResponseWriter, r *http.Request) *httpe
 	return txResponse(w, tag, err)
 }
 
-func createTag(tx dataservices.DataStoreTx, payload tagCreatePayload) (*portaineree.Tag, error) {
+func createTag(tx dataservices.DataStoreTx, payload tagCreatePayload) (*portainer.Tag, error) {
 	tags, err := tx.Tag().ReadAll()
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve tags from the database", err)
@@ -66,10 +66,10 @@ func createTag(tx dataservices.DataStoreTx, payload tagCreatePayload) (*portaine
 		}
 	}
 
-	tag := &portaineree.Tag{
+	tag := &portainer.Tag{
 		Name:           payload.Name,
-		EndpointGroups: map[portaineree.EndpointGroupID]bool{},
-		Endpoints:      map[portaineree.EndpointID]bool{},
+		EndpointGroups: map[portainer.EndpointGroupID]bool{},
+		Endpoints:      map[portainer.EndpointID]bool{},
 	}
 
 	err = tx.Tag().Create(tag)

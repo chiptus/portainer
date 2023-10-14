@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	snapshotutils "github.com/portainer/portainer-ee/api/internal/snapshot"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/docker/docker/api/types/volume"
 	"github.com/rs/zerolog/log"
@@ -73,25 +74,25 @@ func (m *Migrator) updateRegistriesToDB32() error {
 
 	for _, registry := range registries {
 
-		registry.RegistryAccesses = portaineree.RegistryAccesses{}
+		registry.RegistryAccesses = portainer.RegistryAccesses{}
 
 		for _, endpoint := range endpoints {
 
-			filteredUserAccessPolicies := portaineree.UserAccessPolicies{}
+			filteredUserAccessPolicies := portainer.UserAccessPolicies{}
 			for userID, registryPolicy := range registry.UserAccessPolicies {
 				if _, found := endpoint.UserAccessPolicies[userID]; found {
 					filteredUserAccessPolicies[userID] = registryPolicy
 				}
 			}
 
-			filteredTeamAccessPolicies := portaineree.TeamAccessPolicies{}
+			filteredTeamAccessPolicies := portainer.TeamAccessPolicies{}
 			for teamID, registryPolicy := range registry.TeamAccessPolicies {
 				if _, found := endpoint.TeamAccessPolicies[teamID]; found {
 					filteredTeamAccessPolicies[teamID] = registryPolicy
 				}
 			}
 
-			registry.RegistryAccesses[endpoint.ID] = portaineree.RegistryAccessPolicies{
+			registry.RegistryAccesses[endpoint.ID] = portainer.RegistryAccessPolicies{
 				UserAccessPolicies: filteredUserAccessPolicies,
 				TeamAccessPolicies: filteredTeamAccessPolicies,
 				Namespaces:         []string{},
@@ -123,7 +124,7 @@ func (m *Migrator) updateDockerhubToDB32() error {
 		Authentication:   true,
 		Username:         dockerhub.Username,
 		Password:         dockerhub.Password,
-		RegistryAccesses: portaineree.RegistryAccesses{},
+		RegistryAccesses: portainer.RegistryAccesses{},
 	}
 
 	// The following code will make this function idempotent.
@@ -143,7 +144,7 @@ func (m *Migrator) updateDockerhubToDB32() error {
 				migrated = true
 			} else {
 				// delete subsequent duplicates
-				m.registryService.Delete(portaineree.RegistryID(r.ID))
+				m.registryService.Delete(portainer.RegistryID(r.ID))
 			}
 		}
 	}
@@ -163,25 +164,25 @@ func (m *Migrator) updateDockerhubToDB32() error {
 			endpoint.Type != portaineree.AgentOnKubernetesEnvironment &&
 			endpoint.Type != portaineree.EdgeAgentOnKubernetesEnvironment {
 
-			userAccessPolicies := portaineree.UserAccessPolicies{}
+			userAccessPolicies := portainer.UserAccessPolicies{}
 			for userID := range endpoint.UserAccessPolicies {
 				if _, found := endpoint.UserAccessPolicies[userID]; found {
-					userAccessPolicies[userID] = portaineree.AccessPolicy{
+					userAccessPolicies[userID] = portainer.AccessPolicy{
 						RoleID: 0,
 					}
 				}
 			}
 
-			teamAccessPolicies := portaineree.TeamAccessPolicies{}
+			teamAccessPolicies := portainer.TeamAccessPolicies{}
 			for teamID := range endpoint.TeamAccessPolicies {
 				if _, found := endpoint.TeamAccessPolicies[teamID]; found {
-					teamAccessPolicies[teamID] = portaineree.AccessPolicy{
+					teamAccessPolicies[teamID] = portainer.AccessPolicy{
 						RoleID: 0,
 					}
 				}
 			}
 
-			registry.RegistryAccesses[endpoint.ID] = portaineree.RegistryAccessPolicies{
+			registry.RegistryAccesses[endpoint.ID] = portainer.RegistryAccessPolicies{
 				UserAccessPolicies: userAccessPolicies,
 				TeamAccessPolicies: teamAccessPolicies,
 				Namespaces:         []string{},
@@ -225,8 +226,8 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 		return fmt.Errorf("failed fetching resource controls: %w", err)
 	}
 
-	toUpdate := map[portaineree.ResourceControlID]string{}
-	volumeResourceControls := map[string]*portaineree.ResourceControl{}
+	toUpdate := map[portainer.ResourceControlID]string{}
+	volumeResourceControls := map[string]*portainer.ResourceControl{}
 
 	for i := range resourceControls {
 		resourceControl := resourceControls[i]
@@ -285,7 +286,7 @@ func (m *Migrator) updateVolumeResourceControlToDB32() error {
 	return nil
 }
 
-func findResourcesToUpdateToDB32(dockerID string, volumesData volume.VolumeListOKBody, toUpdate map[portaineree.ResourceControlID]string, volumeResourceControls map[string]*portaineree.ResourceControl) {
+func findResourcesToUpdateToDB32(dockerID string, volumesData volume.VolumeListOKBody, toUpdate map[portainer.ResourceControlID]string, volumeResourceControls map[string]*portainer.ResourceControl) {
 	volumes := volumesData.Volumes
 	for _, volume := range volumes {
 		volumeName := volume.Name
@@ -308,7 +309,7 @@ func (m *Migrator) updateAdminGroupSearchSettingsToDB32() error {
 		return err
 	}
 	if legacySettings.LDAPSettings.AdminGroupSearchSettings == nil {
-		legacySettings.LDAPSettings.AdminGroupSearchSettings = []portaineree.LDAPGroupSearchSettings{
+		legacySettings.LDAPSettings.AdminGroupSearchSettings = []portainer.LDAPGroupSearchSettings{
 			{},
 		}
 	}

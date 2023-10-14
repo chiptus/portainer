@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/offlinegate"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -52,7 +53,7 @@ func Test_restoreArchive_usingCombinationOfPasswords(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			datastore := testhelpers.NewDatastore(
 				testhelpers.WithUsers([]portaineree.User{}),
-				testhelpers.WithEdgeJobs([]portaineree.EdgeJob{}),
+				testhelpers.WithEdgeJobs([]portainer.EdgeJob{}),
 			)
 			adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())
 
@@ -89,7 +90,7 @@ func Test_restoreArchive_shouldFailIfSystemWasAlreadyInitialized(t *testing.T) {
 
 	datastore := testhelpers.NewDatastore(
 		testhelpers.WithUsers([]portaineree.User{admin}),
-		testhelpers.WithEdgeJobs([]portaineree.EdgeJob{}),
+		testhelpers.WithEdgeJobs([]portainer.EdgeJob{}),
 	)
 
 	adminMonitor := adminmonitor.New(time.Hour, datastore, context.Background())

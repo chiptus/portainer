@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -26,7 +27,7 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid webhook id", err)
 	}
 
-	webhook, err := handler.DataStore.Webhook().Read(portaineree.WebhookID(id))
+	webhook, err := handler.DataStore.Webhook().Read(portainer.WebhookID(id))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a webhook with this token", err)
 	} else if err != nil {
@@ -40,14 +41,14 @@ func (handler *Handler) webhookDelete(w http.ResponseWriter, r *http.Request) *h
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookDelete}
+	authorizations := []portainer.Authorization{portaineree.OperationPortainerWebhookDelete}
 
 	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
 	if handlerErr != nil {
 		return handlerErr
 	}
 
-	err = handler.DataStore.Webhook().Delete(portaineree.WebhookID(id))
+	err = handler.DataStore.Webhook().Delete(portainer.WebhookID(id))
 	if err != nil {
 		return httperror.InternalServerError("Unable to remove the webhook from the database", err)
 	}

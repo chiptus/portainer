@@ -3,25 +3,24 @@ package cache
 import (
 	"strconv"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"github.com/VictoriaMetrics/fastcache"
+	portainer "github.com/portainer/portainer/api"
 )
 
 var c = fastcache.New(1)
 
-func key(k portaineree.EndpointID) []byte {
+func key(k portainer.EndpointID) []byte {
 	return []byte(strconv.Itoa(int(k)))
 }
 
-func Set(k portaineree.EndpointID, v []byte) {
+func Set(k portainer.EndpointID, v []byte) {
 	c.Set(key(k), v)
 }
 
-func Get(k portaineree.EndpointID) ([]byte, bool) {
+func Get(k portainer.EndpointID) ([]byte, bool) {
 	return c.HasGet(nil, key(k))
 }
 
-func Del(k portaineree.EndpointID) {
+func Del(k portainer.EndpointID) {
 	c.Del(key(k))
 }

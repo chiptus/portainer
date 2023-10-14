@@ -14,15 +14,15 @@ import (
 )
 
 type StaggerJob struct {
-	EdgeStackID        portaineree.EdgeStackID
+	EdgeStackID        portainer.EdgeStackID
 	StackFileVersion   int
-	RelatedEndpointIDs []portaineree.EndpointID
+	RelatedEndpointIDs []portainer.EndpointID
 	Config             *portaineree.EdgeStaggerConfig
 }
 
 type StaggerStatusJob struct {
-	EdgeStackID      portaineree.EdgeStackID
-	EndpointID       portaineree.EndpointID
+	EdgeStackID      portainer.EdgeStackID
+	EndpointID       portainer.EndpointID
 	StackFileVersion int
 	RollbackTo       *int
 	Status           portainer.EdgeStackStatusType
@@ -39,7 +39,7 @@ type Service struct {
 	// At a time, there is only one stagger config for each stack, the new stagger config for the same stack
 	// cannot be added until the previous stagger config is completed
 	// todo: Should be saved in the database in the future
-	staggerConfigs map[portaineree.EdgeStackID]portaineree.EdgeStaggerConfig
+	staggerConfigs map[portainer.EdgeStackID]portaineree.EdgeStaggerConfig
 	// staggerPoolMtx is used to protect staggerPool
 	staggerPoolMtx sync.RWMutex
 	// staggerPool is used to maintain a list of processed stagger schedule operation
@@ -65,7 +65,7 @@ func NewService(ctx context.Context, dataStore dataservices.DataStore, edgeAsync
 		dataStore:         dataStore,
 		edgeAsyncService:  edgeAsyncService,
 		staggerConfigsMtx: sync.RWMutex{},
-		staggerConfigs:    make(map[portaineree.EdgeStackID]portaineree.EdgeStaggerConfig, 0),
+		staggerConfigs:    make(map[portainer.EdgeStackID]portaineree.EdgeStaggerConfig, 0),
 		staggerPoolMtx:    sync.RWMutex{},
 		staggerPool:       make(map[StaggerPoolKey]StaggerScheduleOperation, 0),
 		// todo: make the channel size configurable from UI
@@ -84,7 +84,7 @@ func NewService(ctx context.Context, dataStore dataservices.DataStore, edgeAsync
 
 // AddStaggerConfig is used to add a new stagger config for specific edge stack. If the edge stack is still running
 // under the existing stagger config, it will return an error
-func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVersion int, config *portaineree.EdgeStaggerConfig, endpointIDs []portaineree.EndpointID) error {
+func (service *Service) AddStaggerConfig(id portainer.EdgeStackID, stackFileVersion int, config *portaineree.EdgeStaggerConfig, endpointIDs []portainer.EndpointID) error {
 	if config.StaggerOption == portaineree.EdgeStaggerOptionAllAtOnce {
 		return nil
 	}
@@ -109,7 +109,7 @@ func (service *Service) AddStaggerConfig(id portaineree.EdgeStackID, stackFileVe
 	return nil
 }
 
-func (service *Service) RemoveStaggerConfig(id portaineree.EdgeStackID) {
+func (service *Service) RemoveStaggerConfig(id portainer.EdgeStackID) {
 	// remove the config from stagger configuration
 
 	service.staggerConfigsMtx.Lock()
@@ -126,7 +126,7 @@ func (service *Service) RemoveStaggerConfig(id portaineree.EdgeStackID) {
 	delete(service.staggerConfigs, id)
 }
 
-func (service *Service) IsEdgeStackUpdating(id portaineree.EdgeStackID) bool {
+func (service *Service) IsEdgeStackUpdating(id portainer.EdgeStackID) bool {
 	service.staggerConfigsMtx.RLock()
 	defer service.staggerConfigsMtx.RUnlock()
 
@@ -135,7 +135,7 @@ func (service *Service) IsEdgeStackUpdating(id portaineree.EdgeStackID) bool {
 }
 
 // IsStaggered is used to check if the edge stack is staggered for specific endpoint
-func (service *Service) IsStaggeredEdgeStack(id portaineree.EdgeStackID, fileVersion int, endpointID portaineree.EndpointID) bool {
+func (service *Service) IsStaggeredEdgeStack(id portainer.EdgeStackID, fileVersion int, endpointID portainer.EndpointID) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
@@ -158,7 +158,7 @@ func (service *Service) IsStaggeredEdgeStack(id portaineree.EdgeStackID, fileVer
 
 // StopAndRemoveStaggerScheduleOperation is used to stop and remove the stagger schedule operation
 // for specific edge stack. It is called when the edge stack is deleted.
-func (service *Service) StopAndRemoveStaggerScheduleOperation(id portaineree.EdgeStackID) {
+func (service *Service) StopAndRemoveStaggerScheduleOperation(id portainer.EdgeStackID) {
 	service.staggerPoolMtx.Lock()
 	for key, scheduleOperation := range service.staggerPool {
 		if scheduleOperation.edgeStackID != id {
@@ -190,7 +190,7 @@ func (service *Service) StopAndRemoveStaggerScheduleOperation(id portaineree.Edg
 }
 
 // CanProceedAsStaggerJob is used to check if the edge stack can proceed as stagger job for specific endpoint
-func (service *Service) CanProceedAsStaggerJob(id portaineree.EdgeStackID, fileVersion int, endpointID portaineree.EndpointID) bool {
+func (service *Service) CanProceedAsStaggerJob(id portainer.EdgeStackID, fileVersion int, endpointID portainer.EndpointID) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
@@ -260,7 +260,7 @@ func (service *Service) CanProceedAsStaggerJob(id portaineree.EdgeStackID, fileV
 }
 
 // MarkAsStaggered is used to indicate the stagger workflow is set to rollback for specific edge stack
-func (service *Service) MarkedAsRollback(id portaineree.EdgeStackID, fileVersion int) bool {
+func (service *Service) MarkedAsRollback(id portainer.EdgeStackID, fileVersion int) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
@@ -275,7 +275,7 @@ func (service *Service) MarkedAsRollback(id portaineree.EdgeStackID, fileVersion
 }
 
 // WasEndpointRolledBack is used to check if the endpoint was rolled back for specific edge stack
-func (service *Service) WasEndpointRolledBack(id portaineree.EdgeStackID, fileVersion int, endpointId portaineree.EndpointID) bool {
+func (service *Service) WasEndpointRolledBack(id portainer.EdgeStackID, fileVersion int, endpointId portainer.EndpointID) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
@@ -300,7 +300,7 @@ func (service *Service) WasEndpointRolledBack(id portaineree.EdgeStackID, fileVe
 	return endpointStatus == portainer.EdgeStackStatusPending
 }
 
-func (service *Service) MarkedAsCompleted(id portaineree.EdgeStackID, fileVersion int) bool {
+func (service *Service) MarkedAsCompleted(id portainer.EdgeStackID, fileVersion int) bool {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.RLock()
@@ -338,7 +338,7 @@ func (service *Service) MarkedAsCompleted(id portaineree.EdgeStackID, fileVersio
 // It is called when the agent updates the edge stack status. "fileVersion" is not the edge
 // stack file version that each agent is using, it is the edge stack file version that is
 // used to differentiate the stagger workflow for the same edge stack
-func (service *Service) UpdateStaggerEndpointStatusIfNeeds(id portaineree.EdgeStackID, fileVersion int, rollbackTo *int, endpointID portaineree.EndpointID, status portainer.EdgeStackStatusType) {
+func (service *Service) UpdateStaggerEndpointStatusIfNeeds(id portainer.EdgeStackID, fileVersion int, rollbackTo *int, endpointID portainer.EndpointID, status portainer.EdgeStackStatusType) {
 	if status != portainer.EdgeStackStatusRunning &&
 		status != portainer.EdgeStackStatusError {
 		return
@@ -355,7 +355,7 @@ func (service *Service) UpdateStaggerEndpointStatusIfNeeds(id portaineree.EdgeSt
 	service.staggerStatusJobQueue <- statusJob
 }
 
-func (service *Service) setAsyncPoolTerminator(edgeStackID portaineree.EdgeStackID, stackFileVersion int, cancelFunc context.CancelFunc) {
+func (service *Service) setAsyncPoolTerminator(edgeStackID portainer.EdgeStackID, stackFileVersion int, cancelFunc context.CancelFunc) {
 	poolKey := GetStaggerPoolKey(edgeStackID, stackFileVersion)
 
 	service.staggerPoolMtx.Lock()
@@ -398,7 +398,7 @@ func (service *Service) removeUpdateDelay(poolKey StaggerPoolKey) {
 	service.staggerPool[poolKey] = scheduleOperation
 }
 
-func (service *Service) setTimeout(id portaineree.EdgeStackID, fileVersion int, endpointID portaineree.EndpointID) {
+func (service *Service) setTimeout(id portainer.EdgeStackID, fileVersion int, endpointID portainer.EndpointID) {
 	poolKey := GetStaggerPoolKey(id, fileVersion)
 
 	service.staggerPoolMtx.Lock()

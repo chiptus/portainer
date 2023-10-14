@@ -5,17 +5,17 @@ import (
 	"maps"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
 
 type taskContainer struct {
-	ID         string                        `json:"Id"`
-	EndpointID portaineree.EndpointID        `json:"EndpointId"`
-	LogsStatus portaineree.EdgeJobLogsStatus `json:"LogsStatus"`
+	ID         string                      `json:"Id"`
+	EndpointID portainer.EndpointID        `json:"EndpointId"`
+	LogsStatus portainer.EdgeJobLogsStatus `json:"LogsStatus"`
 }
 
 // @id EdgeJobTasksList
@@ -39,14 +39,14 @@ func (handler *Handler) edgeJobTasksList(w http.ResponseWriter, r *http.Request)
 
 	var tasks []taskContainer
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		tasks, err = listEdgeJobTasks(tx, portaineree.EdgeJobID(edgeJobID))
+		tasks, err = listEdgeJobTasks(tx, portainer.EdgeJobID(edgeJobID))
 		return err
 	})
 
 	return txResponse(w, tasks, err)
 }
 
-func listEdgeJobTasks(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID) ([]taskContainer, error) {
+func listEdgeJobTasks(tx dataservices.DataStoreTx, edgeJobID portainer.EdgeJobID) ([]taskContainer, error) {
 	edgeJob, err := tx.EdgeJob().Read(edgeJobID)
 	if tx.IsErrObjectNotFound(err) {
 		return nil, httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
@@ -56,7 +56,7 @@ func listEdgeJobTasks(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJob
 
 	tasks := make([]taskContainer, 0)
 
-	endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+	endpointsMap := map[portainer.EndpointID]portainer.EdgeJobEndpointMeta{}
 	if len(edgeJob.EdgeGroups) > 0 {
 		endpoints, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, tx)
 		if err != nil {

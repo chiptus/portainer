@@ -17,6 +17,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,8 +47,8 @@ func Test_userGetAccessTokens(t *testing.T) {
 	h.DataStore = store
 
 	// generate standard and admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
-	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
+	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
 
 	t.Run("standard user can successfully retrieve API key", func(t *testing.T) {
 		_, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-get-token")

@@ -9,6 +9,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -21,10 +22,10 @@ type registryUpdatePayload struct {
 	Authentication   *bool   `json:",omitempty" example:"false" validate:"required"`
 	Username         *string `json:",omitempty" example:"registry_user"`
 	Password         *string `json:",omitempty" example:"registry_password"`
-	Quay             *portaineree.QuayRegistryData
+	Quay             *portainer.QuayRegistryData
 	Github           *portaineree.GithubRegistryData
-	RegistryAccesses *portaineree.RegistryAccesses `json:",omitempty"`
-	Ecr              *portaineree.EcrData          `json:",omitempty"`
+	RegistryAccesses *portainer.RegistryAccesses `json:",omitempty"`
+	Ecr              *portainer.EcrData          `json:",omitempty"`
 }
 
 func (payload *registryUpdatePayload) Validate(r *http.Request) error {
@@ -63,7 +64,7 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	registry, err := handler.DataStore.Registry().Read(portaineree.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Read(portainer.RegistryID(registryID))
 	if dataservices.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -183,10 +184,10 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 	return response.JSON(w, registry)
 }
 
-func syncConfig(registry *portaineree.Registry) *portaineree.RegistryManagementConfiguration {
+func syncConfig(registry *portaineree.Registry) *portainer.RegistryManagementConfiguration {
 	config := registry.ManagementConfiguration
 	if config == nil {
-		config = &portaineree.RegistryManagementConfiguration{}
+		config = &portainer.RegistryManagementConfiguration{}
 	}
 
 	config.Authentication = registry.Authentication
@@ -198,8 +199,7 @@ func syncConfig(registry *portaineree.Registry) *portaineree.RegistryManagementC
 	return config
 }
 
-func (handler *Handler) updateEndpointRegistryAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, endpointAccess portaineree.RegistryAccessPolicies) error {
-
+func (handler *Handler) updateEndpointRegistryAccess(endpoint *portaineree.Endpoint, registry *portaineree.Registry, endpointAccess portainer.RegistryAccessPolicies) error {
 	cli, err := handler.K8sClientFactory.GetKubeClient(endpoint)
 	if err != nil {
 		return err

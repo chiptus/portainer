@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/platform"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -11,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var platformToEndpointType = map[platform.ContainerPlatform]portaineree.EndpointType{
+var platformToEndpointType = map[platform.ContainerPlatform]portainer.EndpointType{
 	platform.PlatformDockerStandalone: portaineree.DockerEnvironment,
 	platform.PlatformDockerSwarm:      portaineree.DockerEnvironment,
 	platform.PlatformKubernetes:       portaineree.KubernetesLocalEnvironment,

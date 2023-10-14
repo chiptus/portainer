@@ -8,10 +8,11 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // IsAdminOrEndpointAdmin checks if current request is for an admin or an environment(endpoint) admin
-func IsAdminOrEndpointAdmin(request *http.Request, tx dataservices.DataStoreTx, endpointID portaineree.EndpointID) (bool, error) {
+func IsAdminOrEndpointAdmin(request *http.Request, tx dataservices.DataStoreTx, endpointID portainer.EndpointID) (bool, error) {
 	tokenData, err := RetrieveTokenData(request)
 	if err != nil {
 		return false, err
@@ -65,7 +66,7 @@ func extractResourceAndActionFromURL(routeResource, url string) (string, string)
 	return urlComponents["resource"], urlComponents["action"]
 }
 
-func getOperationAuthorization(url, method string) portaineree.Authorization {
+func getOperationAuthorization(url, method string) portainer.Authorization {
 	if dockerRule.MatchString(url) {
 		match := dockerRule.FindStringSubmatch(url)
 		return getDockerOperationAuthorization(strings.TrimPrefix(url, "/"+match[1]+"/docker"), method)
@@ -88,12 +89,12 @@ func getOperationAuthorization(url, method string) portaineree.Authorization {
 	return getPortainerOperationAuthorization(url, method)
 }
 
-func getKubernetesOperationAuthorization(url, method string) portaineree.Authorization {
+func getKubernetesOperationAuthorization(url, method string) portainer.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 	_, action := extractResourceAndActionFromURL(baseResource, url)
 
-	authorizationsBindings := map[string]map[string]map[string]portaineree.Authorization{
+	authorizationsBindings := map[string]map[string]map[string]portainer.Authorization{
 		"namespaces": {
 			"system": {
 				http.MethodPut: portaineree.OperationK8sResourcePoolDetailsW,
@@ -107,7 +108,7 @@ func getKubernetesOperationAuthorization(url, method string) portaineree.Authori
 	return portaineree.OperationK8sUndefined
 }
 
-func getPortainerOperationAuthorization(url, method string) portaineree.Authorization {
+func getPortainerOperationAuthorization(url, method string) portainer.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 
@@ -155,7 +156,7 @@ func getPortainerOperationAuthorization(url, method string) portaineree.Authoriz
 	return portaineree.OperationPortainerUndefined
 }
 
-func getDockerOperationAuthorization(url, method string) portaineree.Authorization {
+func getDockerOperationAuthorization(url, method string) portainer.Authorization {
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
 
@@ -217,7 +218,7 @@ func getDockerOperationAuthorization(url, method string) portaineree.Authorizati
 	}
 }
 
-func portainerAgentOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerAgentOperationAuthorization(url, method string) portainer.Authorization {
 	var dockerHubRule = regexp.MustCompile(`/docker/v2/dockerhub/\d+`)
 	if dockerHubRule.MatchString(url) && method == http.MethodGet {
 		return portaineree.OperationPortainerDockerHubInspect
@@ -225,7 +226,7 @@ func portainerAgentOperationAuthorization(url, method string) portaineree.Author
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerDockerhubOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerDockerhubOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("dockerhub", url)
 
 	switch method {
@@ -242,7 +243,7 @@ func portainerDockerhubOperationAuthorization(url, method string) portaineree.Au
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerEndpointGroupOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerEndpointGroupOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("endpoint_groups", url)
 
 	switch method {
@@ -271,7 +272,7 @@ func portainerEndpointGroupOperationAuthorization(url, method string) portainere
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerEndpointOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerEndpointOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("endpoints", url)
 	urlParts := strings.Split(url, "/")
 	baseResource := strings.Split(urlParts[1], "?")[0]
@@ -330,7 +331,7 @@ func portainerEndpointOperationAuthorization(url, method string) portaineree.Aut
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerExtensionOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerExtensionOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("extensions", url)
 
 	switch method {
@@ -355,7 +356,7 @@ func portainerExtensionOperationAuthorization(url, method string) portaineree.Au
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerRegistryOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerRegistryOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("registries", url)
 
 	isInternalOperation := strings.HasPrefix(action, "v2/") ||
@@ -392,7 +393,7 @@ func portainerRegistryOperationAuthorization(url, method string) portaineree.Aut
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerResourceControlOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerResourceControlOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("resource_controls", url)
 
 	switch method {
@@ -412,7 +413,7 @@ func portainerResourceControlOperationAuthorization(url, method string) portaine
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerRoleOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerRoleOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("roles", url)
 
 	switch method {
@@ -439,7 +440,7 @@ func portainerRoleOperationAuthorization(url, method string) portaineree.Authori
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerScheduleOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerScheduleOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("schedules", url)
 
 	switch method {
@@ -474,7 +475,7 @@ func portainerScheduleOperationAuthorization(url, method string) portaineree.Aut
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerSettingsOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerSettingsOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("settings", url)
 
 	switch method {
@@ -496,7 +497,7 @@ func portainerSettingsOperationAuthorization(url, method string) portaineree.Aut
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerStackOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerStackOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("stacks", url)
 
 	switch method {
@@ -537,7 +538,7 @@ func portainerStackOperationAuthorization(url, method string) portaineree.Author
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTagOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerTagOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("tags", url)
 
 	switch method {
@@ -558,7 +559,7 @@ func portainerTagOperationAuthorization(url, method string) portaineree.Authoriz
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTeamMembershipOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerTeamMembershipOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("team_memberships", url)
 
 	switch method {
@@ -583,7 +584,7 @@ func portainerTeamMembershipOperationAuthorization(url, method string) portainer
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTeamOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerTeamOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("teams", url)
 
 	switch method {
@@ -616,7 +617,7 @@ func portainerTeamOperationAuthorization(url, method string) portaineree.Authori
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerTemplatesOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerTemplatesOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("templates", url)
 
 	switch method {
@@ -646,7 +647,7 @@ func portainerTemplatesOperationAuthorization(url, method string) portaineree.Au
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerUploadOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerUploadOperationAuthorization(url, method string) portainer.Authorization {
 	resource, _ := extractResourceAndActionFromURL("upload", url)
 
 	switch method {
@@ -659,7 +660,7 @@ func portainerUploadOperationAuthorization(url, method string) portaineree.Autho
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerUserOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerUserOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("users", url)
 
 	switch method {
@@ -712,7 +713,7 @@ func portainerUserOperationAuthorization(url, method string) portaineree.Authori
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerWebsocketOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerWebsocketOperationAuthorization(url, method string) portainer.Authorization {
 	resource, _ := extractResourceAndActionFromURL("websocket", url)
 
 	if resource == "exec" || resource == "attach" {
@@ -722,7 +723,7 @@ func portainerWebsocketOperationAuthorization(url, method string) portaineree.Au
 	return portaineree.OperationPortainerUndefined
 }
 
-func portainerWebhookOperationAuthorization(url, method string) portaineree.Authorization {
+func portainerWebhookOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("webhooks", url)
 
 	switch method {
@@ -745,7 +746,7 @@ func portainerWebhookOperationAuthorization(url, method string) portaineree.Auth
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/network/network.go#L29
-func dockerNetworkOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerNetworkOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("networks", url)
 
 	switch method {
@@ -792,7 +793,7 @@ func dockerNetworkOperationAuthorization(url, method string) portaineree.Authori
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/volume/volume.go#L25
-func dockerVolumeOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerVolumeOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("volumes", url)
 
 	switch method {
@@ -832,7 +833,7 @@ func dockerVolumeOperationAuthorization(url, method string) portaineree.Authoriz
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerExecOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerExecOperationAuthorization(url, method string) portainer.Authorization {
 	_, action := extractResourceAndActionFromURL("exec", url)
 
 	switch method {
@@ -858,7 +859,7 @@ func dockerExecOperationAuthorization(url, method string) portaineree.Authorizat
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerSwarmOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerSwarmOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("swarm", url)
 
 	switch method {
@@ -903,7 +904,7 @@ func dockerSwarmOperationAuthorization(url, method string) portaineree.Authoriza
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerNodeOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerNodeOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("nodes", url)
 
 	switch method {
@@ -939,7 +940,7 @@ func dockerNodeOperationAuthorization(url, method string) portaineree.Authorizat
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerServiceOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerServiceOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("services", url)
 
 	switch method {
@@ -983,7 +984,7 @@ func dockerServiceOperationAuthorization(url, method string) portaineree.Authori
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerSecretOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerSecretOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("secrets", url)
 
 	switch method {
@@ -1024,7 +1025,7 @@ func dockerSecretOperationAuthorization(url, method string) portaineree.Authoriz
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerConfigOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerConfigOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("configs", url)
 
 	switch method {
@@ -1065,7 +1066,7 @@ func dockerConfigOperationAuthorization(url, method string) portaineree.Authoriz
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/swarm/cluster.go#L25
-func dockerTaskOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerTaskOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("tasks", url)
 
 	switch method {
@@ -1091,7 +1092,7 @@ func dockerTaskOperationAuthorization(url, method string) portaineree.Authorizat
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/plugin/plugin.go#L25
-func dockerPluginOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerPluginOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("plugins", url)
 
 	switch method {
@@ -1150,7 +1151,7 @@ func dockerPluginOperationAuthorization(url, method string) portaineree.Authoriz
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/session/session.go
-func dockerSessionOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerSessionOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("session", url)
 
 	switch method {
@@ -1167,7 +1168,7 @@ func dockerSessionOperationAuthorization(url, method string) portaineree.Authori
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/distribution/distribution.go#L26
-func dockerDistributionOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerDistributionOperationAuthorization(url, method string) portainer.Authorization {
 	_, action := extractResourceAndActionFromURL("distribution", url)
 
 	switch method {
@@ -1184,7 +1185,7 @@ func dockerDistributionOperationAuthorization(url, method string) portaineree.Au
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerCommitOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerCommitOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("commit", url)
 
 	switch method {
@@ -1201,7 +1202,7 @@ func dockerCommitOperationAuthorization(url, method string) portaineree.Authoriz
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/build/build.go#L32
-func dockerBuildOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerBuildOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("build", url)
 
 	switch method {
@@ -1227,7 +1228,7 @@ func dockerBuildOperationAuthorization(url, method string) portaineree.Authoriza
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/image/image.go#L26
-func dockerImageOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerImageOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("images", url)
 
 	switch method {
@@ -1285,7 +1286,7 @@ func dockerImageOperationAuthorization(url, method string) portaineree.Authoriza
 	return portaineree.OperationDockerUndefined
 }
 
-func agentAgentsOperationAuthorization(url, method string) portaineree.Authorization {
+func agentAgentsOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("agents", url)
 
 	switch method {
@@ -1298,7 +1299,7 @@ func agentAgentsOperationAuthorization(url, method string) portaineree.Authoriza
 	return portaineree.OperationDockerAgentUndefined
 }
 
-func agentBrowseOperationAuthorization(url, method string) portaineree.Authorization {
+func agentBrowseOperationAuthorization(url, method string) portainer.Authorization {
 	resource, _ := extractResourceAndActionFromURL("browse", url)
 
 	switch method {
@@ -1327,7 +1328,7 @@ func agentBrowseOperationAuthorization(url, method string) portaineree.Authoriza
 	return portaineree.OperationDockerAgentUndefined
 }
 
-func agentHostOperationAuthorization(url, method string) portaineree.Authorization {
+func agentHostOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("host", url)
 
 	switch method {
@@ -1342,7 +1343,7 @@ func agentHostOperationAuthorization(url, method string) portaineree.Authorizati
 
 // Based on the routes available at
 // https://github.com/moby/moby/blob/c12f09bf99/api/server/router/container/container.go#L31
-func dockerContainerOperationAuthorization(url, method string) portaineree.Authorization {
+func dockerContainerOperationAuthorization(url, method string) portainer.Authorization {
 	resource, action := extractResourceAndActionFromURL("containers", url)
 
 	switch method {

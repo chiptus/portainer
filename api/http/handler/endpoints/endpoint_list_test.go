@@ -14,12 +14,13 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
 type endpointListTest struct {
 	title    string
-	expected []portaineree.EndpointID
+	expected []portainer.EndpointID
 }
 
 func Test_EndpointList_AgentVersion(t *testing.T) {
@@ -55,21 +56,21 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 		{
 			endpointListTest{
 				"should show version 1 agent endpoints and non-agent endpoints",
-				[]portaineree.EndpointID{version1Endpoint.ID, notAgentEnvironments.ID},
+				[]portainer.EndpointID{version1Endpoint.ID, notAgentEnvironments.ID},
 			},
 			[]string{version1Endpoint.Agent.Version},
 		},
 		{
 			endpointListTest{
 				"should show version 2 endpoints and non-agent endpoints",
-				[]portaineree.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID},
+				[]portainer.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID},
 			},
 			[]string{version2Endpoint.Agent.Version},
 		},
 		{
 			endpointListTest{
 				"should show version 1 and 2 endpoints and non-agent endpoints",
-				[]portaineree.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID, version1Endpoint.ID},
+				[]portainer.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID, version1Endpoint.ID},
 			},
 			[]string{version2Endpoint.Agent.Version, version1Endpoint.Agent.Version},
 		},
@@ -90,7 +91,7 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 
 			is.Equal(len(test.expected), len(resp))
 
-			respIds := []portaineree.EndpointID{}
+			respIds := []portainer.EndpointID{}
 
 			for _, endpoint := range resp {
 				respIds = append(respIds, endpoint.ID)
@@ -103,10 +104,10 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 
 func Test_endpointList_edgeFilter(t *testing.T) {
 
-	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
-	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portaineree.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	trustedEdgeAsync := portaineree.Endpoint{ID: 1, UserTrusted: true, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	untrustedEdgeAsync := portaineree.Endpoint{ID: 2, UserTrusted: false, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: true}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularUntrustedEdgeStandard := portaineree.Endpoint{ID: 3, UserTrusted: false, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
+	regularTrustedEdgeStandard := portaineree.Endpoint{ID: 4, UserTrusted: true, Edge: portainer.EnvironmentEdgeSettings{AsyncMode: false}, GroupID: 1, Type: portaineree.EdgeAgentOnDockerEnvironment}
 	regularEndpoint := portaineree.Endpoint{ID: 5, GroupID: 1, Type: portaineree.DockerEnvironment}
 
 	handler := setupEndpointListHandler(t, []portaineree.Endpoint{
@@ -127,20 +128,20 @@ func Test_endpointList_edgeFilter(t *testing.T) {
 		{
 			endpointListTest: endpointListTest{
 				"should show all endpoints expect of the untrusted devices",
-				[]portaineree.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID, regularEndpoint.ID},
+				[]portainer.EndpointID{trustedEdgeAsync.ID, regularTrustedEdgeStandard.ID, regularEndpoint.ID},
 			},
 		},
 		{
 			endpointListTest: endpointListTest{
 				"should show only trusted edge async agents and regular endpoints",
-				[]portaineree.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
+				[]portainer.EndpointID{trustedEdgeAsync.ID, regularEndpoint.ID},
 			},
 			edgeAsync: BoolAddr(true),
 		},
 		{
 			endpointListTest: endpointListTest{
 				"should show only untrusted edge devices and regular endpoints",
-				[]portaineree.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
+				[]portainer.EndpointID{untrustedEdgeAsync.ID, regularEndpoint.ID},
 			},
 			edgeAsync:           BoolAddr(true),
 			edgeDeviceUntrusted: true,
@@ -148,7 +149,7 @@ func Test_endpointList_edgeFilter(t *testing.T) {
 		{
 			endpointListTest: endpointListTest{
 				"should show no edge devices",
-				[]portaineree.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
+				[]portainer.EndpointID{regularEndpoint.ID, regularTrustedEdgeStandard.ID},
 			},
 			edgeAsync: BoolAddr(false),
 		},
@@ -169,7 +170,7 @@ func Test_endpointList_edgeFilter(t *testing.T) {
 
 			is.Equal(len(test.expected), len(resp))
 
-			respIds := []portaineree.EndpointID{}
+			respIds := []portainer.EndpointID{}
 
 			for _, endpoint := range resp {
 				respIds = append(respIds, endpoint.ID)
@@ -204,7 +205,7 @@ func setupEndpointListHandler(t *testing.T, endpoints []portaineree.Endpoint) *H
 func buildEndpointListRequest(query string) *http.Request {
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/endpoints?%s", query), nil)
 
-	ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
+	ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 	req = req.WithContext(ctx)
 
 	restrictedCtx := security.StoreRestrictedRequestContext(req, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})

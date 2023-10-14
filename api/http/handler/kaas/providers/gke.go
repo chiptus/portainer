@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -58,7 +59,7 @@ func (payload *GKEProvisionPayload) GetEnvironmentMetadata() types.EnvironmentMe
 	return payload.Meta
 }
 
-func (payload *GKEProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
+func (payload *GKEProvisionPayload) GetCloudProvisioningRequest(endpointID portainer.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
 	return &portaineree.CloudProvisioningRequest{
 		EndpointID:        endpointID,
 		Provider:          portaineree.CloudProviderGKE,

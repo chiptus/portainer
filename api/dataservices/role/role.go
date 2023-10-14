@@ -11,7 +11,7 @@ const BucketName = "roles"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.Role, portaineree.RoleID]
+	dataservices.BaseDataService[portaineree.Role, portainer.RoleID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +22,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Role, portaineree.RoleID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.Role, portainer.RoleID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -31,7 +31,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.Role, portaineree.RoleID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.Role, portainer.RoleID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -44,7 +44,7 @@ func (service *Service) Create(role *portaineree.Role) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			role.ID = portaineree.RoleID(id)
+			role.ID = portainer.RoleID(id)
 			return int(role.ID), role
 		},
 	)

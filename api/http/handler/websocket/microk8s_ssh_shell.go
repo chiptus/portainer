@@ -12,6 +12,7 @@ import (
 	sshutil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -62,7 +63,7 @@ func (handler *Handler) websocketMicrok8sShell(w http.ResponseWriter, r *http.Re
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
-	authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpointID))
+	authorized := canWriteK8sClusterNode(user, portainer.EndpointID(endpointID))
 	if !authorized {
 		return httperror.Forbidden("Permission denied to access ssh shell", nil)
 	}
@@ -72,7 +73,7 @@ func (handler *Handler) websocketMicrok8sShell(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid query parameter: node", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment in the database", err)
 	} else if err != nil {
@@ -194,11 +195,11 @@ func hijackSSHSession(websocketConn *websocket.Conn, session *ssh.Session) error
 }
 
 // Check if the user is an admin or can write to the cluster node
-func canWriteK8sClusterNode(user *portaineree.User, endpointID portaineree.EndpointID) bool {
+func canWriteK8sClusterNode(user *portaineree.User, endpointID portainer.EndpointID) bool {
 	isAdmin := user.Role == portaineree.AdministratorRole
 	hasAccess := false
-	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
-		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
+	if user.EndpointAuthorizations[portainer.EndpointID(endpointID)] != nil {
+		_, hasAccess = user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
 	}
 	return isAdmin || hasAccess
 }

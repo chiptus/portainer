@@ -14,13 +14,14 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
 	volumeObjectIdentifier = "ResourceID"
 )
 
-func getInheritedResourceControlFromVolumeLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, volumeID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromVolumeLabels(dockerClient *client.Client, endpointID portainer.EndpointID, volumeID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	volume, err := dockerClient.VolumeInspect(context.Background(), volumeID)
 	if err != nil {
 		return nil, err
@@ -123,7 +124,7 @@ func selectorVolumeLabels(responseObject map[string]interface{}) map[string]inte
 	return utils.GetJSONObject(responseObject, "Labels")
 }
 
-func (transport *Transport) decorateVolumeResourceCreationOperation(request *http.Request, resourceType portaineree.ResourceControlType) (*http.Response, error) {
+func (transport *Transport) decorateVolumeResourceCreationOperation(request *http.Request, resourceType portainer.ResourceControlType) (*http.Response, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return nil, err
@@ -156,7 +157,7 @@ func (transport *Transport) decorateVolumeResourceCreationOperation(request *htt
 	return response, err
 }
 
-func (transport *Transport) decorateVolumeCreationResponse(response *http.Response, resourceType portaineree.ResourceControlType, userID portaineree.UserID) error {
+func (transport *Transport) decorateVolumeCreationResponse(response *http.Response, resourceType portainer.ResourceControlType, userID portainer.UserID) error {
 	responseObject, err := utils.GetResponseAsJSONObject(response)
 	if err != nil {
 		return err

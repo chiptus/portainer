@@ -4,16 +4,17 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Transport is an http.Transport wrapper that adds custom http headers to communicate to an Agent
 type Transport struct {
 	httpTransport    *http.Transport
-	signatureService portaineree.DigitalSignatureService
+	signatureService portainer.DigitalSignatureService
 }
 
 // NewTransport returns a new transport that can be used to send signed requests to a Portainer agent
-func NewTransport(signatureService portaineree.DigitalSignatureService, httpTransport *http.Transport) *Transport {
+func NewTransport(signatureService portainer.DigitalSignatureService, httpTransport *http.Transport) *Transport {
 	transport := &Transport{
 		httpTransport:    httpTransport,
 		signatureService: signatureService,

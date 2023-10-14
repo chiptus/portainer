@@ -19,9 +19,9 @@ import (
 
 type updateEdgeStackPayload struct {
 	StackFileContent string
-	EdgeGroups       []portaineree.EdgeGroupID
-	DeploymentType   portaineree.EdgeStackDeploymentType
-	Registries       []portaineree.RegistryID
+	EdgeGroups       []portainer.EdgeGroupID
+	DeploymentType   portainer.EdgeStackDeploymentType
+	Registries       []portainer.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
 	PrePullImage          bool
@@ -79,7 +79,7 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 
 	var stack *portaineree.EdgeStack
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		stack, err = handler.updateEdgeStack(tx, portaineree.EdgeStackID(stackID), payload)
+		stack, err = handler.updateEdgeStack(tx, portainer.EdgeStackID(stackID), payload)
 		return err
 	})
 	if err != nil {
@@ -94,8 +94,8 @@ func (handler *Handler) edgeStackUpdate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID portaineree.EdgeStackID, payload updateEdgeStackPayload) (*portaineree.EdgeStack, error) {
-	stack, err := tx.EdgeStack().EdgeStack(portaineree.EdgeStackID(stackID))
+func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID portainer.EdgeStackID, payload updateEdgeStackPayload) (*portaineree.EdgeStack, error) {
+	stack, err := tx.EdgeStack().EdgeStack(portainer.EdgeStackID(stackID))
 	if err != nil {
 		return nil, handler.handlerDBErr(err, "Unable to find a stack with the specified identifier inside the database")
 	}
@@ -114,7 +114,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 		return nil, httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
 	}
 
-	endpointsToAdd := set.Set[portaineree.EndpointID]{}
+	endpointsToAdd := set.Set[portainer.EndpointID]{}
 	groupsIds := stack.EdgeGroups
 	if payload.EdgeGroups != nil {
 		newRelated, newEndpoints, err := handler.handleChangeEdgeGroups(tx, stack.ID, payload.EdgeGroups, relatedEndpointIds, relationConfig)
@@ -172,7 +172,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 				log.Info().Msg("Stack file version has not changed")
 			}
 			// User may update the env vars, so we still need to redeploy the stack
-			err = handler.staggerService.AddStaggerConfig(portaineree.EdgeStackID(stackID),
+			err = handler.staggerService.AddStaggerConfig(portainer.EdgeStackID(stackID),
 				stack.StackFileVersion,
 				stack.StaggerConfig,
 				relatedEndpointIds)
@@ -219,7 +219,7 @@ func (handler *Handler) updateEdgeStack(tx dataservices.DataStoreTx, stackID por
 	return stack, nil
 }
 
-func (handler *Handler) handleChangeEdgeGroups(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, newEdgeGroupsIDs []portaineree.EdgeGroupID, oldRelatedEnvironmentIDs []portaineree.EndpointID, relationConfig *edge.EndpointRelationsConfig) ([]portaineree.EndpointID, set.Set[portaineree.EndpointID], error) {
+func (handler *Handler) handleChangeEdgeGroups(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID, newEdgeGroupsIDs []portainer.EdgeGroupID, oldRelatedEnvironmentIDs []portainer.EndpointID, relationConfig *edge.EndpointRelationsConfig) ([]portainer.EndpointID, set.Set[portainer.EndpointID], error) {
 	newRelatedEnvironmentIDs, err := edge.EdgeStackRelatedEndpoints(newEdgeGroupsIDs, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "Unable to retrieve edge stack related environments from database")
@@ -228,7 +228,7 @@ func (handler *Handler) handleChangeEdgeGroups(tx dataservices.DataStoreTx, edge
 	oldRelatedSet := set.ToSet(oldRelatedEnvironmentIDs)
 	newRelatedSet := set.ToSet(newRelatedEnvironmentIDs)
 
-	endpointsToRemove := set.Set[portaineree.EndpointID]{}
+	endpointsToRemove := set.Set[portainer.EndpointID]{}
 	for endpointID := range oldRelatedSet {
 		if !newRelatedSet[endpointID] {
 			endpointsToRemove[endpointID] = true
@@ -254,7 +254,7 @@ func (handler *Handler) handleChangeEdgeGroups(tx dataservices.DataStoreTx, edge
 		}
 	}
 
-	endpointsToAdd := set.Set[portaineree.EndpointID]{}
+	endpointsToAdd := set.Set[portainer.EndpointID]{}
 	for endpointID := range newRelatedSet {
 		if !oldRelatedSet[endpointID] {
 			endpointsToAdd[endpointID] = true

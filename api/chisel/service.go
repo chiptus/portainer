@@ -11,6 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/proxy"
+	portainer "github.com/portainer/portainer/api"
 
 	chserver "github.com/jpillora/chisel/server"
 	"github.com/jpillora/chisel/share/ccrypto"
@@ -29,7 +30,7 @@ const (
 type Service struct {
 	serverFingerprint string
 	serverPort        string
-	tunnelDetailsMap  map[portaineree.EndpointID]*portaineree.TunnelDetails
+	tunnelDetailsMap  map[portainer.EndpointID]*portaineree.TunnelDetails
 	dataStore         dataservices.DataStore
 	snapshotService   portaineree.SnapshotService
 	chiselServer      *chserver.Server
@@ -42,7 +43,7 @@ type Service struct {
 // NewService returns a pointer to a new instance of Service
 func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context, fileService portaineree.FileService) *Service {
 	return &Service{
-		tunnelDetailsMap: make(map[portaineree.EndpointID]*portaineree.TunnelDetails),
+		tunnelDetailsMap: make(map[portainer.EndpointID]*portaineree.TunnelDetails),
 		dataStore:        dataStore,
 		shutdownCtx:      shutdownCtx,
 		fileService:      fileService,
@@ -50,7 +51,7 @@ func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context, f
 }
 
 // pingAgent ping the given agent so that the agent can keep the tunnel alive
-func (service *Service) pingAgent(endpointID portaineree.EndpointID) error {
+func (service *Service) pingAgent(endpointID portainer.EndpointID) error {
 	tunnel := service.GetTunnelDetails(endpointID)
 	requestURL := fmt.Sprintf("http://127.0.0.1:%d/ping", tunnel.Port)
 	req, err := http.NewRequest(http.MethodHead, requestURL, nil)
@@ -70,7 +71,7 @@ func (service *Service) pingAgent(endpointID portaineree.EndpointID) error {
 }
 
 // KeepTunnelAlive keeps the tunnel of the given environment for maxAlive duration, or until ctx is done
-func (service *Service) KeepTunnelAlive(endpointID portaineree.EndpointID, ctx context.Context, maxAlive time.Duration) {
+func (service *Service) KeepTunnelAlive(endpointID portainer.EndpointID, ctx context.Context, maxAlive time.Duration) {
 	go func() {
 		log.Debug().
 			Int("endpoint_id", int(endpointID)).
@@ -226,7 +227,7 @@ func (service *Service) startTunnelVerificationLoop() {
 }
 
 func (service *Service) checkTunnels() {
-	tunnels := make(map[portaineree.EndpointID]portaineree.TunnelDetails)
+	tunnels := make(map[portainer.EndpointID]portaineree.TunnelDetails)
 
 	service.mu.Lock()
 	for key, tunnel := range service.tunnelDetailsMap {
@@ -280,11 +281,11 @@ func (service *Service) checkTunnels() {
 			}
 		}
 
-		service.SetTunnelStatusToIdle(portaineree.EndpointID(endpointID))
+		service.SetTunnelStatusToIdle(portainer.EndpointID(endpointID))
 	}
 }
 
-func (service *Service) snapshotEnvironment(endpointID portaineree.EndpointID, tunnelPort int) error {
+func (service *Service) snapshotEnvironment(endpointID portainer.EndpointID, tunnelPort int) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return err

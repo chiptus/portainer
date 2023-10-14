@@ -4,6 +4,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -14,7 +15,7 @@ import (
 func (m *Migrator) refreshRBACRoles() error {
 	log.Info().Msg("refreshing RBAC roles")
 
-	defaultAuthorizationsOfRoles := map[portaineree.RoleID]portaineree.Authorizations{
+	defaultAuthorizationsOfRoles := map[portainer.RoleID]portainer.Authorizations{
 		portaineree.RoleIDEndpointAdmin: authorization.DefaultEndpointAuthorizationsForEndpointAdministratorRole(),
 		portaineree.RoleIDHelpdesk:      authorization.DefaultEndpointAuthorizationsForHelpDeskRole(),
 		portaineree.RoleIDOperator:      authorization.DefaultEndpointAuthorizationsForOperatorRole(),

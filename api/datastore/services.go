@@ -526,20 +526,20 @@ func (store *Store) CloudCredential() dataservices.CloudCredentialService {
 
 type storeExport struct {
 	ApiKey             []portaineree.APIKey             `json:"api_key,omitempty"`
-	CustomTemplate     []portaineree.CustomTemplate     `json:"customtemplates,omitempty"`
+	CustomTemplate     []portainer.CustomTemplate       `json:"customtemplates,omitempty"`
 	EdgeStack          []portaineree.EdgeStack          `json:"edge_stack,omitempty"`
 	EdgeGroup          []portaineree.EdgeGroup          `json:"edgegroups,omitempty"`
-	EdgeJob            []portaineree.EdgeJob            `json:"edgejobs,omitempty"`
-	EndpointGroup      []portaineree.EndpointGroup      `json:"endpoint_groups,omitempty"`
-	EndpointRelation   []portaineree.EndpointRelation   `json:"endpoint_relations,omitempty"`
+	EdgeJob            []portainer.EdgeJob              `json:"edgejobs,omitempty"`
+	EndpointGroup      []portainer.EndpointGroup        `json:"endpoint_groups,omitempty"`
+	EndpointRelation   []portainer.EndpointRelation     `json:"endpoint_relations,omitempty"`
 	Endpoint           []portaineree.Endpoint           `json:"endpoints,omitempty"`
 	Extensions         []portaineree.Extension          `json:"extension,omitempty"`
-	FDOProfile         []portaineree.FDOProfile         `json:"fdo_profiles,omitempty"`
+	FDOProfile         []portainer.FDOProfile           `json:"fdo_profiles,omitempty"`
 	GitCredentials     []portaineree.GitCredential      `json:"git_credentials,omitempty"`
 	HelmUserRepository []portaineree.HelmUserRepository `json:"helm_user_repository,omitempty"`
 	License            []liblicense.PortainerLicense    `json:"license,omitempty"`
 	Registry           []portaineree.Registry           `json:"registries,omitempty"`
-	ResourceControl    []portaineree.ResourceControl    `json:"resource_control,omitempty"`
+	ResourceControl    []portainer.ResourceControl      `json:"resource_control,omitempty"`
 	Role               []portaineree.Role               `json:"roles,omitempty"`
 	S3BackupSettings   portaineree.S3BackupSettings     `json:"s3backup,omitempty"`
 	Schedules          []portaineree.Schedule           `json:"schedules,omitempty"`
@@ -547,13 +547,13 @@ type storeExport struct {
 	Snapshot           []portaineree.Snapshot           `json:"snapshots,omitempty"`
 	SSLSettings        portaineree.SSLSettings          `json:"ssl,omitempty"`
 	Stack              []portaineree.Stack              `json:"stacks,omitempty"`
-	Tag                []portaineree.Tag                `json:"tags,omitempty"`
-	TeamMembership     []portaineree.TeamMembership     `json:"team_membership,omitempty"`
-	Team               []portaineree.Team               `json:"teams,omitempty"`
-	TunnelServer       portaineree.TunnelServerInfo     `json:"tunnel_server,omitempty"`
+	Tag                []portainer.Tag                  `json:"tags,omitempty"`
+	TeamMembership     []portainer.TeamMembership       `json:"team_membership,omitempty"`
+	Team               []portainer.Team                 `json:"teams,omitempty"`
+	TunnelServer       portainer.TunnelServerInfo       `json:"tunnel_server,omitempty"`
 	User               []portaineree.User               `json:"users,omitempty"`
 	Version            models.Version                   `json:"version,omitempty"`
-	Webhook            []portaineree.Webhook            `json:"webhooks,omitempty"`
+	Webhook            []portainer.Webhook              `json:"webhooks,omitempty"`
 	Metadata           map[string]interface{}           `json:"metadata,omitempty"`
 	CloudCredential    []models.CloudCredential         `json:"cloudcredential,omitempty"`
 }

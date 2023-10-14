@@ -13,19 +13,19 @@ type mockUpdateService struct {
 	schedules []edgetypes.UpdateSchedule
 }
 
-func (m *mockUpdateService) ActiveSchedule(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
+func (m *mockUpdateService) ActiveSchedule(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
 	return nil
 }
 
-func (m *mockUpdateService) ActiveSchedules(environmentsIDs []portaineree.EndpointID) []edgetypes.EndpointUpdateScheduleRelation {
+func (m *mockUpdateService) ActiveSchedules(environmentsIDs []portainer.EndpointID) []edgetypes.EndpointUpdateScheduleRelation {
 	return nil
 }
 
-func (m *mockUpdateService) RemoveActiveSchedule(environmentID portaineree.EndpointID, scheduleID edgetypes.UpdateScheduleID) error {
+func (m *mockUpdateService) RemoveActiveSchedule(environmentID portainer.EndpointID, scheduleID edgetypes.UpdateScheduleID) error {
 	return nil
 }
 
-func (m *mockUpdateService) EdgeStackDeployed(environmentID portaineree.EndpointID, updateID edgetypes.UpdateScheduleID) {
+func (m *mockUpdateService) EdgeStackDeployed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) {
 }
 
 func (m *mockUpdateService) Schedules() ([]edgetypes.UpdateSchedule, error) {
@@ -168,15 +168,15 @@ func TestFilterEnvironments(t *testing.T) {
 	regularGroup := &portaineree.EdgeGroup{
 		ID:        1,
 		Name:      "edgeGroup1",
-		TagIDs:    []portaineree.TagID{},
-		Endpoints: []portaineree.EndpointID{1, 2, 3},
+		TagIDs:    []portainer.TagID{},
+		Endpoints: []portainer.EndpointID{1, 2, 3},
 	}
 
 	rollbackGroup := &portaineree.EdgeGroup{
 		ID:        2,
 		Name:      "edgeGroup2",
-		TagIDs:    []portaineree.TagID{},
-		Endpoints: []portaineree.EndpointID{3, 4},
+		TagIDs:    []portainer.TagID{},
+		Endpoints: []portainer.EndpointID{3, 4},
 	}
 
 	edgeGroups := []*portaineree.EdgeGroup{
@@ -192,15 +192,15 @@ func TestFilterEnvironments(t *testing.T) {
 	}
 
 	type expectedResult struct {
-		relatedEnvIds   []portaineree.EndpointID
-		currentVersions map[portaineree.EndpointID]string
-		envType         portaineree.EndpointType
+		relatedEnvIds   []portainer.EndpointID
+		currentVersions map[portainer.EndpointID]string
+		envType         portainer.EndpointType
 	}
 
 	type testCase struct {
 		name         string
 		version      string
-		environments []portaineree.EndpointID
+		environments []portainer.EndpointID
 		expected     expectedResult
 	}
 
@@ -208,10 +208,10 @@ func TestFilterEnvironments(t *testing.T) {
 		{
 			name:         "update - 3 endpoints with 3 different versions. the selected version is the highest (should return 2)",
 			version:      "1.8.3",
-			environments: []portaineree.EndpointID{1, 2, 3},
+			environments: []portainer.EndpointID{1, 2, 3},
 			expected: expectedResult{
-				relatedEnvIds: []portaineree.EndpointID{1, 2},
-				currentVersions: map[portaineree.EndpointID]string{
+				relatedEnvIds: []portainer.EndpointID{1, 2},
+				currentVersions: map[portainer.EndpointID]string{
 					1: endpoint1.Agent.Version,
 					2: endpoint2.Agent.Version,
 				},
@@ -221,20 +221,20 @@ func TestFilterEnvironments(t *testing.T) {
 		{
 			name:         "update - 3 endpoints with 3 different versions. the selected version is the lowest (should return 0)",
 			version:      "1.0.0",
-			environments: []portaineree.EndpointID{1, 2, 3},
+			environments: []portainer.EndpointID{1, 2, 3},
 			expected: expectedResult{
-				relatedEnvIds:   []portaineree.EndpointID{},
-				currentVersions: map[portaineree.EndpointID]string{},
+				relatedEnvIds:   []portainer.EndpointID{},
+				currentVersions: map[portainer.EndpointID]string{},
 				envType:         portaineree.EdgeAgentOnDockerEnvironment,
 			},
 		},
 		{
 			name:         "update - 3 endpoints with 3 different versions. the selected version is higher then highest (should return 3)",
 			version:      "1.8.4",
-			environments: []portaineree.EndpointID{1, 2, 3},
+			environments: []portainer.EndpointID{1, 2, 3},
 			expected: expectedResult{
-				relatedEnvIds: []portaineree.EndpointID{1, 2, 3},
-				currentVersions: map[portaineree.EndpointID]string{
+				relatedEnvIds: []portainer.EndpointID{1, 2, 3},
+				currentVersions: map[portainer.EndpointID]string{
 					1: endpoint1.Agent.Version,
 					2: endpoint2.Agent.Version,
 					3: endpoint3.Agent.Version,
@@ -258,7 +258,7 @@ func TestFilterEnvironments(t *testing.T) {
 			}
 
 			// filter environments
-			relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portaineree.EdgeGroupID{edgeGroup.ID}, tc.version, false, 0)
+			relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portainer.EdgeGroupID{edgeGroup.ID}, tc.version, false, 0)
 			if err != nil {
 				if len(tc.expected.relatedEnvIds) == 0 && err.Error() == "no related environments that require update" {
 					return
@@ -286,7 +286,7 @@ func TestFilterEnvironments(t *testing.T) {
 	t.Run("rollback - 2 endpoints with the same version, but with different previous version. the select version is the lowest (should return 1)", func(t *testing.T) {
 		edgeGroup := &portaineree.EdgeGroup{
 			Name:      "rollback - 2 endpoints with the same version, but with different previous version. the select version is the lowest (should return 1)",
-			Endpoints: []portaineree.EndpointID{3, 4},
+			Endpoints: []portainer.EndpointID{3, 4},
 		}
 
 		err := handler.dataStore.EdgeGroup().Create(edgeGroup)
@@ -301,14 +301,14 @@ func TestFilterEnvironments(t *testing.T) {
 					ID:          1,
 					EdgeStackID: 1,
 					Version:     endpoint3.Agent.Version,
-					EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+					EnvironmentsPreviousVersions: map[portainer.EndpointID]string{
 						endpoint3.ID: requestedVersion,
 					},
 				},
 			},
 		}
 
-		relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portaineree.EdgeGroupID{edgeGroup.ID}, requestedVersion, true, 0)
+		relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portainer.EdgeGroupID{edgeGroup.ID}, requestedVersion, true, 0)
 		if err != nil {
 			t.Fatal(err)
 		}

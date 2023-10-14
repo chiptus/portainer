@@ -97,12 +97,12 @@ type Server struct {
 	BindAddressHTTPS            string
 	HTTPEnabled                 bool
 	AssetsPath                  string
-	Status                      *portaineree.Status
+	Status                      *portainer.Status
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	ComposeStackManager         portaineree.ComposeStackManager
-	CryptoService               portaineree.CryptoService
+	CryptoService               portainer.CryptoService
 	LicenseService              portaineree.LicenseService
-	SignatureService            portaineree.DigitalSignatureService
+	SignatureService            portainer.DigitalSignatureService
 	EdgeAsyncService            *edgeasync.Service
 	EdgeStacksService           *edgestackservice.Service
 	EdgeStaggerService          *staggers.Service

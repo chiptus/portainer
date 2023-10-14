@@ -11,15 +11,15 @@ import (
 )
 
 type StaggerScheduleOperation struct {
-	edgeStackID portaineree.EdgeStackID
+	edgeStackID portainer.EdgeStackID
 	// currentIndex is used to track the current index of the stagger queue
 	currentIndex int
 	// length is used to track the length of the stagger queue
 	length int
 	// staggerQueue is used to maintain a list of stagger queue for each endpoints
-	staggerQueue [][]portaineree.EndpointID
+	staggerQueue [][]portainer.EndpointID
 	// endpointStatus is used to maintain a list of endpoint status for each endpoints
-	endpointStatus map[portaineree.EndpointID]portainer.EdgeStackStatusType
+	endpointStatus map[portainer.EndpointID]portainer.EdgeStackStatusType
 	// paused is used to track if the stagger workflow is paused
 	paused bool
 	// rollback is used to track if the stagger workflow should be rolled back
@@ -27,7 +27,7 @@ type StaggerScheduleOperation struct {
 	// timeout represents the timeout duration for each endpoint to update
 	timeout time.Duration
 	// timeoutTimerMap is used to maintain a list of timeout timers for each endpoints
-	timeoutTimerMap map[portaineree.EndpointID]*time.Timer
+	timeoutTimerMap map[portainer.EndpointID]*time.Timer
 	// updateDelay represents the delay duration for each endpoint to update
 	updateDelay time.Duration
 	// updateDelayMap is used to maintain a list of update delay between each stagger queue
@@ -85,7 +85,7 @@ func (sso *StaggerScheduleOperation) Info() string {
 
 // UpdateStaggerQueue is used to check if the stagger queue should be moved to the next queue or set to other
 // state based on the incoming endpoint status and the update failure action
-func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portaineree.EndpointID, status portainer.EdgeStackStatusType) {
+func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portainer.EndpointID, status portainer.EdgeStackStatusType) {
 	staggeredEndpoints := sso.staggerQueue[sso.currentIndex]
 
 	allowToMoveToNextStaggerQueue := true
@@ -207,7 +207,7 @@ func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portaineree.E
 
 // RollbackStaggerQueue is used to check if the stagger queue should be rolled back to the previous queue or
 // set to other state based on the incoming endpoint status and the update failure action
-func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree.EndpointID, status portainer.EdgeStackStatusType, stackFileVersion int, rollbackTo *int) {
+func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portainer.EndpointID, status portainer.EdgeStackStatusType, stackFileVersion int, rollbackTo *int) {
 	staggeredEndpoints := sso.staggerQueue[sso.currentIndex]
 
 	allowToRollbackStaggerQueue := true
@@ -287,7 +287,7 @@ func (sso *StaggerScheduleOperation) RollbackStaggerQueue(endpointID portaineree
 	}
 }
 
-func (sso *StaggerScheduleOperation) StopTimer(endpointID portaineree.EndpointID) {
+func (sso *StaggerScheduleOperation) StopTimer(endpointID portainer.EndpointID) {
 	timer, ok := sso.timeoutTimerMap[endpointID]
 	if ok {
 		log.Debug().Int("endpointID", int(endpointID)).

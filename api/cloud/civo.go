@@ -9,6 +9,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/civo/civogo"
 	"github.com/rs/zerolog/log"
@@ -16,10 +17,10 @@ import (
 
 type (
 	CivoInfo struct {
-		Regions            []portaineree.Pair `json:"regions"`
-		NodeSizes          []portaineree.Pair `json:"nodeSizes"`
-		Networks           []CivoNetwork      `json:"networks"`
-		KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
+		Regions            []portainer.Pair `json:"regions"`
+		NodeSizes          []portainer.Pair `json:"nodeSizes"`
+		Networks           []CivoNetwork    `json:"networks"`
+		KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
 	}
 
 	CivoNetwork struct {
@@ -88,11 +89,11 @@ func (service *CloudInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error)
 		return nil, err
 	}
 
-	rs := make([]portaineree.Pair, 0)
+	rs := make([]portainer.Pair, 0)
 	nets := make([]CivoNetwork, 0)
 	for _, region := range regions {
 		if region.Features.Kubernetes {
-			r := portaineree.Pair{
+			r := portainer.Pair{
 				Name:  region.Name,
 				Value: region.Code,
 			}
@@ -142,7 +143,7 @@ func (service *CloudInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error)
 	prefixReg := regexp.MustCompile(`.* - `)
 	nameReg := regexp.MustCompile(` - .*`)
 
-	ns := make([]portaineree.Pair, 0)
+	ns := make([]portainer.Pair, 0)
 	for _, size := range nodeSizes {
 		// Filter out non-selectable nodes. These seem to be deprecated and may
 		// not work for provisioning.
@@ -167,7 +168,7 @@ func (service *CloudInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error)
 			prefix += ": "
 		}
 
-		s := portaineree.Pair{
+		s := portainer.Pair{
 			Name: fmt.Sprintf(
 				"%v%v (%vGB RAM - %vGB SSD)",
 				prefix,
@@ -186,13 +187,13 @@ func (service *CloudInfoService) CivoFetchInfo(apiKey string) (*CivoInfo, error)
 		return nil, err
 	}
 
-	versionPairs := make([]portaineree.Pair, 0)
+	versionPairs := make([]portainer.Pair, 0)
 	for _, v := range kubeVersions {
 		if v.Type != "stable" {
 			continue
 		}
 
-		pair := portaineree.Pair{
+		pair := portainer.Pair{
 			Name:  v.Version,
 			Value: v.Version,
 		}

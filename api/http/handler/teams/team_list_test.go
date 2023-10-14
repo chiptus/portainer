@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,15 +40,15 @@ func Test_teamList(t *testing.T) {
 	h.DataStore = store
 
 	// generate admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	// Case 1: the team is given the endpoint access directly
 	// create teams
-	teamWithEndpointAccess := &portaineree.Team{ID: 1, Name: "team-with-endpoint-access"}
+	teamWithEndpointAccess := &portainer.Team{ID: 1, Name: "team-with-endpoint-access"}
 	err = store.Team().Create(teamWithEndpointAccess)
 	is.NoError(err, "error creating team")
 
-	teamWithoutEndpointAccess := &portaineree.Team{ID: 2, Name: "team-without-endpoint-access"}
+	teamWithoutEndpointAccess := &portainer.Team{ID: 2, Name: "team-without-endpoint-access"}
 	err = store.Team().Create(teamWithoutEndpointAccess)
 	is.NoError(err, "error creating team")
 
@@ -61,15 +62,15 @@ func Test_teamList(t *testing.T) {
 	is.NoError(err, "error creating user")
 
 	// create team membership
-	teamMembership := &portaineree.TeamMembership{ID: 1, UserID: userWithEndpointAccessByTeam.ID, TeamID: teamWithEndpointAccess.ID}
+	teamMembership := &portainer.TeamMembership{ID: 1, UserID: userWithEndpointAccessByTeam.ID, TeamID: teamWithEndpointAccess.ID}
 	err = store.TeamMembership().Create(teamMembership)
 	is.NoError(err, "error creating team membership")
 
 	// create endpoint and team access policies
-	teamAccessPolicies := make(portaineree.TeamAccessPolicies, 0)
-	teamAccessPolicies[teamWithEndpointAccess.ID] = portaineree.AccessPolicy{RoleID: portaineree.RoleID(userWithEndpointAccessByTeam.Role)}
+	teamAccessPolicies := make(portainer.TeamAccessPolicies, 0)
+	teamAccessPolicies[teamWithEndpointAccess.ID] = portainer.AccessPolicy{RoleID: portainer.RoleID(userWithEndpointAccessByTeam.Role)}
 
-	endpointGroupOnly := &portaineree.EndpointGroup{ID: 5, Name: "endpoint-group"}
+	endpointGroupOnly := &portainer.EndpointGroup{ID: 5, Name: "endpoint-group"}
 	err = store.EndpointGroup().Create(endpointGroupOnly)
 	is.NoError(err, "error creating endpoint group")
 
@@ -77,7 +78,7 @@ func Test_teamList(t *testing.T) {
 	err = store.Endpoint().Create(endpointWithTeamAccessPolicy)
 	is.NoError(err, "error creating endpoint")
 
-	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: userWithEndpointAccessByTeam.ID, Username: userWithEndpointAccessByTeam.Username, Role: userWithEndpointAccessByTeam.Role})
+	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccessByTeam.ID, Username: userWithEndpointAccessByTeam.Username, Role: userWithEndpointAccessByTeam.Role})
 
 	t.Run("admin user can successfully list all teams", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/teams", nil)
@@ -91,7 +92,7 @@ func Test_teamList(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		is.NoError(err, "ReadAll should not return error")
 
-		var resp []portaineree.Team
+		var resp []portainer.Team
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be list json")
 
@@ -112,7 +113,7 @@ func Test_teamList(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		is.NoError(err, "ReadAll should not return error")
 
-		var resp []portaineree.Team
+		var resp []portainer.Team
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be list json")
 
@@ -134,7 +135,7 @@ func Test_teamList(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		is.NoError(err, "ReadAll should not return error")
 
-		var resp []portaineree.Team
+		var resp []portainer.Team
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be list json")
 
@@ -147,15 +148,15 @@ func Test_teamList(t *testing.T) {
 	// Case 2: the team is under an environment group and the endpoint group has endpoint access.
 	//         the user inherits the endpoint access from the environment group
 	// create team
-	teamUnderGroup := &portaineree.Team{ID: 3, Name: "team-under-environment-group"}
+	teamUnderGroup := &portainer.Team{ID: 3, Name: "team-under-environment-group"}
 	err = store.Team().Create(teamUnderGroup)
 	is.NoError(err, "error creating user")
 
 	// create environment group including a team
-	teamAccessPoliciesUnderGroup := make(portaineree.TeamAccessPolicies, 0)
-	teamAccessPoliciesUnderGroup[teamUnderGroup.ID] = portaineree.AccessPolicy{}
+	teamAccessPoliciesUnderGroup := make(portainer.TeamAccessPolicies, 0)
+	teamAccessPoliciesUnderGroup[teamUnderGroup.ID] = portainer.AccessPolicy{}
 
-	endpointGroupWithTeam := &portaineree.EndpointGroup{ID: 2, Name: "endpoint-group-with-team", TeamAccessPolicies: teamAccessPoliciesUnderGroup}
+	endpointGroupWithTeam := &portainer.EndpointGroup{ID: 2, Name: "endpoint-group-with-team", TeamAccessPolicies: teamAccessPoliciesUnderGroup}
 	err = store.EndpointGroup().Create(endpointGroupWithTeam)
 	is.NoError(err, "error creating endpoint group")
 
@@ -178,7 +179,7 @@ func Test_teamList(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		is.NoError(err, "ReadAll should not return error")
 
-		var resp []portaineree.Team
+		var resp []portainer.Team
 		err = json.Unmarshal(body, &resp)
 		is.NoError(err, "response should be list json")
 

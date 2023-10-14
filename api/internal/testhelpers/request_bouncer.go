@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type testRequestBouncer struct{}
@@ -59,6 +60,6 @@ func (testRequestBouncer) TrustedEdgeEnvironmentAccess(tx dataservices.DataStore
 	return nil
 }
 
-func (testRequestBouncer) JWTAuthLookup(r *http.Request) *portaineree.TokenData {
+func (testRequestBouncer) JWTAuthLookup(r *http.Request) *portainer.TokenData {
 	return nil
 }

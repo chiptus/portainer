@@ -12,6 +12,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -42,7 +43,7 @@ type AzureAuthenticationResponse struct {
 
 // ExecuteAzureAuthenticationRequest is used to execute an authentication request
 // against the Azure API. It re-uses the same http.Client.
-func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portaineree.AzureCredentials) (*AzureAuthenticationResponse, error) {
+func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portainer.AzureCredentials) (*AzureAuthenticationResponse, error) {
 	loginURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/token", credentials.TenantID)
 	params := url.Values{
 		"grant_type":    {"client_credentials"},

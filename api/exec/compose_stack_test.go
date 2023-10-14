@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +31,7 @@ func Test_createEnvFile(t *testing.T) {
 			name: "should not add env file option if stack's env variables are empty",
 			stack: &portaineree.Stack{
 				ProjectPath: dir,
-				Env:         []portaineree.Pair{},
+				Env:         []portainer.Pair{},
 			},
 			expected: "",
 		},
@@ -38,7 +39,7 @@ func Test_createEnvFile(t *testing.T) {
 			name: "should add env file option if stack has env variables",
 			stack: &portaineree.Stack{
 				ProjectPath: dir,
-				Env: []portaineree.Pair{
+				Env: []portainer.Pair{
 					{Name: "var1", Value: "value1"},
 					{Name: "var2", Value: "value2"},
 				},
@@ -70,7 +71,7 @@ func Test_createEnvFile_mergesDefultAndInplaceEnvVars(t *testing.T) {
 	os.WriteFile(path.Join(dir, ".env"), []byte("VAR1=VAL1\nVAR2=VAL2\n"), 0600)
 	stack := &portaineree.Stack{
 		ProjectPath: dir,
-		Env: []portaineree.Pair{
+		Env: []portainer.Pair{
 			{Name: "VAR1", Value: "NEW_VAL1"},
 			{Name: "VAR3", Value: "VAL3"},
 		},

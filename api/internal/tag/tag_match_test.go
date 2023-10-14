@@ -3,7 +3,7 @@ package tag
 import (
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestFullMatch(t *testing.T) {
@@ -15,44 +15,44 @@ func TestFullMatch(t *testing.T) {
 	}{
 		{
 			name:           "environment tag partially match edge group tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2, 3}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2, 3}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       false,
 		},
 		{
 			name:           "edge group tags equal to environment tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       true,
 		},
 		{
 			name:           "environment tags fully match edge group tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{1, 2, 3}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{1, 2, 3}),
 			expected:       true,
 		},
 		{
 			name:           "environment tags do not match edge group tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{3, 4}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{3, 4}),
 			expected:       false,
 		},
 		{
 			name:           "edge group has no tags and environment has tags",
-			edgeGroupTags:  Set([]portaineree.TagID{}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       false,
 		},
 		{
 			name:           "edge group has tags and environment has no tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{}),
 			expected:       false,
 		},
 		{
 			name:           "both edge group and environment have no tags",
-			edgeGroupTags:  Set([]portaineree.TagID{}),
-			environmentTag: Set([]portaineree.TagID{}),
+			edgeGroupTags:  Set([]portainer.TagID{}),
+			environmentTag: Set([]portainer.TagID{}),
 			expected:       false,
 		},
 	}
@@ -76,50 +76,50 @@ func TestPartialMatch(t *testing.T) {
 	}{
 		{
 			name:           "environment tags partially match edge group tags 1",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2, 3}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2, 3}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       true,
 		},
 		{
 			name:           "environment tags partially match edge group tags 2",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2, 3}),
-			environmentTag: Set([]portaineree.TagID{1, 4, 5}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2, 3}),
+			environmentTag: Set([]portainer.TagID{1, 4, 5}),
 			expected:       true,
 		},
 		{
 			name:           "edge group tags equal to environment tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       true,
 		},
 		{
 			name:           "environment tags fully match edge group tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{1, 2, 3}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{1, 2, 3}),
 			expected:       true,
 		},
 		{
 			name:           "environment tags do not match edge group tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{3, 4}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{3, 4}),
 			expected:       false,
 		},
 		{
 			name:           "edge group has no tags and environment has tags",
-			edgeGroupTags:  Set([]portaineree.TagID{}),
-			environmentTag: Set([]portaineree.TagID{1, 2}),
+			edgeGroupTags:  Set([]portainer.TagID{}),
+			environmentTag: Set([]portainer.TagID{1, 2}),
 			expected:       false,
 		},
 		{
 			name:           "edge group has tags and environment has no tags",
-			edgeGroupTags:  Set([]portaineree.TagID{1, 2}),
-			environmentTag: Set([]portaineree.TagID{}),
+			edgeGroupTags:  Set([]portainer.TagID{1, 2}),
+			environmentTag: Set([]portainer.TagID{}),
 			expected:       false,
 		},
 		{
 			name:           "both edge group and environment have no tags",
-			edgeGroupTags:  Set([]portaineree.TagID{}),
-			environmentTag: Set([]portaineree.TagID{}),
+			edgeGroupTags:  Set([]portainer.TagID{}),
+			environmentTag: Set([]portainer.TagID{}),
 			expected:       false,
 		},
 	}

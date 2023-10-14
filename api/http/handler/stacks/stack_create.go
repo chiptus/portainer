@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -32,7 +33,7 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -76,7 +77,7 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 	return httperror.BadRequest("Invalid value for query parameter: type. Value must be one of: 1 (Swarm stack) or 2 (Compose stack)", errors.New(request.ErrInvalidQueryParameter))
 }
 
-func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	switch method {
 	case "string":
 		return handler.createComposeStackFromFileContent(w, r, endpoint, userID)
@@ -89,7 +90,7 @@ func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Reques
 	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string, repository or file", errors.New(request.ErrInvalidQueryParameter))
 }
 
-func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	switch method {
 	case "string":
 		return handler.createSwarmStackFromFileContent(w, r, endpoint, userID)
@@ -115,8 +116,8 @@ func (handler *Handler) createKubernetesStack(w http.ResponseWriter, r *http.Req
 	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string or repository", errors.New(request.ErrInvalidQueryParameter))
 }
 
-func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *portaineree.Stack, userID portaineree.UserID) *httperror.HandlerError {
-	var resourceControl *portaineree.ResourceControl
+func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *portaineree.Stack, userID portainer.UserID) *httperror.HandlerError {
+	var resourceControl *portainer.ResourceControl
 
 	isAdmin, err := handler.userIsAdmin(userID)
 	if err != nil {

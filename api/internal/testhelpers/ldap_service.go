@@ -1,6 +1,9 @@
 package testhelpers
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import (
+	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
+)
 
 type ldapService struct{}
 
@@ -28,7 +31,7 @@ func (service *ldapService) SearchUsers(settings *portaineree.LDAPSettings) ([]s
 }
 
 // SearchGroups searches for groups with the specified settings
-func (service *ldapService) SearchGroups(settings *portaineree.LDAPSettings) ([]portaineree.LDAPUser, error) {
+func (service *ldapService) SearchGroups(settings *portaineree.LDAPSettings) ([]portainer.LDAPUser, error) {
 	return nil, nil
 }
 

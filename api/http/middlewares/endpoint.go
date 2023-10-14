@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	requesthelpers "github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -32,7 +33,7 @@ func WithEndpoint(endpointService dataservices.EndpointService, endpointIDParam 
 				return
 			}
 
-			endpoint, err := endpointService.Endpoint(portaineree.EndpointID(endpointID))
+			endpoint, err := endpointService.Endpoint(portainer.EndpointID(endpointID))
 			if err != nil {
 				statusCode := http.StatusInternalServerError
 
@@ -110,19 +111,19 @@ func findInRequest(endpointService dataservices.EndpointService, lookup endpoint
 	}
 }
 
-type endpointIdLookup func(*http.Request) (portaineree.EndpointID, error)
+type endpointIdLookup func(*http.Request) (portainer.EndpointID, error)
 
-func asPortainerID(v string) (portaineree.EndpointID, error) {
+func asPortainerID(v string) (portainer.EndpointID, error) {
 	i, err := strconv.Atoi(v)
 	if err != nil {
 		return 0, err
 	}
 
-	return portaineree.EndpointID(i), nil
+	return portainer.EndpointID(i), nil
 }
 
 func getIntQueryParam(param string) endpointIdLookup {
-	return func(r *http.Request) (portaineree.EndpointID, error) {
+	return func(r *http.Request) (portainer.EndpointID, error) {
 		queryParameter := r.FormValue(param)
 		if queryParameter == "" {
 			return 0, errors.Errorf("cannot find a query param %s", param)
@@ -133,7 +134,7 @@ func getIntQueryParam(param string) endpointIdLookup {
 }
 
 func getIntRouteParam(param string) endpointIdLookup {
-	return func(r *http.Request) (portaineree.EndpointID, error) {
+	return func(r *http.Request) (portainer.EndpointID, error) {
 		routeVariables := mux.Vars(r)
 		if routeVariables != nil {
 			if routeVar, ok := routeVariables[param]; ok {
@@ -146,7 +147,7 @@ func getIntRouteParam(param string) endpointIdLookup {
 }
 
 func getIntJsonBodyField(fieldPath []string) endpointIdLookup {
-	return func(r *http.Request) (portaineree.EndpointID, error) {
+	return func(r *http.Request) (portainer.EndpointID, error) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			return 0, errors.Wrap(err, "cannot read request body")
@@ -172,7 +173,7 @@ func getIntJsonBodyField(fieldPath []string) endpointIdLookup {
 				if !ok {
 					return 0, errors.Errorf("body part %s doesn't seem to hold an id", part)
 				}
-				return portaineree.EndpointID(value), nil
+				return portainer.EndpointID(value), nil
 			}
 
 			b, ok = val.(map[string]interface{})

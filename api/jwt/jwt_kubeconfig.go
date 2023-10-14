@@ -3,11 +3,11 @@ package jwt
 import (
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // GenerateTokenForKubeconfig generates a new JWT token for Kubeconfig
-func (service *Service) GenerateTokenForKubeconfig(data *portaineree.TokenData) (string, error) {
+func (service *Service) GenerateTokenForKubeconfig(data *portainer.TokenData) (string, error) {
 	settings, err := service.dataStore.Settings().Settings()
 	if err != nil {
 		return "", err

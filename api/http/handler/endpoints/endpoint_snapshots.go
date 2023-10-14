@@ -3,8 +3,8 @@ package endpoints
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
@@ -49,7 +49,7 @@ func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request
 			continue
 		}
 
-		endpoint.Status = portaineree.EndpointStatusUp
+		endpoint.Status = portainer.EndpointStatusUp
 		if snapshotError != nil {
 			log.Debug().
 				Str("endpoint", endpoint.Name).
@@ -57,7 +57,7 @@ func (handler *Handler) endpointSnapshots(w http.ResponseWriter, r *http.Request
 				Err(snapshotError).
 				Msg("background schedule error (environment snapshot), unable to create snapshot")
 
-			endpoint.Status = portaineree.EndpointStatusDown
+			endpoint.Status = portainer.EndpointStatusDown
 		}
 
 		latestEndpointReference.Agent.Version = endpoint.Agent.Version

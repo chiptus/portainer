@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/github/packages"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -31,7 +32,7 @@ func (handler *Handler) proxyRequestsToRegistryAPI(w http.ResponseWriter, r *htt
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	registry, err := handler.DataStore.Registry().Read(portaineree.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Read(portainer.RegistryID(registryID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {

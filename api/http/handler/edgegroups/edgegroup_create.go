@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -16,8 +17,8 @@ import (
 type edgeGroupCreatePayload struct {
 	Name         string
 	Dynamic      bool
-	TagIDs       []portaineree.TagID
-	Endpoints    []portaineree.EndpointID
+	TagIDs       []portainer.TagID
+	Endpoints    []portainer.EndpointID
 	PartialMatch bool
 }
 
@@ -33,11 +34,11 @@ func (payload *edgeGroupCreatePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-func calculateEndpointsOrTags(tx dataservices.DataStoreTx, edgeGroup *portaineree.EdgeGroup, endpoints []portaineree.EndpointID, tagIDs []portaineree.TagID) error {
+func calculateEndpointsOrTags(tx dataservices.DataStoreTx, edgeGroup *portaineree.EdgeGroup, endpoints []portainer.EndpointID, tagIDs []portainer.TagID) error {
 	if edgeGroup.Dynamic {
 		edgeGroup.TagIDs = tagIDs
 	} else {
-		endpointIDs := []portaineree.EndpointID{}
+		endpointIDs := []portainer.EndpointID{}
 
 		for _, endpointID := range endpoints {
 			endpoint, err := tx.Endpoint().Endpoint(endpointID)
@@ -93,8 +94,8 @@ func (handler *Handler) edgeGroupCreate(w http.ResponseWriter, r *http.Request) 
 		edgeGroup = &portaineree.EdgeGroup{
 			Name:         payload.Name,
 			Dynamic:      payload.Dynamic,
-			TagIDs:       []portaineree.TagID{},
-			Endpoints:    []portaineree.EndpointID{},
+			TagIDs:       []portainer.TagID{},
+			Endpoints:    []portainer.EndpointID{},
 			PartialMatch: payload.PartialMatch,
 		}
 

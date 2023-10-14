@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,7 +47,7 @@ func Test_endpointUpdate(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
-		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 
@@ -79,7 +80,7 @@ func Test_endpointUpdate(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
-		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 

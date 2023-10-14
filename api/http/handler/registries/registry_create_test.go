@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,8 +55,8 @@ func Test_registryCreatePayload_Validate(t *testing.T) {
 type testRegistryService struct {
 	dataservices.RegistryService
 	createRegistry func(r *portaineree.Registry) error
-	updateRegistry func(ID portaineree.RegistryID, r *portaineree.Registry) error
-	getRegistry    func(ID portaineree.RegistryID) (*portaineree.Registry, error)
+	updateRegistry func(ID portainer.RegistryID, r *portaineree.Registry) error
+	getRegistry    func(ID portainer.RegistryID) (*portaineree.Registry, error)
 }
 
 type testDataStore struct {
@@ -71,11 +72,11 @@ func (t testRegistryService) Create(r *portaineree.Registry) error {
 	return t.createRegistry(r)
 }
 
-func (t testRegistryService) Update(ID portaineree.RegistryID, r *portaineree.Registry) error {
+func (t testRegistryService) Update(ID portainer.RegistryID, r *portaineree.Registry) error {
 	return t.updateRegistry(ID, r)
 }
 
-func (t testRegistryService) Read(ID portaineree.RegistryID) (*portaineree.Registry, error) {
+func (t testRegistryService) Read(ID portainer.RegistryID) (*portaineree.Registry, error) {
 	return t.getRegistry(ID)
 }
 
@@ -92,7 +93,7 @@ func TestHandler_registryCreate(t *testing.T) {
 		Authentication: false,
 		Username:       "username",
 		Password:       "password",
-		Gitlab:         portaineree.GitlabRegistryData{},
+		Gitlab:         portainer.GitlabRegistryData{},
 	}
 	payloadBytes, err := json.Marshal(payload)
 	assert.NoError(t, err)
@@ -101,7 +102,7 @@ func TestHandler_registryCreate(t *testing.T) {
 
 	restrictedContext := &security.RestrictedRequestContext{
 		IsAdmin: true,
-		UserID:  portaineree.UserID(1),
+		UserID:  portainer.UserID(1),
 	}
 
 	ctx := security.StoreRestrictedRequestContext(r, restrictedContext)

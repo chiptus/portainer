@@ -1,7 +1,6 @@
 package tag
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -11,7 +10,7 @@ const BucketName = "tags"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.Tag, portaineree.TagID]
+	dataservices.BaseDataService[portainer.Tag, portainer.TagID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +21,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Tag, portaineree.TagID]{
+		BaseDataService: dataservices.BaseDataService[portainer.Tag, portainer.TagID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -31,7 +30,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.Tag, portaineree.TagID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portainer.Tag, portainer.TagID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -40,20 +39,20 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 }
 
 // CreateTag creates a new tag.
-func (service *Service) Create(tag *portaineree.Tag) error {
+func (service *Service) Create(tag *portainer.Tag) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			tag.ID = portaineree.TagID(id)
+			tag.ID = portainer.TagID(id)
 			return int(tag.ID), tag
 		},
 	)
 }
 
 // UpdateTagFunc updates a tag inside a transaction avoiding data races.
-func (service *Service) UpdateTagFunc(ID portaineree.TagID, updateFunc func(tag *portaineree.Tag)) error {
+func (service *Service) UpdateTagFunc(ID portainer.TagID, updateFunc func(tag *portainer.Tag)) error {
 	id := service.Connection.ConvertToKey(int(ID))
-	tag := &portaineree.Tag{}
+	tag := &portainer.Tag{}
 
 	return service.Connection.UpdateObjectFunc(BucketName, id, tag, func() {
 		updateFunc(tag)

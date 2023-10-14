@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/hostmanagement/fdo"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -17,7 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type fdoConfigurePayload portaineree.FDOConfiguration
+type fdoConfigurePayload portainer.FDOConfiguration
 
 func validateURL(u string) error {
 	p, err := url.Parse(u)
@@ -46,7 +46,7 @@ func (payload *fdoConfigurePayload) Validate(r *http.Request) error {
 	return nil
 }
 
-func (handler *Handler) saveSettings(config portaineree.FDOConfiguration) error {
+func (handler *Handler) saveSettings(config portainer.FDOConfiguration) error {
 	settings, err := handler.DataStore.Settings().Settings()
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (handler *Handler) fdoConfigure(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	settings := portaineree.FDOConfiguration(payload)
+	settings := portainer.FDOConfiguration(payload)
 	if err = handler.saveSettings(settings); err != nil {
 		return httperror.BadRequest("Error saving FDO settings", err)
 	}
@@ -116,8 +116,8 @@ func (handler *Handler) fdoConfigure(w http.ResponseWriter, r *http.Request) *ht
 
 func (handler *Handler) addDefaultProfile() error {
 	profileID := handler.DataStore.FDOProfile().GetNextIdentifier()
-	profile := &portaineree.FDOProfile{
-		ID:   portaineree.FDOProfileID(profileID),
+	profile := &portainer.FDOProfile{
+		ID:   portainer.FDOProfileID(profileID),
 		Name: "Docker Standalone + Edge",
 	}
 

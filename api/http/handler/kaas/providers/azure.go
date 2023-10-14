@@ -7,6 +7,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -81,7 +82,7 @@ func (payload *AzureProvisionPayload) GetEnvironmentMetadata() types.Environment
 	return payload.Meta
 }
 
-func (payload *AzureProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
+func (payload *AzureProvisionPayload) GetCloudProvisioningRequest(endpointID portainer.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
 	return &portaineree.CloudProvisioningRequest{
 		EndpointID:        endpointID,
 		Provider:          portaineree.CloudProviderAzure,

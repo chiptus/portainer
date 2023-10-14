@@ -99,7 +99,7 @@ func createValidLicenseNodes(licenseType liblicense.PortainerLicenseType, create
 func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 	_, store := datastore.MustNewTestStore(t, true, true)
 
-	endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portaineree.EndpointID(1)}
+	endpoint := &portaineree.Endpoint{Type: portaineree.DockerEnvironment, ID: portainer.EndpointID(1)}
 	store.Endpoint().Create(endpoint)
 	store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 

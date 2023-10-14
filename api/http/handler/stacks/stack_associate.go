@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -42,7 +43,7 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -70,7 +71,7 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to load user information from the database", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -100,7 +101,7 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return httperror.Forbidden(errMsg, fmt.Errorf(errMsg))
 	}
 
-	stack.EndpointID = portaineree.EndpointID(endpointID)
+	stack.EndpointID = portainer.EndpointID(endpointID)
 	stack.SwarmID = swarmId
 
 	if orphanedRunning {

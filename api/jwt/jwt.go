@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/portainer/portainer-ee/api/internal/securecookie"
@@ -95,13 +95,13 @@ func (service *Service) defaultExpireAt() int64 {
 }
 
 // GenerateToken generates a new JWT token.
-func (service *Service) GenerateToken(data *portaineree.TokenData) (string, error) {
+func (service *Service) GenerateToken(data *portainer.TokenData) (string, error) {
 	return service.generateSignedToken(data, service.defaultExpireAt(), defaultScope)
 }
 
 // GenerateTokenForOAuth generates a new JWT token for OAuth login
 // token expiry time response from OAuth provider is considered
-func (service *Service) GenerateTokenForOAuth(data *portaineree.TokenData, expiryTime *time.Time) (string, error) {
+func (service *Service) GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error) {
 	expireAt := service.defaultExpireAt()
 	if expiryTime != nil && !expiryTime.IsZero() {
 		expireAt = expiryTime.Unix()
@@ -110,7 +110,7 @@ func (service *Service) GenerateTokenForOAuth(data *portaineree.TokenData, expir
 }
 
 // ParseAndVerifyToken parses a JWT token and verify its validity. It returns an error if token is invalid.
-func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenData, error) {
+func (service *Service) ParseAndVerifyToken(token string) (*portainer.TokenData, error) {
 	scope := parseScope(token)
 	secret := service.secrets[scope]
 	parsedToken, err := jwt.ParseWithClaims(token, &claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -124,7 +124,7 @@ func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenDat
 	if err == nil && parsedToken != nil {
 		if cl, ok := parsedToken.Claims.(*claims); ok && parsedToken.Valid {
 
-			user, err := service.dataStore.User().Read(portaineree.UserID(cl.UserID))
+			user, err := service.dataStore.User().Read(portainer.UserID(cl.UserID))
 			if err != nil {
 				return nil, errInvalidJWTToken
 			}
@@ -132,10 +132,10 @@ func (service *Service) ParseAndVerifyToken(token string) (*portaineree.TokenDat
 				return nil, errInvalidJWTToken
 			}
 
-			return &portaineree.TokenData{
-				ID:       portaineree.UserID(cl.UserID),
+			return &portainer.TokenData{
+				ID:       portainer.UserID(cl.UserID),
 				Username: cl.Username,
-				Role:     portaineree.UserRole(cl.Role),
+				Role:     portainer.UserRole(cl.Role),
 				Token:    token,
 			}, nil
 		}
@@ -162,7 +162,7 @@ func (service *Service) SetUserSessionDuration(userSessionDuration time.Duration
 	service.userSessionTimeout = userSessionDuration
 }
 
-func (service *Service) generateSignedToken(data *portaineree.TokenData, expiresAt int64, scope scope) (string, error) {
+func (service *Service) generateSignedToken(data *portainer.TokenData, expiresAt int64, scope scope) (string, error) {
 	secret, found := service.secrets[scope]
 	if !found {
 		return "", fmt.Errorf("invalid scope: %v", scope)

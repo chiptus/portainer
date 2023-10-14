@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 )
@@ -37,7 +37,7 @@ func (transport *baseTransport) proxyNamespaceDeleteOperation(request *http.Requ
 			}
 
 			if len(namespaces) != len(registryAccessPolicies.Namespaces) {
-				updatedAccessPolicies := portaineree.RegistryAccessPolicies{
+				updatedAccessPolicies := portainer.RegistryAccessPolicies{
 					Namespaces:         namespaces,
 					UserAccessPolicies: registryAccessPolicies.UserAccessPolicies,
 					TeamAccessPolicies: registryAccessPolicies.TeamAccessPolicies,

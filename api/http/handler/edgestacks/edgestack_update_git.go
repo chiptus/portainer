@@ -25,9 +25,9 @@ import (
 )
 
 type stackGitUpdatePayload struct {
-	GroupIds       []portaineree.EdgeGroupID
-	DeploymentType *portaineree.EdgeStackDeploymentType
-	AutoUpdate     *portaineree.AutoUpdateSettings
+	GroupIds       []portainer.EdgeGroupID
+	DeploymentType *portainer.EdgeStackDeploymentType
+	AutoUpdate     *portainer.AutoUpdateSettings
 	RefName        string
 	Authentication *gittypes.GitAuthentication
 	// Update the stack file content from the git repository
@@ -36,7 +36,7 @@ type stackGitUpdatePayload struct {
 	UpdateVersion bool
 	EnvVars       []portainer.Pair
 	// List of Registries to use for this stack
-	Registries []portaineree.RegistryID
+	Registries []portainer.RegistryID
 	// Configuration for stagger updates
 	StaggerConfig *portaineree.EdgeStaggerConfig
 }
@@ -106,7 +106,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			return httperror.InternalServerError("Unable to retrieve edge stack related environments from database", err)
 		}
 
-		endpointsToAdd := set.Set[portaineree.EndpointID]{}
+		endpointsToAdd := set.Set[portainer.EndpointID]{}
 		groupIds := edgeStack.EdgeGroups
 		if payload.GroupIds != nil {
 			newRelated, newEndpoints, err := handler.handleChangeEdgeGroups(tx, edgeStack.ID, payload.GroupIds, relatedEndpointIds, relationConfig)
@@ -245,7 +245,7 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 
 }
 
-func (handler *Handler) updateAutoUpdateSettings(edgeStackID portaineree.EdgeStackID, settings *portaineree.AutoUpdateSettings, oldJobID string) (*portaineree.AutoUpdateSettings, error) {
+func (handler *Handler) updateAutoUpdateSettings(edgeStackID portainer.EdgeStackID, settings *portainer.AutoUpdateSettings, oldJobID string) (*portainer.AutoUpdateSettings, error) {
 	// stop the auto update job if there is any
 	if oldJobID != "" {
 		err := handler.scheduler.StopJob(oldJobID)
@@ -299,7 +299,7 @@ func (handler *Handler) updateGitSettings(originalGitConfig *gittypes.RepoConfig
 	return nil
 }
 
-func parseGitCredentials(tx dataservices.DataStoreTx, authSettings, defaults *gittypes.GitAuthentication, userID portaineree.UserID) (*gittypes.GitAuthentication, *httperror.HandlerError) {
+func parseGitCredentials(tx dataservices.DataStoreTx, authSettings, defaults *gittypes.GitAuthentication, userID portainer.UserID) (*gittypes.GitAuthentication, *httperror.HandlerError) {
 	if authSettings == nil {
 		return nil, nil
 	}

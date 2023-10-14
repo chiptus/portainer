@@ -15,10 +15,10 @@ import (
 
 func (handler *Handler) updateStackVersion(
 	stack *portaineree.EdgeStack,
-	deploymentType portaineree.EdgeStackDeploymentType,
+	deploymentType portainer.EdgeStackDeploymentType,
 	config []byte,
 	oldGitHash string,
-	relatedEnvironmentsIDs []portaineree.EndpointID,
+	relatedEnvironmentsIDs []portainer.EndpointID,
 	rollbackTo *int,
 ) error {
 	if stack.PreviousDeploymentInfo == nil {
@@ -55,7 +55,7 @@ func (handler *Handler) updateStackVersion(
 	return handler.storeStackFile(stack, deploymentType, config, rollbackTo)
 }
 
-func (handler *Handler) storeStackFile(stack *portaineree.EdgeStack, deploymentType portaineree.EdgeStackDeploymentType, config []byte, rollbackTo *int) error {
+func (handler *Handler) storeStackFile(stack *portaineree.EdgeStack, deploymentType portainer.EdgeStackDeploymentType, config []byte, rollbackTo *int) error {
 	if deploymentType != stack.DeploymentType {
 		if rollbackTo != nil {
 			return fmt.Errorf("unable to rollback to a different deployment type")

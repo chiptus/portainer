@@ -3,9 +3,9 @@ package kaas
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cloud/microk8s"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -38,7 +38,7 @@ func (handler *Handler) microk8sGetNodeStatus(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("The nodeIP query parameter must have a value", err)
 	}
 
-	endpoint, err := handler.dataStore.Endpoint().Endpoint(portaineree.EndpointID(environmentId))
+	endpoint, err := handler.dataStore.Endpoint().Endpoint(portainer.EndpointID(environmentId))
 	if handler.dataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find the environment in the database", err)
 	} else if err != nil {

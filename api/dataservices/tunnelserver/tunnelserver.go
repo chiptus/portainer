@@ -1,7 +1,6 @@
 package tunnelserver
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -33,8 +32,8 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // Info retrieve the TunnelServerInfo object.
-func (service *Service) Info() (*portaineree.TunnelServerInfo, error) {
-	var info portaineree.TunnelServerInfo
+func (service *Service) Info() (*portainer.TunnelServerInfo, error) {
+	var info portainer.TunnelServerInfo
 
 	err := service.connection.GetObject(BucketName, []byte(infoKey), &info)
 	if err != nil {
@@ -45,6 +44,6 @@ func (service *Service) Info() (*portaineree.TunnelServerInfo, error) {
 }
 
 // UpdateInfo persists a TunnelServerInfo object.
-func (service *Service) UpdateInfo(settings *portaineree.TunnelServerInfo) error {
+func (service *Service) UpdateInfo(settings *portainer.TunnelServerInfo) error {
 	return service.connection.UpdateObject(BucketName, []byte(infoKey), settings)
 }

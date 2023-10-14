@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	pslices "github.com/portainer/portainer-ee/api/internal/slices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // filterEnvironments fetches all environments related to the edge group ids
@@ -16,7 +17,7 @@ import (
 //
 // it also filters out environments that are already updated and validates that all
 // environments are of the same type
-func (handler *Handler) filterEnvironments(edgeGroupIds []portaineree.EdgeGroupID, version string, rollback bool, skipScheduleID edgetypes.UpdateScheduleID) ([]portaineree.EndpointID, map[portaineree.EndpointID]string, portaineree.EndpointType, error) {
+func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID, version string, rollback bool, skipScheduleID edgetypes.UpdateScheduleID) ([]portainer.EndpointID, map[portainer.EndpointID]string, portainer.EndpointType, error) {
 	relationConfig, err := edge.FetchEndpointRelationsConfig(handler.dataStore)
 	if err != nil {
 		return nil, nil, 0, errors.WithMessage(err, "unable to fetch environment relations config")
@@ -45,7 +46,7 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portaineree.EdgeGroupI
 		return nil, nil, 0, errors.WithMessage(err, "unable to parse version constraint")
 	}
 
-	var previousVersionsMap map[portaineree.EndpointID]string
+	var previousVersionsMap map[portainer.EndpointID]string
 	if rollback {
 		schedules, err := handler.updateService.Schedules()
 		if err != nil {
@@ -55,8 +56,8 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portaineree.EdgeGroupI
 		previousVersionsMap = previousVersions(schedules, handler.updateService.ActiveSchedule, skipScheduleID)
 	}
 
-	var envType portaineree.EndpointType
-	currentVersions := map[portaineree.EndpointID]string{}
+	var envType portainer.EndpointType
+	currentVersions := map[portainer.EndpointID]string{}
 	for _, environment := range environments {
 		if !relatedEnvironmentIdsSet.Contains(environment.ID) {
 			continue
@@ -98,7 +99,7 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portaineree.EdgeGroupI
 		relatedEnvironments = append(relatedEnvironments, environment)
 	}
 
-	relatedEnvIds := pslices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portaineree.EndpointID {
+	relatedEnvIds := pslices.Map(relatedEnvironments, func(environment portaineree.Endpoint) portainer.EndpointID {
 		return environment.ID
 	})
 

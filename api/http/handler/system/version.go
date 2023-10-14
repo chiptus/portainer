@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/build"
+	portainer "github.com/portainer/portainer/api"
 	system "github.com/portainer/portainer/api/http/handler/system"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
@@ -50,7 +51,7 @@ func (handler *Handler) version(w http.ResponseWriter, r *http.Request) {
 	v, err := vs.Version()
 	if err == nil {
 		dbVer = v.SchemaVersion
-		edition = portaineree.SoftwareEdition(v.Edition).GetEditionLabel()
+		edition = portainer.SoftwareEdition(v.Edition).GetEditionLabel()
 	}
 
 	result := &versionResponse{

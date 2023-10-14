@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -16,7 +17,7 @@ type publicSettingsResponse struct {
 	// The content in plaintext used to display in the login page. Will hide when value is empty string
 	CustomLoginBanner string `json:"CustomLoginBanner" example:"notice or agreement"`
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-	AuthenticationMethod portaineree.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
+	AuthenticationMethod portainer.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
 	// The minimum required length for a password of any user when using internal auth mode
 	RequiredPasswordLength int `json:"RequiredPasswordLength" example:"1"`
 	// Deployment options for encouraging deployment as code

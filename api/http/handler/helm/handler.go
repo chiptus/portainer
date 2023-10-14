@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/kubernetes"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libhelm"
 	"github.com/portainer/portainer/pkg/libhelm/options"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -127,7 +128,7 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 }
 
 // authoriseChartOperation verified whether the calling user can perform underlying helm operations based on authorization.
-func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portaineree.Authorization) *httperror.HandlerError {
+func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portainer.Authorization) *httperror.HandlerError {
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)

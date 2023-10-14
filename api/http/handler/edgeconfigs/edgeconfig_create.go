@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/unique"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -25,7 +26,7 @@ type edgeConfigCreatePayload struct {
 	BaseDir      string
 	Type         string
 	Category     portaineree.EdgeConfigCategory
-	EdgeGroupIDs []portaineree.EdgeGroupID
+	EdgeGroupIDs []portainer.EdgeGroupID
 }
 
 var edgeConfigTypeMap = map[string]portaineree.EdgeConfigType{
@@ -102,7 +103,7 @@ func (h *Handler) edgeConfigCreate(w http.ResponseWriter, r *http.Request) *http
 		CreatedBy:    token.ID,
 	}
 
-	var relatedEndpointIDs []portaineree.EndpointID
+	var relatedEndpointIDs []portainer.EndpointID
 
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		relatedEndpointIDs, err = h.getRelatedEndpointIDs(tx, payload.EdgeGroupIDs)
@@ -176,7 +177,7 @@ func (h *Handler) edgeConfigCreate(w http.ResponseWriter, r *http.Request) *http
 	return response.Empty(w)
 }
 
-func (h *Handler) getRelatedEndpointIDs(tx dataservices.DataStoreTx, edgeGroupIDs []portaineree.EdgeGroupID) ([]portaineree.EndpointID, error) {
+func (h *Handler) getRelatedEndpointIDs(tx dataservices.DataStoreTx, edgeGroupIDs []portainer.EdgeGroupID) ([]portainer.EndpointID, error) {
 	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve endpoints: %w", err)
@@ -196,7 +197,7 @@ func (h *Handler) getRelatedEndpointIDs(tx dataservices.DataStoreTx, edgeGroupID
 		return nil, fmt.Errorf("unable to retrieve endpoint groups: %w", err)
 	}
 
-	var relatedEndpointIDs []portaineree.EndpointID
+	var relatedEndpointIDs []portainer.EndpointID
 
 	for _, edgeGroupID := range edgeGroupIDs {
 		edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)

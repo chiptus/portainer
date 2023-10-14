@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	kcli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -60,10 +61,10 @@ func (handler *Handler) getKubernetesConfig(w http.ResponseWriter, r *http.Reque
 }
 
 func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portaineree.Endpoint, *httperror.HandlerError) {
-	var endpointIDs []portaineree.EndpointID
+	var endpointIDs []portainer.EndpointID
 	_ = request.RetrieveJSONQueryParameter(r, "ids", &endpointIDs, true)
 
-	var excludeEndpointIDs []portaineree.EndpointID
+	var excludeEndpointIDs []portainer.EndpointID
 	_ = request.RetrieveJSONQueryParameter(r, "excludeIds", &excludeEndpointIDs, true)
 
 	if len(endpointIDs) > 0 && len(excludeEndpointIDs) > 0 {
@@ -122,7 +123,7 @@ func (handler *Handler) filterUserKubeEndpoints(r *http.Request) ([]portaineree.
 	return filteredEndpoints, nil
 }
 
-func (handler *Handler) buildConfig(r *http.Request, tokenData *portaineree.TokenData, bearerToken string, endpoints []portaineree.Endpoint, isInternal bool) *clientV1.Config {
+func (handler *Handler) buildConfig(r *http.Request, tokenData *portainer.TokenData, bearerToken string, endpoints []portaineree.Endpoint, isInternal bool) *clientV1.Config {
 	var configAuthInfos []clientV1.NamedAuthInfo
 
 	configClusters := make([]clientV1.NamedCluster, len(endpoints))
@@ -189,7 +190,7 @@ func buildAuthInfo(serviceAccountName string, bearerToken string) clientV1.Named
 	}
 }
 
-func writeFileContent(w http.ResponseWriter, r *http.Request, endpoints []portaineree.Endpoint, tokenData *portaineree.TokenData, config *clientV1.Config) *httperror.HandlerError {
+func writeFileContent(w http.ResponseWriter, r *http.Request, endpoints []portaineree.Endpoint, tokenData *portainer.TokenData, config *clientV1.Config) *httperror.HandlerError {
 	filenameSuffix := "kubeconfig"
 	if len(endpoints) == 1 {
 		filenameSuffix = endpoints[0].Name

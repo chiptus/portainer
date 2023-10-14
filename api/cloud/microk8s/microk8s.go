@@ -9,17 +9,18 @@ import (
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
-func GetCurrentVersion(datastore dataservices.DataStore, credential *models.CloudCredential, environmentID portaineree.EndpointID) (string, error) {
+func GetCurrentVersion(datastore dataservices.DataStore, credential *models.CloudCredential, environmentID portainer.EndpointID) (string, error) {
 	log.Debug().Str(
 		"provider",
 		portaineree.CloudProviderMicrok8s,
 	).Msg("processing version request")
 
 	// Gather nodeIP from environmentID.
-	endpoint, err := datastore.Endpoint().Endpoint(portaineree.EndpointID(environmentID))
+	endpoint, err := datastore.Endpoint().Endpoint(portainer.EndpointID(environmentID))
 	if err != nil {
 		log.Debug().Str(
 			"provider",

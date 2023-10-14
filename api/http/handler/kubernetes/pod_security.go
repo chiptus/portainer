@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -129,7 +130,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	authorized, err := canEditPodSecurity(user, portaineree.EndpointID(endpointID))
+	authorized, err := canEditPodSecurity(user, portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user details from authentication token", err)
 	}
@@ -149,7 +150,7 @@ func (handler *Handler) updateK8sPodSecurityRule(w http.ResponseWriter, r *http.
 
 	requestRule.EndpointID = endpointID
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -255,8 +256,8 @@ var checkGatekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoin
 }
 
 // Check if the user is an admin or can edit OPA
-func canEditPodSecurity(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+func canEditPodSecurity(user *portaineree.User, endpointID portainer.EndpointID) (bool, error) {
 	isAdmin := user.Role == portaineree.AdministratorRole
-	_, canEdit := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sPodSecurityW]
+	_, canEdit := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.OperationK8sPodSecurityW]
 	return isAdmin || canEdit, nil
 }

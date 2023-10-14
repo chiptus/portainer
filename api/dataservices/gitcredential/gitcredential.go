@@ -52,7 +52,7 @@ func (service *Service) Create(record *portaineree.GitCredential) error {
 }
 
 // GetGitCredentialsByUserID returns an array containing all git-credentials owned by a specific user
-func (service *Service) GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error) {
+func (service *Service) GetGitCredentialsByUserID(userID portainer.UserID) ([]portaineree.GitCredential, error) {
 	var result = make([]portaineree.GitCredential, 0)
 
 	return result, service.Connection.GetAll(
@@ -65,7 +65,7 @@ func (service *Service) GetGitCredentialsByUserID(userID portaineree.UserID) ([]
 }
 
 // GetGitCredentialByName retrieves a single GitCredential object owned by a specific user with a unique git credential name
-func (service *Service) GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error) {
+func (service *Service) GetGitCredentialByName(userID portainer.UserID, name string) (*portaineree.GitCredential, error) {
 	var credential portaineree.GitCredential
 
 	err := service.Connection.GetAll(

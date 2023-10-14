@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -38,11 +39,11 @@ func NewService(
 	}
 }
 
-func (service *PendingActionsService) Create(r portaineree.PendingActions) error {
+func (service *PendingActionsService) Create(r portainer.PendingActions) error {
 	return service.dataStore.PendingActions().Create(&r)
 }
 
-func (service *PendingActionsService) Execute(id portaineree.EndpointID) error {
+func (service *PendingActionsService) Execute(id portainer.EndpointID) error {
 
 	service.mu.Lock()
 	defer service.mu.Unlock()
@@ -52,7 +53,7 @@ func (service *PendingActionsService) Execute(id portaineree.EndpointID) error {
 		return fmt.Errorf("failed to retrieve endpoint %d: %w", id, err)
 	}
 
-	if endpoint.Status != portaineree.EndpointStatusUp {
+	if endpoint.Status != portainer.EndpointStatusUp {
 		log.Debug().Msgf("Endpoint %d is not up", id)
 		return fmt.Errorf("endpoint %d is not up: %w", id, err)
 	}
@@ -83,7 +84,7 @@ func (service *PendingActionsService) Execute(id portaineree.EndpointID) error {
 	return nil
 }
 
-func (service *PendingActionsService) executePendingAction(pendingAction portaineree.PendingActions, endpoint *portaineree.Endpoint) error {
+func (service *PendingActionsService) executePendingAction(pendingAction portainer.PendingActions, endpoint *portaineree.Endpoint) error {
 	log.Debug().Msgf("Executing pending action %s for endpoint %d", pendingAction.Action, pendingAction.EndpointID)
 
 	defer func() {
@@ -92,11 +93,11 @@ func (service *PendingActionsService) executePendingAction(pendingAction portain
 
 	switch pendingAction.Action {
 	case "CleanNAPWithOverridePolicies":
-		if (pendingAction.ActionData == nil) || (pendingAction.ActionData.(portaineree.EndpointGroupID) == 0) {
+		if (pendingAction.ActionData == nil) || (pendingAction.ActionData.(portainer.EndpointGroupID) == 0) {
 			service.authorizationService.CleanNAPWithOverridePolicies(service.dataStore, endpoint, nil)
 		} else {
-			endpointGroupID := pendingAction.ActionData.(portaineree.EndpointGroupID)
-			endpointGroup, err := service.dataStore.EndpointGroup().Read(portaineree.EndpointGroupID(endpointGroupID))
+			endpointGroupID := pendingAction.ActionData.(portainer.EndpointGroupID)
+			endpointGroup, err := service.dataStore.EndpointGroup().Read(portainer.EndpointGroupID(endpointGroupID))
 			if err != nil {
 				log.Error().Err(err).Msgf("Error reading endpoint group to clean NAP with override policies for endpoint %d and endpoint group %d", endpoint.ID, endpointGroup.ID)
 				return fmt.Errorf("failed to retrieve endpoint group %d: %w", endpointGroupID, err)

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -45,7 +45,7 @@ func (payload *teamMembershipUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Team membership identifier"
 // @param body body teamMembershipUpdatePayload true "Team membership details"
-// @success 200 {object} portaineree.TeamMembership "Success"
+// @success 200 {object} portainer.TeamMembership "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "TeamMembership not found"
@@ -63,7 +63,7 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	membership, err := handler.DataStore.TeamMembership().Read(portaineree.TeamMembershipID(membershipID))
+	membership, err := handler.DataStore.TeamMembership().Read(portainer.TeamMembershipID(membershipID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a team membership with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -75,16 +75,16 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	isLeadingBothTeam := security.AuthorizedTeamManagement(portaineree.TeamID(payload.TeamID), securityContext) &&
+	isLeadingBothTeam := security.AuthorizedTeamManagement(portainer.TeamID(payload.TeamID), securityContext) &&
 		security.AuthorizedTeamManagement(membership.TeamID, securityContext)
 	if !(securityContext.IsAdmin || isLeadingBothTeam) {
 		return httperror.Forbidden("Permission denied to update the membership", httperrors.ErrResourceAccessDenied)
 	}
 
 	previousUserID := int(membership.UserID)
-	membership.UserID = portaineree.UserID(payload.UserID)
-	membership.TeamID = portaineree.TeamID(payload.TeamID)
-	membership.Role = portaineree.MembershipRole(payload.Role)
+	membership.UserID = portainer.UserID(payload.UserID)
+	membership.TeamID = portainer.TeamID(payload.TeamID)
+	membership.Role = portainer.MembershipRole(payload.Role)
 
 	err = handler.DataStore.TeamMembership().Update(membership.ID, membership)
 	if err != nil {

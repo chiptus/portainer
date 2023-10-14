@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -20,7 +21,7 @@ import (
 type Handler struct {
 	*mux.Router
 	DataStore                   dataservices.DataStore
-	CryptoService               portaineree.CryptoService
+	CryptoService               portainer.CryptoService
 	JWTService                  portaineree.JWTService
 	LDAPService                 portaineree.LDAPService
 	LicenseService              portaineree.LicenseService
@@ -53,7 +54,7 @@ type authMiddlewareHandler func(http.ResponseWriter, *http.Request) (*authMiddle
 
 type authMiddlewareResponse struct {
 	Username string
-	Method   portaineree.AuthenticationMethod
+	Method   portainer.AuthenticationMethod
 }
 
 func (handler *Handler) authActivityMiddleware(prev authMiddlewareHandler, defaultActivityType portaineree.AuthenticationActivityType) httperror.LoggerHandler {

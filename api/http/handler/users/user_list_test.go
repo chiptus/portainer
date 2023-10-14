@@ -18,6 +18,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,7 +44,7 @@ func Test_userList(t *testing.T) {
 	h.DataStore = store
 
 	// generate admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	// Case 1: the user is given the endpoint access directly
 	userWithEndpointAccess := &portaineree.User{ID: 2, Username: "standard-user-with-endpoint-access", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
@@ -55,19 +56,19 @@ func Test_userList(t *testing.T) {
 	is.NoError(err, "error creating user")
 
 	// create environment group
-	endpointGroup := &portaineree.EndpointGroup{ID: 1, Name: "default-endpoint-group"}
+	endpointGroup := &portainer.EndpointGroup{ID: 1, Name: "default-endpoint-group"}
 	err = store.EndpointGroup().Create(endpointGroup)
 	is.NoError(err, "error creating endpoint group")
 
 	// create endpoint and user access policies
-	userAccessPolicies := make(portaineree.UserAccessPolicies, 0)
-	userAccessPolicies[userWithEndpointAccess.ID] = portaineree.AccessPolicy{RoleID: portaineree.RoleID(userWithEndpointAccess.Role)}
+	userAccessPolicies := make(portainer.UserAccessPolicies, 0)
+	userAccessPolicies[userWithEndpointAccess.ID] = portainer.AccessPolicy{RoleID: portainer.RoleID(userWithEndpointAccess.Role)}
 
 	endpointWithUserAccessPolicy := &portaineree.Endpoint{ID: 1, UserAccessPolicies: userAccessPolicies, GroupID: endpointGroup.ID}
 	err = store.Endpoint().Create(endpointWithUserAccessPolicy)
 	is.NoError(err, "error creating endpoint")
 
-	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: userWithEndpointAccess.ID, Username: userWithEndpointAccess.Username, Role: userWithEndpointAccess.Role})
+	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccess.ID, Username: userWithEndpointAccess.Username, Role: userWithEndpointAccess.Role})
 
 	t.Run("admin user can successfully list all users", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/users", nil)
@@ -130,10 +131,10 @@ func Test_userList(t *testing.T) {
 	is.NoError(err, "error creating user")
 
 	// create environment group including a user
-	userAccessPoliciesUnderGroup := make(portaineree.UserAccessPolicies, 0)
-	userAccessPoliciesUnderGroup[userUnderGroup.ID] = portaineree.AccessPolicy{RoleID: portaineree.RoleID(userUnderGroup.Role)}
+	userAccessPoliciesUnderGroup := make(portainer.UserAccessPolicies, 0)
+	userAccessPoliciesUnderGroup[userUnderGroup.ID] = portainer.AccessPolicy{RoleID: portainer.RoleID(userUnderGroup.Role)}
 
-	endpointGroupWithUser := &portaineree.EndpointGroup{ID: 2, Name: "endpoint-group-with-user", UserAccessPolicies: userAccessPoliciesUnderGroup}
+	endpointGroupWithUser := &portainer.EndpointGroup{ID: 2, Name: "endpoint-group-with-user", UserAccessPolicies: userAccessPoliciesUnderGroup}
 	err = store.EndpointGroup().Create(endpointGroupWithUser)
 	is.NoError(err, "error creating endpoint group")
 
@@ -170,7 +171,7 @@ func Test_userList(t *testing.T) {
 	//		   the environment group is given the endpoint access.
 	//		   both user and team should inherits the endpoint access from the environment group
 	// create a team including a user
-	teamUnderGroup := &portaineree.Team{ID: 1, Name: "team-under-environment-group"}
+	teamUnderGroup := &portainer.Team{ID: 1, Name: "team-under-environment-group"}
 	err = store.Team().Create(teamUnderGroup)
 	is.NoError(err, "error creating team")
 
@@ -178,15 +179,15 @@ func Test_userList(t *testing.T) {
 	err = store.User().Create(userUnderTeam)
 	is.NoError(err, "error creating user")
 
-	teamMembership := &portaineree.TeamMembership{ID: 1, UserID: userUnderTeam.ID, TeamID: teamUnderGroup.ID}
+	teamMembership := &portainer.TeamMembership{ID: 1, UserID: userUnderTeam.ID, TeamID: teamUnderGroup.ID}
 	err = store.TeamMembership().Create(teamMembership)
 	is.NoError(err, "error creating team membership")
 
 	// create environment group including a team
-	teamAccessPoliciesUnderGroup := make(portaineree.TeamAccessPolicies, 0)
-	teamAccessPoliciesUnderGroup[teamUnderGroup.ID] = portaineree.AccessPolicy{RoleID: portaineree.RoleID(userUnderTeam.Role)}
+	teamAccessPoliciesUnderGroup := make(portainer.TeamAccessPolicies, 0)
+	teamAccessPoliciesUnderGroup[teamUnderGroup.ID] = portainer.AccessPolicy{RoleID: portainer.RoleID(userUnderTeam.Role)}
 
-	endpointGroupWithTeam := &portaineree.EndpointGroup{ID: 3, Name: "endpoint-group-with-team", TeamAccessPolicies: teamAccessPoliciesUnderGroup}
+	endpointGroupWithTeam := &portainer.EndpointGroup{ID: 3, Name: "endpoint-group-with-team", TeamAccessPolicies: teamAccessPoliciesUnderGroup}
 	err = store.EndpointGroup().Create(endpointGroupWithTeam)
 	is.NoError(err, "error creating endpoint group")
 
@@ -221,7 +222,7 @@ func Test_userList(t *testing.T) {
 	// Case 4: the user is under a team and the team is given the endpoint access
 	//         the user inherits the endpoint access from the team
 	// create a team including a user
-	teamWithEndpointAccess := &portaineree.Team{ID: 2, Name: "team-with-endpoint-access"}
+	teamWithEndpointAccess := &portainer.Team{ID: 2, Name: "team-with-endpoint-access"}
 	err = store.Team().Create(teamWithEndpointAccess)
 	is.NoError(err, "error creating team")
 
@@ -229,18 +230,18 @@ func Test_userList(t *testing.T) {
 	err = store.User().Create(userUnderTeamWithEndpointAccess)
 	is.NoError(err, "error creating user")
 
-	teamMembershipWithEndpointAccess := &portaineree.TeamMembership{ID: 2, UserID: userUnderTeamWithEndpointAccess.ID, TeamID: teamWithEndpointAccess.ID}
+	teamMembershipWithEndpointAccess := &portainer.TeamMembership{ID: 2, UserID: userUnderTeamWithEndpointAccess.ID, TeamID: teamWithEndpointAccess.ID}
 	err = store.TeamMembership().Create(teamMembershipWithEndpointAccess)
 	is.NoError(err, "error creating team membership")
 
 	// create environment group
-	endpointGroupWithoutTeam := &portaineree.EndpointGroup{ID: 4, Name: "endpoint-group-without-team"}
+	endpointGroupWithoutTeam := &portainer.EndpointGroup{ID: 4, Name: "endpoint-group-without-team"}
 	err = store.EndpointGroup().Create(endpointGroupWithoutTeam)
 	is.NoError(err, "error creating endpoint group")
 
 	// create endpoint and team access policies
-	teamAccessPolicies := make(portaineree.TeamAccessPolicies, 0)
-	teamAccessPolicies[teamWithEndpointAccess.ID] = portaineree.AccessPolicy{RoleID: portaineree.RoleID(userUnderTeamWithEndpointAccess.Role)}
+	teamAccessPolicies := make(portainer.TeamAccessPolicies, 0)
+	teamAccessPolicies[teamWithEndpointAccess.ID] = portainer.AccessPolicy{RoleID: portainer.RoleID(userUnderTeamWithEndpointAccess.Role)}
 
 	endpointWithTeamAccessPolicy := &portaineree.Endpoint{ID: 4, TeamAccessPolicies: teamAccessPolicies, GroupID: endpointGroupWithoutTeam.ID}
 	err = store.Endpoint().Create(endpointWithTeamAccessPolicy)
@@ -270,7 +271,7 @@ func Test_userList(t *testing.T) {
 	})
 
 	// Case 5: the user has EndpointAuthorization permission (EE only)
-	endpointGroupOnly := &portaineree.EndpointGroup{ID: 5, Name: "endpoint-group"}
+	endpointGroupOnly := &portainer.EndpointGroup{ID: 5, Name: "endpoint-group"}
 	err = store.EndpointGroup().Create(endpointGroupOnly)
 	is.NoError(err, "error creating endpoint group")
 
@@ -279,7 +280,7 @@ func Test_userList(t *testing.T) {
 	is.NoError(err, "error creating endpoint")
 
 	userWithEndpointAccessByTeam := &portaineree.User{ID: 6, Username: "standard-user-has-endpoint-authorization", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
-	userWithEndpointAccessByTeam.EndpointAuthorizations = make(portaineree.EndpointAuthorizations)
+	userWithEndpointAccessByTeam.EndpointAuthorizations = make(portainer.EndpointAuthorizations)
 	userWithEndpointAccessByTeam.EndpointAuthorizations[endpointOnly.ID] = authorization.DefaultEndpointAuthorizationsForStandardUserRole()
 	err = store.User().Create(userWithEndpointAccessByTeam)
 	is.NoError(err, "error creating user")

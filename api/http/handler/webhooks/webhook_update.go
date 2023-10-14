@@ -7,13 +7,14 @@ import (
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils/access"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type webhookUpdatePayload struct {
-	RegistryID portaineree.RegistryID
+	RegistryID portainer.RegistryID
 }
 
 func (payload *webhookUpdatePayload) Validate(r *http.Request) error {
@@ -29,7 +30,7 @@ func (payload *webhookUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Webhook id"
 // @param body body webhookUpdatePayload true "Webhook data"
-// @success 200 {object} portaineree.Webhook
+// @success 200 {object} portainer.Webhook
 // @failure 400
 // @failure 409
 // @failure 500
@@ -39,7 +40,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 	if err != nil {
 		return httperror.BadRequest("Invalid webhook id", err)
 	}
-	webhookID := portaineree.WebhookID(id)
+	webhookID := portainer.WebhookID(id)
 
 	var payload webhookUpdatePayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
@@ -64,7 +65,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
 
-	authorizations := []portaineree.Authorization{portaineree.OperationPortainerWebhookCreate}
+	authorizations := []portainer.Authorization{portaineree.OperationPortainerWebhookCreate}
 
 	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)
 	if handlerErr != nil {
@@ -85,7 +86,7 @@ func (handler *Handler) webhookUpdate(w http.ResponseWriter, r *http.Request) *h
 
 	webhook.RegistryID = payload.RegistryID
 
-	err = handler.DataStore.Webhook().Update(portaineree.WebhookID(id), webhook)
+	err = handler.DataStore.Webhook().Update(portainer.WebhookID(id), webhook)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the webhook inside the database", err)
 	}

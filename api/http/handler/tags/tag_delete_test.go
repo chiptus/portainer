@@ -10,6 +10,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
@@ -28,12 +29,12 @@ func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
 
 	// Create all the tags and add them to the same edge group
 
-	var tagIDs []portaineree.TagID
+	var tagIDs []portainer.TagID
 
 	for i := 0; i < tagsCount; i++ {
-		tagID := portaineree.TagID(i) + 1
+		tagID := portainer.TagID(i) + 1
 
-		err = store.Tag().Create(&portaineree.Tag{
+		err = store.Tag().Create(&portainer.Tag{
 			ID:   tagID,
 			Name: "tag-" + strconv.Itoa(int(tagID)),
 		})
@@ -59,7 +60,7 @@ func TestTagDeleteEdgeGroupsConcurrently(t *testing.T) {
 	wg.Add(len(tagIDs))
 
 	for _, tagID := range tagIDs {
-		go func(ID portaineree.TagID) {
+		go func(ID portainer.TagID) {
 			defer wg.Done()
 
 			req, err := http.NewRequest(http.MethodDelete, "/tags/"+strconv.Itoa(int(ID)), nil)

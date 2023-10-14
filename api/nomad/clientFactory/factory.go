@@ -4,6 +4,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
@@ -11,14 +12,14 @@ type (
 	ClientFactory struct {
 		dataStore            dataservices.DataStore
 		reverseTunnelService portaineree.ReverseTunnelService
-		signatureService     portaineree.DigitalSignatureService
+		signatureService     portainer.DigitalSignatureService
 		instanceID           string
 		clientsMap           cmap.ConcurrentMap
 	}
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *ClientFactory {
+func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *ClientFactory {
 	return &ClientFactory{
 		dataStore:            dataStore,
 		signatureService:     signatureService,

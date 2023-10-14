@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 )
@@ -20,7 +21,7 @@ type (
 	PromptParameters struct {
 		PromptType    PromptType
 		UserMessage   string
-		EnvironmentID portaineree.EndpointID
+		EnvironmentID portainer.EndpointID
 		User          portaineree.User
 	}
 

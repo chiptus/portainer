@@ -4,6 +4,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore/validate"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -86,7 +87,7 @@ func (m *Migrator) updateLdapSettingsToEE() error {
 	legacySettings.LDAPSettings.ServerType = portaineree.LDAPServerCustom
 
 	// The front end requires a slice with a single empty element to allow configuration
-	legacySettings.LDAPSettings.AdminGroupSearchSettings = []portaineree.LDAPGroupSearchSettings{
+	legacySettings.LDAPSettings.AdminGroupSearchSettings = []portainer.LDAPGroupSearchSettings{
 		{},
 	}
 
@@ -196,13 +197,13 @@ func (m *Migrator) defaultImageUpToDateOn() error {
 	return nil
 }
 
-func updateUserAccessPolicyToReadOnlyRole(policies portaineree.UserAccessPolicies, key portaineree.UserID) {
+func updateUserAccessPolicyToReadOnlyRole(policies portainer.UserAccessPolicies, key portainer.UserID) {
 	tmp := policies[key]
 	tmp.RoleID = 4
 	policies[key] = tmp
 }
 
-func updateTeamAccessPolicyToReadOnlyRole(policies portaineree.TeamAccessPolicies, key portaineree.TeamID) {
+func updateTeamAccessPolicyToReadOnlyRole(policies portainer.TeamAccessPolicies, key portainer.TeamID) {
 	tmp := policies[key]
 	tmp.RoleID = 4
 	policies[key] = tmp

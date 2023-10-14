@@ -21,6 +21,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	log "github.com/rs/zerolog/log"
 )
@@ -58,7 +59,7 @@ type (
 	}
 
 	cloudPrevisioningResult struct {
-		endpointID portaineree.EndpointID
+		endpointID portainer.EndpointID
 		state      int
 		errSummary string
 		err        error
@@ -255,7 +256,7 @@ func (service *CloudManagementService) changeState(task *portaineree.CloudProvis
 	task.Retries = 0
 }
 
-func (service *CloudManagementService) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
+func (service *CloudManagementService) setMessageHandler(id portainer.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 	return func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 		status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: operation}
 		err := service.dataStore.Endpoint().SetMessage(id, status)
@@ -266,13 +267,13 @@ func (service *CloudManagementService) setMessageHandler(id portaineree.Endpoint
 	}
 }
 
-func (service *CloudManagementService) setStatus(id portaineree.EndpointID, status portaineree.EndpointStatus) error {
+func (service *CloudManagementService) setStatus(id portainer.EndpointID, status portainer.EndpointStatus) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(id)
 	if err != nil {
 		return err
 	}
 
-	endpoint.Status = portaineree.EndpointStatus(status)
+	endpoint.Status = portainer.EndpointStatus(status)
 	err = service.dataStore.Endpoint().UpdateEndpoint(id, endpoint)
 	if err != nil {
 		return fmt.Errorf("unable to update endpoint in database")
@@ -281,7 +282,7 @@ func (service *CloudManagementService) setStatus(id portaineree.EndpointID, stat
 }
 
 func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
-	customTemplate, err := service.dataStore.CustomTemplate().Read(portaineree.CustomTemplateID(task.CustomTemplateID))
+	customTemplate, err := service.dataStore.CustomTemplate().Read(portainer.CustomTemplateID(task.CustomTemplateID))
 	if err != nil {
 		return fmt.Errorf("error getting custom template with id: %d, error: %w", task.CustomTemplateID, err)
 	}
@@ -304,7 +305,7 @@ func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvis
 	stackID := service.dataStore.Stack().GetNextIdentifier()
 
 	stack := portaineree.Stack{
-		ID:               portaineree.StackID(stackID),
+		ID:               portainer.StackID(stackID),
 		Name:             "seed" + strconv.Itoa(int(task.EndpointID)),
 		IsComposeFormat:  false,
 		Type:             portaineree.KubernetesStack,
@@ -694,7 +695,7 @@ func (service *CloudManagementService) provisionKaasClusterTask(task portaineree
 }
 
 // getCustomTemplateName get the name of the custom template. handle the error by logging it but always return something
-func (service *CloudManagementService) getCustomTemplateName(id portaineree.CustomTemplateID) string {
+func (service *CloudManagementService) getCustomTemplateName(id portainer.CustomTemplateID) string {
 	template, err := service.dataStore.CustomTemplate().Read(id)
 	if err != nil {
 		log.Error().Err(err).Msgf("unable to read template name from the database. id: %d", id)
@@ -916,7 +917,7 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status message in database")
 		}
 	} else {
-		err := service.setStatus(result.endpointID, portaineree.EndpointStatusUp)
+		err := service.setStatus(result.endpointID, portainer.EndpointStatusUp)
 		if err != nil {
 			log.Error().Err(err).Int("endpoint_id", int(result.endpointID)).Msg("unable to update endpoint status in database")
 		}
@@ -939,7 +940,7 @@ func (service *CloudManagementService) processResult(result *cloudPrevisioningRe
 	}
 }
 
-func (service *CloudManagementService) updateEndpoint(endpointID portaineree.EndpointID, url string) error {
+func (service *CloudManagementService) updateEndpoint(endpointID portainer.EndpointID, url string) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return err
@@ -952,7 +953,7 @@ func (service *CloudManagementService) updateEndpoint(endpointID portaineree.End
 		return err
 	}
 
-	endpoint.SecuritySettings = portaineree.EndpointSecuritySettings{
+	endpoint.SecuritySettings = portainer.EndpointSecuritySettings{
 		AllowVolumeBrowserForRegularUsers: false,
 		EnableHostManagementFeatures:      false,
 

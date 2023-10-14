@@ -7,10 +7,10 @@ import (
 	"slices"
 	"strconv"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -21,8 +21,8 @@ type edgeJobUpdatePayload struct {
 	Name           *string
 	CronExpression *string
 	Recurring      *bool
-	Endpoints      []portaineree.EndpointID
-	EdgeGroups     []portaineree.EdgeGroupID
+	Endpoints      []portainer.EndpointID
+	EdgeGroups     []portainer.EdgeGroupID
 	FileContent    *string
 }
 
@@ -44,7 +44,7 @@ func (payload *edgeJobUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "EdgeJob Id"
 // @param body body edgeJobUpdatePayload true "EdgeGroup data"
-// @success 200 {object} portaineree.EdgeJob
+// @success 200 {object} portainer.EdgeJob
 // @failure 500
 // @failure 400
 // @failure 503 "Edge compute features are disabled"
@@ -61,17 +61,17 @@ func (handler *Handler) edgeJobUpdate(w http.ResponseWriter, r *http.Request) *h
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	var edgeJob *portaineree.EdgeJob
+	var edgeJob *portainer.EdgeJob
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeJob, err = handler.updateEdgeJob(tx, portaineree.EdgeJobID(edgeJobID), payload)
+		edgeJob, err = handler.updateEdgeJob(tx, portainer.EdgeJobID(edgeJobID), payload)
 		return err
 	})
 
 	return txResponse(w, edgeJob, err)
 }
 
-func (handler *Handler) updateEdgeJob(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID, payload edgeJobUpdatePayload) (*portaineree.EdgeJob, error) {
-	edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
+func (handler *Handler) updateEdgeJob(tx dataservices.DataStoreTx, edgeJobID portainer.EdgeJobID, payload edgeJobUpdatePayload) (*portainer.EdgeJob, error) {
+	edgeJob, err := tx.EdgeJob().Read(portainer.EdgeJobID(edgeJobID))
 	if tx.IsErrObjectNotFound(err) {
 		return nil, httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -91,16 +91,16 @@ func (handler *Handler) updateEdgeJob(tx dataservices.DataStoreTx, edgeJobID por
 	return edgeJob, nil
 }
 
-func (handler *Handler) updateEdgeSchedule(tx dataservices.DataStoreTx, edgeJob *portaineree.EdgeJob, payload *edgeJobUpdatePayload) error {
+func (handler *Handler) updateEdgeSchedule(tx dataservices.DataStoreTx, edgeJob *portainer.EdgeJob, payload *edgeJobUpdatePayload) error {
 	if payload.Name != nil {
 		edgeJob.Name = *payload.Name
 	}
 
-	endpointsToAdd := map[portaineree.EndpointID]bool{}
-	endpointsToRemove := map[portaineree.EndpointID]bool{}
+	endpointsToAdd := map[portainer.EndpointID]bool{}
+	endpointsToRemove := map[portainer.EndpointID]bool{}
 
 	if payload.Endpoints != nil {
-		endpointsMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+		endpointsMap := map[portainer.EndpointID]portainer.EdgeJobEndpointMeta{}
 
 		newEndpoints := endpointutils.EndpointSet(payload.Endpoints)
 		for endpointID := range edgeJob.Endpoints {
@@ -122,7 +122,7 @@ func (handler *Handler) updateEdgeSchedule(tx dataservices.DataStoreTx, edgeJob 
 			if meta, exists := edgeJob.Endpoints[endpointID]; exists {
 				endpointsMap[endpointID] = meta
 			} else {
-				endpointsMap[endpointID] = portaineree.EdgeJobEndpointMeta{}
+				endpointsMap[endpointID] = portainer.EdgeJobEndpointMeta{}
 				endpointsToAdd[endpointID] = true
 			}
 		}
@@ -137,15 +137,15 @@ func (handler *Handler) updateEdgeSchedule(tx dataservices.DataStoreTx, edgeJob 
 		}
 
 		for _, endpointID := range endpoints {
-			endpointsToRemove[portaineree.EndpointID(endpointID)] = true
+			endpointsToRemove[portainer.EndpointID(endpointID)] = true
 		}
 
 		edgeJob.EdgeGroups = nil
 	}
 
-	edgeGroupsToAdd := []portaineree.EdgeGroupID{}
-	edgeGroupsToRemove := []portaineree.EdgeGroupID{}
-	endpointsFromGroupsToAddMap := map[portaineree.EndpointID]portaineree.EdgeJobEndpointMeta{}
+	edgeGroupsToAdd := []portainer.EdgeGroupID{}
+	edgeGroupsToRemove := []portainer.EdgeGroupID{}
+	endpointsFromGroupsToAddMap := map[portainer.EndpointID]portainer.EdgeJobEndpointMeta{}
 
 	if len(payload.EdgeGroups) > 0 {
 		for _, edgeGroupID := range payload.EdgeGroups {
@@ -252,7 +252,7 @@ func (handler *Handler) updateEdgeSchedule(tx dataservices.DataStoreTx, edgeJob 
 	return nil
 }
 
-func (handler *Handler) storeEdgeAsyncCommand(tx dataservices.DataStoreTx, edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, fileContent []byte, needsAddOperation bool) error {
+func (handler *Handler) storeEdgeAsyncCommand(tx dataservices.DataStoreTx, edgeJob *portainer.EdgeJob, endpointID portainer.EndpointID, fileContent []byte, needsAddOperation bool) error {
 	if needsAddOperation {
 		return handler.edgeService.AddJobCommandTx(tx, endpointID, *edgeJob, fileContent)
 	}

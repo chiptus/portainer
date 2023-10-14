@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func Test_getKeyRole(t *testing.T) {
 	type args struct {
-		roleIdentifiers []portaineree.RoleID
+		roleIdentifiers []portainer.RoleID
 		roles           []portaineree.Role
 	}
 
@@ -63,7 +64,7 @@ func Test_getKeyRole(t *testing.T) {
 		{
 			name: "it should return Operator when Operator is before EndpointAdmin in the argument roleIdentifiers",
 			args: args{
-				roleIdentifiers: []portaineree.RoleID{portaineree.RoleIDOperator, portaineree.RoleIDEndpointAdmin},
+				roleIdentifiers: []portainer.RoleID{portaineree.RoleIDOperator, portaineree.RoleIDEndpointAdmin},
 				roles:           roles,
 			},
 			want: &roleOperator,

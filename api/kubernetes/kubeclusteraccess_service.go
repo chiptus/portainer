@@ -8,16 +8,15 @@ import (
 	"os"
 	"strconv"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"github.com/pkg/errors"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
 // KubeClusterAccessService represents a service that is responsible for centralizing kube cluster access data
 type KubeClusterAccessService interface {
 	IsSecure() bool
-	GetClusterDetails(hostURL string, endpointId portaineree.EndpointID, isInternal bool) kubernetesClusterAccessData
+	GetClusterDetails(hostURL string, endpointId portainer.EndpointID, isInternal bool) kubernetesClusterAccessData
 }
 
 // KubernetesClusterAccess represents core details which can be used to generate KubeConfig file/data
@@ -94,7 +93,7 @@ func (service *kubeClusterAccessService) IsSecure() bool {
 // - generate a kubeconfig file
 // - pass down params to binaries
 // - isInternal is used to determine whether the kubeclient is accessed internally (for example using the kube client for backend calls) or externally (for example downloading the kubeconfig file)
-func (service *kubeClusterAccessService) GetClusterDetails(hostURL string, endpointID portaineree.EndpointID, isInternal bool) kubernetesClusterAccessData {
+func (service *kubeClusterAccessService) GetClusterDetails(hostURL string, endpointID portainer.EndpointID, isInternal bool) kubernetesClusterAccessData {
 	if hostURL == "localhost" {
 		hostURL += service.httpsBindAddr
 	}

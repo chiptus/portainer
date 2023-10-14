@@ -18,7 +18,7 @@ import (
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {object} portaineree.K8sNodesLimits "Success"
+// @success 200 {object} portainer.K8sNodesLimits "Success"
 // @failure 400 "Invalid request"
 // @failure 401 "Unauthorized"
 // @failure 403 "Permission denied"
@@ -54,7 +54,7 @@ func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
-// @success 200 {object} portaineree.K8sNodesLimits "Success"
+// @success 200 {object} portainer.K8sNodesLimits "Success"
 // @failure 400 "Invalid request"
 // @failure 401 "Unauthorized"
 // @failure 403 "Permission denied"

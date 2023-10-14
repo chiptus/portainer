@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -45,7 +45,7 @@ func (handler *Handler) edgeStackLogsDownload(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid endpoint identifier route variable", err)
 	}
 
-	esl, err := handler.DataStore.EdgeStackLog().EdgeStackLog(portaineree.EdgeStackID(edgeStackID), portaineree.EndpointID(endpointID))
+	esl, err := handler.DataStore.EdgeStackLog().EdgeStackLog(portainer.EdgeStackID(edgeStackID), portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) || (err == nil && len(esl.Logs) == 0) {
 		return httperror.NotFound("The logs were not found", err)
 	} else if err != nil {

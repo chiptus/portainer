@@ -7,12 +7,13 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
 type (
 	Microk8sScalingRequest struct {
-		EndpointID portaineree.EndpointID `json:"EndpointID"`
+		EndpointID portainer.EndpointID `json:"EndpointID"`
 
 		// scaling up
 		MasterNodesToAdd []string `json:"MasterNodesToAdd,omitempty"`

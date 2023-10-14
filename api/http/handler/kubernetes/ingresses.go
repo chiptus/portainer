@@ -3,10 +3,10 @@ package kubernetes
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -57,14 +57,14 @@ func (handler *Handler) getKubernetesIngressControllers(w http.ResponseWriter, r
 		})
 	}
 	existingClasses := endpoint.Kubernetes.Configuration.IngressClasses
-	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	var updatedClasses []portainer.KubernetesIngressClassConfig
 	for i := range controllers {
 		controllers[i].Availability = true
 		if controllers[i].ClassName != "none" {
 			controllers[i].New = true
 		}
 
-		var updatedClass portaineree.KubernetesIngressClassConfig
+		var updatedClass portainer.KubernetesIngressClassConfig
 		updatedClass.Name = controllers[i].ClassName
 		updatedClass.Type = controllers[i].Type
 
@@ -155,7 +155,7 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 	kubernetesConfig := endpoint.Kubernetes.Configuration
 	existingClasses := kubernetesConfig.IngressClasses
 	ingressAvailabilityPerNamespace := kubernetesConfig.IngressAvailabilityPerNamespace
-	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	var updatedClasses []portainer.KubernetesIngressClassConfig
 	var controllers models.K8sIngressControllers
 	for i := range currentControllers {
 		var globallyblocked bool
@@ -164,7 +164,7 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 			currentControllers[i].New = true
 		}
 
-		var updatedClass portaineree.KubernetesIngressClassConfig
+		var updatedClass portainer.KubernetesIngressClassConfig
 		updatedClass.Name = currentControllers[i].ClassName
 		updatedClass.Type = currentControllers[i].Type
 
@@ -199,7 +199,7 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 	// This includes pruning out controllers which no longer exist.
 	endpoint.Kubernetes.Configuration.IngressClasses = updatedClasses
 	err = handler.DataStore.Endpoint().UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
+		portainer.EndpointID(endpoint.ID),
 		endpoint,
 	)
 	if err != nil {
@@ -267,12 +267,12 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 		})
 	}
 
-	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	var updatedClasses []portainer.KubernetesIngressClassConfig
 	for i := range controllers {
 		controllers[i].Availability = true
 		controllers[i].New = true
 
-		var updatedClass portaineree.KubernetesIngressClassConfig
+		var updatedClass portainer.KubernetesIngressClassConfig
 		updatedClass.Name = controllers[i].ClassName
 		updatedClass.Type = controllers[i].Type
 
@@ -300,7 +300,7 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 
 	endpoint.Kubernetes.Configuration.IngressClasses = updatedClasses
 	err = handler.DataStore.Endpoint().UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
+		portainer.EndpointID(endpoint.ID),
 		endpoint,
 	)
 	if err != nil {
@@ -346,14 +346,14 @@ func (handler *Handler) updateKubernetesIngressControllersByNamespace(w http.Res
 	}
 
 	existingClasses := endpoint.Kubernetes.Configuration.IngressClasses
-	var updatedClasses []portaineree.KubernetesIngressClassConfig
+	var updatedClasses []portainer.KubernetesIngressClassConfig
 PayloadLoop:
 	for _, p := range payload {
 		for _, existingClass := range existingClasses {
 			if p.ClassName != existingClass.Name {
 				continue
 			}
-			var updatedClass portaineree.KubernetesIngressClassConfig
+			var updatedClass portainer.KubernetesIngressClassConfig
 			updatedClass.Name = existingClass.Name
 			updatedClass.Type = existingClass.Type
 			updatedClass.GloballyBlocked = existingClass.GloballyBlocked
@@ -411,7 +411,7 @@ PayloadLoop:
 
 	endpoint.Kubernetes.Configuration.IngressClasses = updatedClasses
 	err = handler.DataStore.Endpoint().UpdateEndpoint(
-		portaineree.EndpointID(endpoint.ID),
+		portainer.EndpointID(endpoint.ID),
 		endpoint,
 	)
 	if err != nil {

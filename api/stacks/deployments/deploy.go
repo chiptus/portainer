@@ -58,14 +58,14 @@ func updateAllowed(endpoint *portaineree.Endpoint, clock Clock) (bool, error) {
 }
 
 type RedeployOptions struct {
-	AdditionalEnvVars             []portaineree.Pair
+	AdditionalEnvVars             []portainer.Pair
 	PullDockerImage               *bool
 	RolloutRestartK8sAll          bool
 	RolloutRestartK8sResourceList []string
 }
 
 // RedeployWhenChanged pull and redeploy the stack when  git repo changed
-func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService, options *RedeployOptions) error {
+func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService, options *RedeployOptions) error {
 	log.Debug().Int("stack_id", int(stackID)).Msg("redeploying stack")
 
 	stack, err := datastore.Stack().Read(stackID)
@@ -81,7 +81,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			exist := false
 			for index, stackEnv := range stack.Env {
 				if env.Name == stackEnv.Name {
-					stack.Env[index] = portaineree.Pair{
+					stack.Env[index] = portainer.Pair{
 						Name:  env.Name,
 						Value: env.Value,
 					}
@@ -92,7 +92,7 @@ func RedeployWhenChanged(stackID portaineree.StackID, deployer StackDeployer, da
 			}
 
 			if !exist {
-				stack.Env = append(stack.Env, portaineree.Pair{
+				stack.Env = append(stack.Env, portainer.Pair{
 					Name:  env.Name,
 					Value: env.Value,
 				})
@@ -270,7 +270,7 @@ func isRollingRestart(options *RedeployOptions) bool {
 	return false
 }
 
-func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
+func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User, endpointID portainer.EndpointID) ([]portaineree.Registry, error) {
 	registries, err := datastore.Registry().ReadAll()
 	if err != nil {
 		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")

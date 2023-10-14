@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -39,9 +40,9 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid Task identifier route variable", err)
 	}
 
-	mutationFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) {
+	mutationFn := func(edgeJob *portainer.EdgeJob, endpointID portainer.EndpointID, endpointsFromGroups []portainer.EndpointID) {
 		if slices.Contains(endpointsFromGroups, endpointID) {
-			edgeJob.GroupLogsCollection[endpointID] = portaineree.EdgeJobEndpointMeta{
+			edgeJob.GroupLogsCollection[endpointID] = portainer.EdgeJobEndpointMeta{
 				CollectLogs: false,
 				LogsStatus:  portaineree.EdgeJobLogsStatusIdle,
 			}
@@ -54,13 +55,13 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		updateEdgeJobFn := func(edgeJob *portaineree.EdgeJob, endpointID portaineree.EndpointID, endpointsFromGroups []portaineree.EndpointID) error {
+		updateEdgeJobFn := func(edgeJob *portainer.EdgeJob, endpointID portainer.EndpointID, endpointsFromGroups []portainer.EndpointID) error {
 			mutationFn(edgeJob, endpointID, endpointsFromGroups)
 
 			return tx.EdgeJob().Update(edgeJob.ID, edgeJob)
 		}
 
-		return handler.clearEdgeJobTaskLogs(tx, portaineree.EdgeJobID(edgeJobID), portaineree.EndpointID(taskID), updateEdgeJobFn)
+		return handler.clearEdgeJobTaskLogs(tx, portainer.EdgeJobID(edgeJobID), portainer.EndpointID(taskID), updateEdgeJobFn)
 	})
 	if err != nil {
 		var handlerError *httperror.HandlerError
@@ -74,7 +75,7 @@ func (handler *Handler) edgeJobTasksClear(w http.ResponseWriter, r *http.Request
 	return response.Empty(w)
 }
 
-func (handler *Handler) clearEdgeJobTaskLogs(tx dataservices.DataStoreTx, edgeJobID portaineree.EdgeJobID, endpointID portaineree.EndpointID, updateEdgeJob func(*portaineree.EdgeJob, portaineree.EndpointID, []portaineree.EndpointID) error) error {
+func (handler *Handler) clearEdgeJobTaskLogs(tx dataservices.DataStoreTx, edgeJobID portainer.EdgeJobID, endpointID portainer.EndpointID, updateEdgeJob func(*portainer.EdgeJob, portainer.EndpointID, []portainer.EndpointID) error) error {
 	edgeJob, err := tx.EdgeJob().Read(edgeJobID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)

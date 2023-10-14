@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -14,7 +15,7 @@ func buildServerAwareContext() string {
 }
 
 // buildEnvironmentAwareContext returns a context that is aware of the specified environment.
-func (builder *OpenAIPromptBuilder) buildEnvironmentAwareContext(environmentID portaineree.EndpointID) (string, error) {
+func (builder *OpenAIPromptBuilder) buildEnvironmentAwareContext(environmentID portainer.EndpointID) (string, error) {
 	ctx := []string{}
 
 	environment, err := builder.DataStore.Endpoint().Endpoint(environmentID)

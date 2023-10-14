@@ -5,9 +5,10 @@ import (
 	"github.com/portainer/portainer-ee/api/docker/consts"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func FindResourceControl(resourceIdentifier string, resourceType portaineree.ResourceControlType, resourceLabelsObject map[string]interface{}, resourceControls []portaineree.ResourceControl, endpointId portaineree.EndpointID) (*portaineree.ResourceControl, error) {
+func FindResourceControl(resourceIdentifier string, resourceType portainer.ResourceControlType, resourceLabelsObject map[string]interface{}, resourceControls []portainer.ResourceControl, endpointId portainer.EndpointID) (*portainer.ResourceControl, error) {
 	resourceControl := authorization.GetResourceControlByResourceIDAndType(resourceIdentifier, resourceType, resourceControls)
 	if resourceControl != nil {
 		return resourceControl, nil

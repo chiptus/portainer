@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud/azure"
 	clouderrors "github.com/portainer/portainer-ee/api/cloud/errors"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2022-02-01/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
@@ -20,19 +21,19 @@ import (
 
 type (
 	pairWithZones struct {
-		portaineree.Pair
+		portainer.Pair
 		Zones []string `json:"zones"`
 	}
 	nodesByRegion map[string][]pairWithZones
 	AzureInfo     struct {
 		ResourceGroups     []string                                 `json:"resourceGroups"`
-		Regions            []portaineree.Pair                       `json:"regions"`
+		Regions            []portainer.Pair                         `json:"regions"`
 		NodeSizes          nodesByRegion                            `json:"nodeSizes"`
 		KubernetesVersions kubernetesVersions                       `json:"kubernetesVersions"`
 		Tier               []containerservice.ManagedClusterSKUTier `json:"tiers"`
 	}
 
-	kubernetesVersions []portaineree.Pair
+	kubernetesVersions []portainer.Pair
 )
 
 func (service *CloudInfoService) AzureGetInfo(credentials *models.CloudCredential, force bool) (interface{}, error) {
@@ -167,7 +168,7 @@ func (a *CloudInfoService) AzureFetchInfo(credentials models.CloudCredentialMap)
 
 			loc = strings.ToLower(loc)
 			name := fmt.Sprintf("%s - %s vCPUs, %sGB Memory", *sku.Name, vCPUs, memory)
-			nodesBR[loc] = append(location, pairWithZones{Pair: portaineree.Pair{Value: *sku.Name, Name: name}, Zones: zones})
+			nodesBR[loc] = append(location, pairWithZones{Pair: portainer.Pair{Value: *sku.Name, Name: name}, Zones: zones})
 		}
 	}
 
@@ -182,11 +183,11 @@ func (a *CloudInfoService) AzureFetchInfo(credentials models.CloudCredentialMap)
 		return nil, fmt.Errorf("AKS failed to return any locations")
 	}
 
-	locationPairs := make([]portaineree.Pair, 0)
+	locationPairs := make([]portainer.Pair, 0)
 	for _, loc := range *locations.Value {
 		// only append regions that have nodes
 		if _, ok := nodesBR[*loc.Name]; ok {
-			locationPairs = append(locationPairs, portaineree.Pair{Value: *loc.Name, Name: *loc.DisplayName})
+			locationPairs = append(locationPairs, portainer.Pair{Value: *loc.Name, Name: *loc.DisplayName})
 		}
 	}
 
@@ -202,7 +203,7 @@ func (a *CloudInfoService) AzureFetchInfo(credentials models.CloudCredentialMap)
 
 	sort.Sort(sort.Reverse(sortorder.Natural(kubeVersions)))
 	for _, kv := range kubeVersions {
-		azureInfo.KubernetesVersions = append(azureInfo.KubernetesVersions, portaineree.Pair{Name: kv, Value: kv})
+		azureInfo.KubernetesVersions = append(azureInfo.KubernetesVersions, portainer.Pair{Name: kv, Value: kv})
 	}
 
 	azureInfo.NodeSizes = nodesBR

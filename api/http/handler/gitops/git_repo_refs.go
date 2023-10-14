@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -13,11 +13,11 @@ import (
 )
 
 type repositoryReferenceListPayload struct {
-	Repository      string              `validate:"required" json:"repository"`
-	Username        string              `json:"username"`
-	Password        string              `json:"password"`
-	StackID         portaineree.StackID `json:"stackID"`
-	GitCredentialID int                 `json:"gitCredentialID"`
+	Repository      string            `validate:"required" json:"repository"`
+	Username        string            `json:"username"`
+	Password        string            `json:"password"`
+	StackID         portainer.StackID `json:"stackID"`
+	GitCredentialID int               `json:"gitCredentialID"`
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
 }
@@ -66,7 +66,7 @@ func (handler *Handler) gitOperationRepoRefs(w http.ResponseWriter, r *http.Requ
 	}
 
 	if payload.StackID != 0 && repositoryPassword == "" {
-		stack, err := handler.dataStore.Stack().Read(portaineree.StackID(payload.StackID))
+		stack, err := handler.dataStore.Stack().Read(portainer.StackID(payload.StackID))
 		if err != nil {
 			if handler.dataStore.IsErrObjectNotFound(err) {
 				return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)

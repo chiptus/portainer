@@ -2,11 +2,12 @@ package authorization
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // DefaultAzureAuthorizations returns a set of default azure authorizations based on user's role.
-func DefaultAzureAuthorizations() map[portaineree.RoleID]portaineree.Authorizations {
-	return map[portaineree.RoleID]portaineree.Authorizations{
+func DefaultAzureAuthorizations() map[portainer.RoleID]portainer.Authorizations {
+	return map[portainer.RoleID]portainer.Authorizations{
 		portaineree.RoleIDEndpointAdmin: {
 			portaineree.OperationAzureSubscriptionsList:    true,
 			portaineree.OperationAzureSubscriptionGet:      true,

@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -42,11 +43,11 @@ func (handler *Handler) userRemoveGitCredential(w http.ResponseWriter, r *http.R
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
-	if tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Couldn't remove git credential for another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.Forbidden("Unable to find a user with the specified identifier inside the database", err)
@@ -59,7 +60,7 @@ func (handler *Handler) userRemoveGitCredential(w http.ResponseWriter, r *http.R
 	if err != nil {
 		return httperror.InternalServerError("Git credential not found", err)
 	}
-	if cred.UserID != portaineree.UserID(userID) {
+	if cred.UserID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to remove git-credential", httperrors.ErrUnauthorized)
 	}
 

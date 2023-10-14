@@ -3,9 +3,10 @@ package registryutils
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func isRegistryAssignedToNamespace(registry portaineree.Registry, endpointID portaineree.EndpointID, namespace string) (in bool) {
+func isRegistryAssignedToNamespace(registry portaineree.Registry, endpointID portainer.EndpointID, namespace string) (in bool) {
 	for _, ns := range registry.RegistryAccesses[endpointID].Namespaces {
 		if ns == namespace {
 			return true

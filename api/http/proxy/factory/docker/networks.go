@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/docker/docker/api/types"
 
@@ -19,7 +20,7 @@ const (
 	networkObjectName       = "Name"
 )
 
-func getInheritedResourceControlFromNetworkLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, networkID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromNetworkLabels(dockerClient *client.Client, endpointID portainer.EndpointID, networkID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	network, err := dockerClient.NetworkInspect(context.Background(), networkID, types.NetworkInspectOptions{})
 	if err != nil {
 		return nil, err
@@ -78,7 +79,7 @@ func (transport *Transport) networkInspectOperation(response *http.Response, exe
 
 // findSystemNetworkResourceControl will check if the network object is a system network
 // and will return a system resource control if that's the case.
-func findSystemNetworkResourceControl(networkObject map[string]interface{}) *portaineree.ResourceControl {
+func findSystemNetworkResourceControl(networkObject map[string]interface{}) *portainer.ResourceControl {
 	if networkObject[networkObjectName] == nil {
 		return nil
 	}

@@ -7,12 +7,13 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
 // EndpointRelatedEdgeStacks returns a list of Edge stacks related to this Environment(Endpoint)
-func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup, edgeGroups []portaineree.EdgeGroup, edgeStacks []portaineree.EdgeStack) []portaineree.EdgeStackID {
-	relatedEdgeGroupsSet := map[portaineree.EdgeGroupID]bool{}
+func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *portainer.EndpointGroup, edgeGroups []portaineree.EdgeGroup, edgeStacks []portaineree.EdgeStack) []portainer.EdgeStackID {
+	relatedEdgeGroupsSet := map[portainer.EdgeGroupID]bool{}
 
 	for _, edgeGroup := range edgeGroups {
 		if edgeGroupRelatedToEndpoint(&edgeGroup, endpoint, endpointGroup) {
@@ -20,7 +21,7 @@ func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *po
 		}
 	}
 
-	relatedEdgeStacks := []portaineree.EdgeStackID{}
+	relatedEdgeStacks := []portainer.EdgeStackID{}
 	for _, edgeStack := range edgeStacks {
 		for _, edgeGroupID := range edgeStack.EdgeGroups {
 			if relatedEdgeGroupsSet[edgeGroupID] {
@@ -33,7 +34,7 @@ func EndpointRelatedEdgeStacks(endpoint *portaineree.Endpoint, endpointGroup *po
 	return relatedEdgeStacks
 }
 
-func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroupsIDs []portaineree.EdgeGroupID) error {
+func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroupsIDs []portainer.EdgeGroupID) error {
 	for _, edgeGroupID := range edgeGroupsIDs {
 		edgeGroup, err := tx.EdgeGroup().Read(edgeGroupID)
 		if err != nil {
@@ -61,9 +62,9 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 		}
 	}
 
-	relation := &portaineree.EndpointRelation{
-		EndpointID: portaineree.EndpointID(endpoint.ID),
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
+	relation := &portainer.EndpointRelation{
+		EndpointID: portainer.EndpointID(endpoint.ID),
+		EdgeStacks: map[portainer.EdgeStackID]bool{},
 	}
 
 	relationConfig, err := FetchEndpointRelationsConfig(tx)
@@ -81,7 +82,7 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 		return errors.WithMessage(err, "Unable to retrieve environment group from database")
 	}
 
-	edgeStackSet := set.Set[portaineree.EdgeStackID]{}
+	edgeStackSet := set.Set[portainer.EdgeStackID]{}
 	endpointEdgeStacks := EndpointRelatedEdgeStacks(endpoint, environmentGroup, relationConfig.EdgeGroups, edgeStacks)
 	for _, edgeStackID := range endpointEdgeStacks {
 		edgeStackSet[edgeStackID] = true
@@ -100,11 +101,11 @@ func AddEnvironmentToEdgeGroups(tx dataservices.DataStoreTx, endpoint *portainer
 // EndpointInEdgeGroup returns true and the edge group name if the endpoint in the edge group
 func EndpointInEdgeGroup(
 	tx dataservices.DataStoreTx,
-	endpointID portaineree.EndpointID,
-	edgeGroupID portaineree.EdgeGroupID,
+	endpointID portainer.EndpointID,
+	edgeGroupID portainer.EdgeGroupID,
 ) (bool, string, error) {
 	endpointIDs, err := GetEndpointsFromEdgeGroups(
-		[]portaineree.EdgeGroupID{edgeGroupID},
+		[]portainer.EdgeGroupID{edgeGroupID},
 		tx,
 	)
 	if err != nil {
@@ -130,8 +131,8 @@ func EndpointInEdgeGroup(
 // GetEndpointEdgeGroupNames returns edge group names where endpointID is in
 func GetEndpointEdgeGroupNames(
 	tx dataservices.DataStoreTx,
-	endpointID portaineree.EndpointID,
-	edgeGroupIDs []portaineree.EdgeGroupID,
+	endpointID portainer.EndpointID,
+	edgeGroupIDs []portainer.EdgeGroupID,
 ) ([]string, error) {
 	edgeGroupNames := []string{}
 	for _, edgeGroupID := range edgeGroupIDs {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -71,8 +71,8 @@ func (handler *Handler) createFDOProfileFromFileContent(w http.ResponseWriter, r
 	}
 
 	profileID := handler.DataStore.FDOProfile().GetNextIdentifier()
-	profile := &portaineree.FDOProfile{
-		ID:   portaineree.FDOProfileID(profileID),
+	profile := &portainer.FDOProfile{
+		ID:   portainer.FDOProfileID(profileID),
 		Name: payload.Name,
 	}
 

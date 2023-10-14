@@ -11,7 +11,7 @@ const BucketName = "helm_user_repository"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.HelmUserRepository, portaineree.HelmUserRepositoryID]
+	dataservices.BaseDataService[portaineree.HelmUserRepository, portainer.HelmUserRepositoryID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +22,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.HelmUserRepository, portaineree.HelmUserRepositoryID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.HelmUserRepository, portainer.HelmUserRepositoryID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -30,7 +30,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // HelmUserRepositoryByUserID return an array containing all the HelmUserRepository objects where the specified userID is present.
-func (service *Service) HelmUserRepositoryByUserID(userID portaineree.UserID) ([]portaineree.HelmUserRepository, error) {
+func (service *Service) HelmUserRepositoryByUserID(userID portainer.UserID) ([]portaineree.HelmUserRepository, error) {
 	var result = make([]portaineree.HelmUserRepository, 0)
 
 	return result, service.Connection.GetAll(
@@ -47,7 +47,7 @@ func (service *Service) Create(record *portaineree.HelmUserRepository) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			record.ID = portaineree.HelmUserRepositoryID(id)
+			record.ID = portainer.HelmUserRepositoryID(id)
 			return int(record.ID), record
 		},
 	)

@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -42,7 +43,7 @@ func (handler *Handler) createNormalStackCommand(w http.ResponseWriter, r *http.
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackId))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackId))
 	if err != nil {
 		httpErr := httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 		if handler.DataStore.IsErrObjectNotFound(err) {
@@ -55,7 +56,7 @@ func (handler *Handler) createNormalStackCommand(w http.ResponseWriter, r *http.
 	case portaineree.EdgeAsyncNormalStackOperationRemove:
 		err = handler.EdgeService.RemoveNormalStackCommand(endpoint.ID, stack.ID)
 		if err == nil {
-			err = handler.DataStore.Stack().Delete(portaineree.StackID(stackId))
+			err = handler.DataStore.Stack().Delete(portainer.StackID(stackId))
 		}
 	}
 

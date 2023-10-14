@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,7 @@ func TestHandler_webhookInvoke(t *testing.T) {
 	webhookID := newGuidString(t)
 	store.StackService.Create(&portaineree.Stack{
 		ID: 1,
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			Webhook: webhookID,
 		},
 		CreatedBy: "admin",
@@ -69,7 +70,7 @@ func Test_parseQuery(t *testing.T) {
 		options, err := parseQuery(query)
 		assert.NoError(t, err)
 		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
-		assert.Equal(t, []portaineree.Pair{}, options.AdditionalEnvVars)
+		assert.Equal(t, []portainer.Pair{}, options.AdditionalEnvVars)
 	})
 
 	t.Run("return query params as pairs", func(t *testing.T) {
@@ -77,7 +78,7 @@ func Test_parseQuery(t *testing.T) {
 		options, err := parseQuery(query)
 		assert.NoError(t, err)
 		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
-		assert.ElementsMatch(t, []portaineree.Pair{
+		assert.ElementsMatch(t, []portainer.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "2"},
 		}, options.AdditionalEnvVars)
@@ -88,7 +89,7 @@ func Test_parseQuery(t *testing.T) {
 		options, err := parseQuery(query)
 		assert.NoError(t, err)
 		assert.Equal(t, nilptr[bool](), options.PullDockerImage)
-		assert.ElementsMatch(t, []portaineree.Pair{
+		assert.ElementsMatch(t, []portainer.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "3"},
 		}, options.AdditionalEnvVars)
@@ -99,7 +100,7 @@ func Test_parseQuery(t *testing.T) {
 		options, err := parseQuery(query)
 		assert.NoError(t, err)
 		assert.Equal(t, true, *options.PullDockerImage)
-		assert.ElementsMatch(t, []portaineree.Pair{
+		assert.ElementsMatch(t, []portainer.Pair{
 			{Name: "first", Value: "1"},
 			{Name: "second", Value: "2"},
 		}, options.AdditionalEnvVars)

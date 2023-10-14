@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/docker/client"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 )
@@ -93,7 +94,7 @@ func (d *stackDeployer) DeployKubernetesStack(stack *portaineree.Stack, endpoint
 		appLabels.Kind = "git"
 	}
 
-	tokenData := &portaineree.TokenData{
+	tokenData := &portainer.TokenData{
 		ID: user.ID,
 	}
 
@@ -128,7 +129,7 @@ func (d *stackDeployer) RestartKubernetesStack(stack *portaineree.Stack, endpoin
 		appLabels.Kind = "git"
 	}
 
-	tokenData := &portaineree.TokenData{
+	tokenData := &portainer.TokenData{
 		ID: user.ID,
 	}
 

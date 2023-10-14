@@ -15,7 +15,7 @@ const BucketName = "stacks"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.Stack, portaineree.StackID]
+	dataservices.BaseDataService[portaineree.Stack, portainer.StackID]
 }
 
 // NewService creates a new instance of a service.
@@ -26,7 +26,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Stack, portaineree.StackID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.Stack, portainer.StackID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},

@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -14,9 +15,9 @@ import (
 )
 
 type endpointCreateGlobalKeyPayload struct {
-	EdgeGroupsIDs      []portaineree.EdgeGroupID
-	EnvironmentGroupID portaineree.EndpointGroupID
-	TagsIDs            []portaineree.TagID
+	EdgeGroupsIDs      []portainer.EdgeGroupID
+	EnvironmentGroupID portainer.EndpointGroupID
+	TagsIDs            []portainer.TagID
 }
 
 func (payload *endpointCreateGlobalKeyPayload) Validate(request *http.Request) error {
@@ -28,7 +29,7 @@ func (payload *endpointCreateGlobalKeyPayload) Validate(request *http.Request) e
 }
 
 type endpointCreateGlobalKeyResponse struct {
-	EndpointID portaineree.EndpointID `json:"endpointID"`
+	EndpointID portainer.EndpointID `json:"endpointID"`
 }
 
 // @id EndpointCreateGlobalKey
@@ -65,8 +66,8 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	} else {
 		payload = &endpointCreateGlobalKeyPayload{
 			EnvironmentGroupID: 1,
-			EdgeGroupsIDs:      []portaineree.EdgeGroupID{},
-			TagsIDs:            []portaineree.TagID{},
+			EdgeGroupsIDs:      []portainer.EdgeGroupID{},
+			TagsIDs:            []portainer.TagID{},
 		}
 	}
 
@@ -87,7 +88,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	}
 
 	// validate tags
-	tagsIDs := []portaineree.TagID{}
+	tagsIDs := []portainer.TagID{}
 	for _, tagID := range payload.TagsIDs {
 		_, err := handler.DataStore.Tag().Read(tagID)
 		if err != nil {
@@ -99,7 +100,7 @@ func (handler *Handler) endpointCreateGlobalKey(w http.ResponseWriter, r *http.R
 	}
 
 	// validate edge groups
-	var edgeGroupsIDs []portaineree.EdgeGroupID
+	var edgeGroupsIDs []portainer.EdgeGroupID
 	for _, edgeGroupID := range payload.EdgeGroupsIDs {
 		_, err := handler.DataStore.EdgeGroup().Read(edgeGroupID)
 		if err != nil {

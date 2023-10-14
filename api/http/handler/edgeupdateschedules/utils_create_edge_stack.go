@@ -10,6 +10,7 @@ import (
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/cbroglie/mustache"
@@ -39,11 +40,11 @@ const (
 
 func (handler *Handler) createUpdateEdgeStack(
 	scheduleID edgetypes.UpdateScheduleID,
-	relatedEnvironments []portaineree.EndpointID,
-	registryID portaineree.RegistryID,
+	relatedEnvironments []portainer.EndpointID,
+	registryID portainer.RegistryID,
 	version, scheduledTime string,
-	endpointType portaineree.EndpointType,
-) (portaineree.EdgeStackID, error) {
+	endpointType portainer.EndpointType,
+) (portainer.EdgeStackID, error) {
 
 	agentImagePrefix := os.Getenv(agentImagePrefixEnvVar)
 	if agentImagePrefix == "" {
@@ -52,7 +53,7 @@ func (handler *Handler) createUpdateEdgeStack(
 
 	prePullImage := false
 	rePullImage := false
-	registries := []portaineree.RegistryID{}
+	registries := []portainer.RegistryID{}
 	registryURL := ""
 	if registryID != 0 {
 		prePullImage = true
@@ -99,7 +100,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		handler.dataStore,
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
-		[]portaineree.EdgeGroupID{edgeGroup.ID},
+		[]portainer.EdgeGroupID{edgeGroup.ID},
 		buildEdgeStackArgs,
 	)
 	if err != nil {
@@ -111,7 +112,7 @@ func (handler *Handler) createUpdateEdgeStack(
 	_, err = handler.edgeStacksService.PersistEdgeStack(
 		handler.dataStore,
 		stack,
-		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+		func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 			skipPullAgentImage := ""
 			env := os.Getenv(skipPullAgentImageEnvVar)
 			if env != "" {
@@ -159,13 +160,13 @@ func buildEdgeStackName(scheduleId edgetypes.UpdateScheduleID) string {
 }
 
 type DeploymentConfig struct {
-	Type         portaineree.EdgeStackDeploymentType
+	Type         portainer.EdgeStackDeploymentType
 	TemplatePath string
 	Path         string
 }
 
 // getDeploymentConfig returns a struct of deployment configuration based on the provided endpoint type
-func getDeploymentConfig(endpointType portaineree.EndpointType, assetsPath string) (DeploymentConfig, error) {
+func getDeploymentConfig(endpointType portainer.EndpointType, assetsPath string) (DeploymentConfig, error) {
 	config := DeploymentConfig{}
 
 	switch endpointType {

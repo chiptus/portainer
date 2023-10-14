@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -21,7 +22,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Template identifier"
-// @success 200 {object} portaineree.CustomTemplate "Success"
+// @success 200 {object} portainer.CustomTemplate "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Template not found"
 // @failure 500 "Server error"
@@ -32,7 +33,7 @@ func (handler *Handler) customTemplateInspect(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid Custom template identifier route variable", err)
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().Read(portaineree.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().Read(portainer.CustomTemplateID(customTemplateID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a custom template with the specified identifier inside the database", err)
 	} else if err != nil {

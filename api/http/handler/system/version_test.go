@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,10 +41,10 @@ func Test_getSystemVersion(t *testing.T) {
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
 	requestBouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, apiKeyService, nil)
 
-	h := NewHandler(requestBouncer, &portaineree.Status{}, &demo.Service{}, store, nil)
+	h := NewHandler(requestBouncer, &portainer.Status{}, &demo.Service{}, store, nil)
 
 	// generate standard and admin user tokens
-	jwt, _ := jwtService.GenerateToken(&portaineree.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	t.Run("Display Edition", func(t *testing.T) {
 

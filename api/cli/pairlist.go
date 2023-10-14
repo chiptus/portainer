@@ -1,23 +1,22 @@
 package cli
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
-
 	"fmt"
 	"strings"
 
+	portainer "github.com/portainer/portainer/api"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type pairList []portaineree.Pair
+type pairList []portainer.Pair
 
-// Set implementation for a list of portaineree.Pair
+// Set implementation for a list of portainer.Pair
 func (l *pairList) Set(value string) error {
 	parts := strings.SplitN(value, "=", 2)
 	if len(parts) != 2 {
 		return fmt.Errorf("expected NAME=VALUE got '%s'", value)
 	}
-	p := new(portaineree.Pair)
+	p := new(portainer.Pair)
 	p.Name = parts[0]
 	p.Value = parts[1]
 	*l = append(*l, *p)
@@ -34,8 +33,8 @@ func (l *pairList) IsCumulative() bool {
 	return true
 }
 
-func pairs(s kingpin.Settings) (target *[]portaineree.Pair) {
-	target = new([]portaineree.Pair)
+func pairs(s kingpin.Settings) (target *[]portainer.Pair) {
+	target = new([]portainer.Pair)
 	s.SetValue((*pairList)(target))
 	return
 }

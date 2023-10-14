@@ -6,17 +6,18 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func hasKubeEndpoint(endpointService dataservices.EndpointService, endpointIDs []portaineree.EndpointID) (bool, error) {
+func hasKubeEndpoint(endpointService dataservices.EndpointService, endpointIDs []portainer.EndpointID) (bool, error) {
 	return hasEndpointPredicate(endpointService, endpointIDs, endpointutils.IsKubernetesEndpoint)
 }
 
-func hasDockerEndpoint(endpointService dataservices.EndpointService, endpointIDs []portaineree.EndpointID) (bool, error) {
+func hasDockerEndpoint(endpointService dataservices.EndpointService, endpointIDs []portainer.EndpointID) (bool, error) {
 	return hasEndpointPredicate(endpointService, endpointIDs, endpointutils.IsDockerEndpoint)
 }
 
-func hasEndpointPredicate(endpointService dataservices.EndpointService, endpointIDs []portaineree.EndpointID, predicate func(*portaineree.Endpoint) bool) (bool, error) {
+func hasEndpointPredicate(endpointService dataservices.EndpointService, endpointIDs []portainer.EndpointID, predicate func(*portaineree.Endpoint) bool) (bool, error) {
 	for _, endpointID := range endpointIDs {
 		endpoint, err := endpointService.Endpoint(endpointID)
 		if err != nil {
@@ -31,7 +32,7 @@ func hasEndpointPredicate(endpointService dataservices.EndpointService, endpoint
 	return false, nil
 }
 
-func hasWrongEnvironmentType(endpointService dataservices.EndpointService, endpointIDs []portaineree.EndpointID, deploymentType portaineree.EdgeStackDeploymentType) (bool, error) {
+func hasWrongEnvironmentType(endpointService dataservices.EndpointService, endpointIDs []portainer.EndpointID, deploymentType portainer.EdgeStackDeploymentType) (bool, error) {
 	return hasEndpointPredicate(endpointService, endpointIDs, func(e *portaineree.Endpoint) bool {
 		switch deploymentType {
 		case portaineree.EdgeStackDeploymentKubernetes:

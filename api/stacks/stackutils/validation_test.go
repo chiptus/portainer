@@ -3,7 +3,7 @@ package stackutils
 import (
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ networks:
         - subnet: 172.16.0.0/24
 `)
 
-	securitySettings := &portaineree.EndpointSecuritySettings{}
+	securitySettings := &portainer.EndpointSecuritySettings{}
 	err := IsValidStackFile(yamlContent, securitySettings)
 	assert.NoError(t, err)
 }
@@ -54,7 +54,7 @@ networks:
         - subnet: 172.16.0.0/24
 `)
 
-	securitySettings := &portaineree.EndpointSecuritySettings{}
+	securitySettings := &portainer.EndpointSecuritySettings{}
 	err := IsValidStackFile(yamlContent, securitySettings)
 	assert.NoError(t, err)
 }

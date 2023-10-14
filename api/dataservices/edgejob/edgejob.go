@@ -1,7 +1,6 @@
 package edgejob
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -11,7 +10,7 @@ const BucketName = "edgejobs"
 
 // Service represents a service for managing edge jobs data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.EdgeJob, portaineree.EdgeJobID]
+	dataservices.BaseDataService[portainer.EdgeJob, portainer.EdgeJobID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +21,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.EdgeJob, portaineree.EdgeJobID]{
+		BaseDataService: dataservices.BaseDataService[portainer.EdgeJob, portainer.EdgeJobID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -31,7 +30,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EdgeJob, portaineree.EdgeJobID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portainer.EdgeJob, portainer.EdgeJobID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -40,12 +39,12 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 }
 
 // Create creates a new EdgeJob
-func (service *Service) Create(edgeJob *portaineree.EdgeJob) error {
-	return service.CreateWithID(portaineree.EdgeJobID(service.GetNextIdentifier()), edgeJob)
+func (service *Service) Create(edgeJob *portainer.EdgeJob) error {
+	return service.CreateWithID(portainer.EdgeJobID(service.GetNextIdentifier()), edgeJob)
 }
 
 // CreateWithID creates a new EdgeJob
-func (service *Service) CreateWithID(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
+func (service *Service) CreateWithID(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error {
 	edgeJob.ID = ID
 
 	return service.Connection.CreateObjectWithId(
@@ -56,9 +55,9 @@ func (service *Service) CreateWithID(ID portaineree.EdgeJobID, edgeJob *portaine
 }
 
 // UpdateEdgeJobFunc updates an edge job inside a transaction avoiding data races.
-func (service *Service) UpdateEdgeJobFunc(ID portaineree.EdgeJobID, updateFunc func(edgeJob *portaineree.EdgeJob)) error {
+func (service *Service) UpdateEdgeJobFunc(ID portainer.EdgeJobID, updateFunc func(edgeJob *portainer.EdgeJob)) error {
 	id := service.Connection.ConvertToKey(int(ID))
-	edgeJob := &portaineree.EdgeJob{}
+	edgeJob := &portainer.EdgeJob{}
 
 	return service.Connection.UpdateObjectFunc(BucketName, id, edgeJob, func() {
 		updateFunc(edgeJob)

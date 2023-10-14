@@ -33,10 +33,10 @@ type settingsUpdatePayload struct {
 	// The content in plaintext used to display in the login page. Will hide when value is empty string
 	CustomLoginBanner *string `example:"notice or agreement"`
 	// A list of label name & value that will be used to hide containers when querying containers
-	BlackListedLabels []portaineree.Pair
+	BlackListedLabels []portainer.Pair
 	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
 	AuthenticationMethod *int `example:"1"`
-	InternalAuthSettings *portaineree.InternalAuthSettings
+	InternalAuthSettings *portainer.InternalAuthSettings
 	LDAPSettings         *portaineree.LDAPSettings
 	OAuthSettings        *portaineree.OAuthSettings
 	// The interval in which environment(endpoint) snapshots are created
@@ -187,7 +187,7 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 	}
 
 	if payload.AuthenticationMethod != nil {
-		settings.AuthenticationMethod = portaineree.AuthenticationMethod(*payload.AuthenticationMethod)
+		settings.AuthenticationMethod = portainer.AuthenticationMethod(*payload.AuthenticationMethod)
 	}
 
 	if payload.LogoURL != nil {

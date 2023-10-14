@@ -1,7 +1,7 @@
 package stackbuilders
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // StackPayload contains all the fields for creating a stack with all kinds of methods
@@ -16,9 +16,9 @@ type StackPayload struct {
 	StackFileContent string
 	Webhook          string
 	// A list of environment(endpoint) variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 	// Optional GitOps update configuration
-	AutoUpdate *portaineree.AutoUpdateSettings
+	AutoUpdate *portainer.AutoUpdateSettings
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// Kubernetes stack name

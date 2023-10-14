@@ -1,8 +1,8 @@
 package migrator
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -43,7 +43,7 @@ func (m *Migrator) updateUsersAndRolesToDBVersion22() error {
 		}
 	}
 
-	endpointAdministratorRole, err := m.roleService.Read(portaineree.RoleID(1))
+	endpointAdministratorRole, err := m.roleService.Read(portainer.RoleID(1))
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (m *Migrator) updateUsersAndRolesToDBVersion22() error {
 
 	err = m.roleService.Update(endpointAdministratorRole.ID, endpointAdministratorRole)
 
-	helpDeskRole, err := m.roleService.Read(portaineree.RoleID(2))
+	helpDeskRole, err := m.roleService.Read(portainer.RoleID(2))
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (m *Migrator) updateUsersAndRolesToDBVersion22() error {
 
 	err = m.roleService.Update(helpDeskRole.ID, helpDeskRole)
 
-	standardUserRole, err := m.roleService.Read(portaineree.RoleID(3))
+	standardUserRole, err := m.roleService.Read(portainer.RoleID(3))
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (m *Migrator) updateUsersAndRolesToDBVersion22() error {
 
 	err = m.roleService.Update(standardUserRole.ID, standardUserRole)
 
-	readOnlyUserRole, err := m.roleService.Read(portaineree.RoleID(4))
+	readOnlyUserRole, err := m.roleService.Read(portainer.RoleID(4))
 	if err != nil {
 		return err
 	}

@@ -27,7 +27,7 @@ type stackGitRedployPayload struct {
 	RepositoryAuthentication bool
 	RepositoryUsername       string
 	RepositoryPassword       string
-	Env                      []portaineree.Pair
+	Env                      []portainer.Pair
 	Prune                    bool `example:"false"`
 	// Force a pulling to current image with the original tag though the image is already the latest
 	PullImage                 bool `example:"false"`
@@ -62,7 +62,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -81,7 +81,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portaineree.EndpointID(endpointID)
+		stack.EndpointID = portainer.EndpointID(endpointID)
 	}
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
@@ -137,7 +137,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	stack.GitConfig.ReferenceName = payload.RepositoryReferenceName
 	stack.Env = payload.Env
 	if stack.Type == portaineree.DockerSwarmStack {
-		stack.Option = &portaineree.StackOption{
+		stack.Option = &portainer.StackOption{
 			Prune: payload.Prune,
 		}
 	}

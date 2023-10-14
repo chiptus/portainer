@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -93,16 +94,16 @@ func parseActivityTypes(query string) ([]portaineree.AuthenticationActivityType,
 	return types, nil
 }
 
-func parseContextTypes(query string) ([]portaineree.AuthenticationMethod, error) {
+func parseContextTypes(query string) ([]portainer.AuthenticationMethod, error) {
 	numbers, err := parseNumberArrayQuery(query, "contexts")
 	if err != nil {
 		return nil, err
 	}
 
-	types := []portaineree.AuthenticationMethod{}
+	types := []portainer.AuthenticationMethod{}
 
 	for _, val := range numbers {
-		types = append(types, portaineree.AuthenticationMethod(val))
+		types = append(types, portainer.AuthenticationMethod(val))
 	}
 
 	return types, nil

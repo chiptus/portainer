@@ -36,7 +36,7 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	}
 }
 
-func (service *Service) generateKey(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) []byte {
+func (service *Service) generateKey(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) []byte {
 	return append(service.connection.ConvertToKey(int(edgeStackID)),
 		service.connection.ConvertToKey(int(endpointID))...)
 }
@@ -54,12 +54,12 @@ func (service *Service) Update(edgeStackLog *portaineree.EdgeStackLog) error {
 }
 
 // Delete deletes an EdgeStackLog.
-func (service *Service) Delete(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) error {
+func (service *Service) Delete(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) error {
 	key := service.generateKey(edgeStackID, endpointID)
 	return service.connection.DeleteObject(BucketName, key)
 }
 
-func (service *Service) EdgeStackLog(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) (*portaineree.EdgeStackLog, error) {
+func (service *Service) EdgeStackLog(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) (*portaineree.EdgeStackLog, error) {
 	key := service.generateKey(edgeStackID, endpointID)
 	o := &portaineree.EdgeStackLog{}
 

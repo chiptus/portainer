@@ -15,6 +15,7 @@ import (
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer-ee/api/kubernetes"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libhelm/binary/test"
 	"github.com/portainer/portainer/pkg/libhelm/options"
 	"github.com/portainer/portainer/pkg/libhelm/release"
@@ -48,7 +49,7 @@ func Test_helmList(t *testing.T) {
 
 	t.Run("helmList", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/1/kubernetes/helm", nil)
-		ctx := security.StoreTokenData(req, &portaineree.TokenData{ID: 1, Username: "admin", Role: 1})
+		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
 		req.Header.Add("Authorization", "Bearer dummytoken")
 

@@ -11,7 +11,7 @@ const BucketName = "edgegroups"
 
 // Service represents a service for managing Edge group data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.EdgeGroup, portaineree.EdgeGroupID]
+	dataservices.BaseDataService[portaineree.EdgeGroup, portainer.EdgeGroupID]
 }
 
 func (service *Service) BucketName() string {
@@ -26,7 +26,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.EdgeGroup, portaineree.EdgeGroupID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.EdgeGroup, portainer.EdgeGroupID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -35,7 +35,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EdgeGroup, portaineree.EdgeGroupID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EdgeGroup, portainer.EdgeGroupID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -44,7 +44,7 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 }
 
 // UpdateEdgeGroupFunc updates an edge group inside a transaction avoiding data races.
-func (service *Service) UpdateEdgeGroupFunc(ID portaineree.EdgeGroupID, updateFunc func(edgeGroup *portaineree.EdgeGroup)) error {
+func (service *Service) UpdateEdgeGroupFunc(ID portainer.EdgeGroupID, updateFunc func(edgeGroup *portaineree.EdgeGroup)) error {
 	id := service.Connection.ConvertToKey(int(ID))
 	edgeGroup := &portaineree.EdgeGroup{}
 

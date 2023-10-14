@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/docker/consts"
 	"github.com/portainer/portainer-ee/api/docker/images"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -38,7 +39,7 @@ func (handler *Handler) stackImagesStatus(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid stack identifier route variable", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if err != nil {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	}
@@ -48,7 +49,7 @@ func (handler *Handler) stackImagesStatus(w http.ResponseWriter, r *http.Request
 		return response.JSON(w, &images.StatusResponse{Status: status, Message: ""})
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(stack.EndpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(stack.EndpointID))
 	if err != nil {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	}

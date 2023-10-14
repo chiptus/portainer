@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -39,7 +40,7 @@ func TestStoreCreation(t *testing.T) {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	if portaineree.SoftwareEdition(v.Edition) != portaineree.PortainerEE {
+	if portainer.SoftwareEdition(v.Edition) != portaineree.PortainerEE {
 		t.Error("Expect to get EE Edition")
 	}
 
@@ -53,7 +54,7 @@ func TestBackup(t *testing.T) {
 	connection := store.GetConnection()
 
 	tests := []struct {
-		edition portaineree.SoftwareEdition
+		edition portainer.SoftwareEdition
 		version string
 	}{
 		{edition: portaineree.PortainerCE, version: portaineree.APIVersion},
@@ -109,7 +110,7 @@ func TestBackup(t *testing.T) {
 }
 
 func TestRestore(t *testing.T) {
-	editions := []portaineree.SoftwareEdition{portaineree.PortainerCE, portaineree.PortainerEE}
+	editions := []portainer.SoftwareEdition{portaineree.PortainerCE, portaineree.PortainerEE}
 
 	_, store := MustNewTestStore(t, true, true)
 

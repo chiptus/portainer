@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 
+	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -166,7 +167,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			ForceUpdate: true,
 		},
 	}
@@ -175,7 +176,7 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 
 	noopDeployer := &noopDeployer{}
 
-	options := &RedeployOptions{AdditionalEnvVars: []portaineree.Pair{{Name: "version", Value: "latest"}}}
+	options := &RedeployOptions{AdditionalEnvVars: []portainer.Pair{{Name: "version", Value: "latest"}}}
 
 	t.Run("can deploy docker compose stack", func(t *testing.T) {
 		stack.Type = portaineree.DockerComposeStack
@@ -237,7 +238,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			ForceUpdate: false,
 		},
 	})
@@ -277,7 +278,7 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForePullImageEnable(
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			ForceUpdate:    false,
 			ForcePullImage: true,
 		},
@@ -315,7 +316,7 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 			ReferenceName: "ref",
 			ConfigHash:    "oldHash",
 		},
-		AutoUpdate: &portaineree.AutoUpdateSettings{
+		AutoUpdate: &portainer.AutoUpdateSettings{
 			ForceUpdate: false,
 		},
 	}
@@ -371,9 +372,9 @@ func Test_getUserRegistries(t *testing.T) {
 	err = store.User().Create(user)
 	assert.NoError(t, err, "error creating a user")
 
-	team := portaineree.Team{ID: 1, Name: "team"}
+	team := portainer.Team{ID: 1, Name: "team"}
 
-	store.TeamMembership().Create(&portaineree.TeamMembership{
+	store.TeamMembership().Create(&portainer.TeamMembership{
 		ID:     1,
 		UserID: user.ID,
 		TeamID: team.ID,
@@ -382,9 +383,9 @@ func Test_getUserRegistries(t *testing.T) {
 
 	registryReachableByUser := portaineree.Registry{
 		ID: 1,
-		RegistryAccesses: portaineree.RegistryAccesses{
-			portaineree.EndpointID(endpointID): {
-				UserAccessPolicies: map[portaineree.UserID]portaineree.AccessPolicy{
+		RegistryAccesses: portainer.RegistryAccesses{
+			portainer.EndpointID(endpointID): {
+				UserAccessPolicies: map[portainer.UserID]portainer.AccessPolicy{
 					user.ID: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
@@ -395,9 +396,9 @@ func Test_getUserRegistries(t *testing.T) {
 
 	registryReachableByTeam := portaineree.Registry{
 		ID: 2,
-		RegistryAccesses: portaineree.RegistryAccesses{
-			portaineree.EndpointID(endpointID): {
-				TeamAccessPolicies: map[portaineree.TeamID]portaineree.AccessPolicy{
+		RegistryAccesses: portainer.RegistryAccesses{
+			portainer.EndpointID(endpointID): {
+				TeamAccessPolicies: map[portainer.TeamID]portainer.AccessPolicy{
 					team.ID: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
@@ -408,9 +409,9 @@ func Test_getUserRegistries(t *testing.T) {
 
 	registryRestricted := portaineree.Registry{
 		ID: 3,
-		RegistryAccesses: portaineree.RegistryAccesses{
-			portaineree.EndpointID(endpointID): {
-				UserAccessPolicies: map[portaineree.UserID]portaineree.AccessPolicy{
+		RegistryAccesses: portainer.RegistryAccesses{
+			portainer.EndpointID(endpointID): {
+				UserAccessPolicies: map[portainer.UserID]portainer.AccessPolicy{
 					user.ID + 100: {RoleID: portaineree.RoleIDStandardUser},
 				},
 			},
@@ -420,13 +421,13 @@ func Test_getUserRegistries(t *testing.T) {
 	assert.NoError(t, err, "couldn't create a registry")
 
 	t.Run("admin should has access to all registries", func(t *testing.T) {
-		registries, err := getUserRegistries(store, admin, portaineree.EndpointID(endpointID))
+		registries, err := getUserRegistries(store, admin, portainer.EndpointID(endpointID))
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []portaineree.Registry{registryReachableByUser, registryReachableByTeam, registryRestricted}, registries)
 	})
 
 	t.Run("regular user has access to registries allowed to him and/or his team", func(t *testing.T) {
-		registries, err := getUserRegistries(store, user, portaineree.EndpointID(endpointID))
+		registries, err := getUserRegistries(store, user, portainer.EndpointID(endpointID))
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []portaineree.Registry{registryReachableByUser, registryReachableByTeam}, registries)
 	})

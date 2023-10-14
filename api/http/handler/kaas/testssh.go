@@ -3,12 +3,12 @@ package kaas
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/sshtest"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -49,7 +49,7 @@ func (handler *Handler) sshTestNodeIPs(w http.ResponseWriter, r *http.Request) *
 			return httperror.InternalServerError("Unable to retrieve security context", err)
 		}
 
-		authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+		authorized := canWriteK8sClusterNode(user, portainer.EndpointID(endpoint.ID))
 		if !authorized {
 			return httperror.Forbidden("Permission denied to remove nodes from the cluster", nil)
 		}

@@ -12,6 +12,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/fvbommel/sortorder"
 	"github.com/linode/linodego"
@@ -20,9 +21,9 @@ import (
 )
 
 type LinodeInfo struct {
-	Regions            []portaineree.Pair `json:"regions"`
-	NodeSizes          []portaineree.Pair `json:"nodeSizes"`
-	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
+	Regions            []portainer.Pair `json:"regions"`
+	NodeSizes          []portainer.Pair `json:"nodeSizes"`
+	KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
 }
 
 func (service *CloudInfoService) LinodeGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
@@ -87,9 +88,9 @@ func (service *CloudInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, er
 		return nil, err
 	}
 
-	rs := make([]portaineree.Pair, 0)
+	rs := make([]portainer.Pair, 0)
 	for _, region := range regions {
-		r := portaineree.Pair{
+		r := portainer.Pair{
 			Name:  strings.ToUpper(region.Country) + ": " + region.ID,
 			Value: region.ID,
 		}
@@ -102,7 +103,7 @@ func (service *CloudInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, er
 		return nil, err
 	}
 
-	ns := make([]portaineree.Pair, 0)
+	ns := make([]portainer.Pair, 0)
 	for _, size := range nodeSizes {
 		// Skip "Nanode 1GB" sized node. It is not valid for a kubernetes
 		// deployment (it is not powerful enough) and Linode throws an error
@@ -111,7 +112,7 @@ func (service *CloudInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, er
 			continue
 		}
 
-		s := portaineree.Pair{
+		s := portainer.Pair{
 			Name:  size.Label,
 			Value: size.ID,
 		}
@@ -130,9 +131,9 @@ func (service *CloudInfoService) LinodeFetchInfo(apiKey string) (*LinodeInfo, er
 	}
 	sort.Sort(sort.Reverse(sortorder.Natural(kvs)))
 
-	versionPairs := make([]portaineree.Pair, 0)
+	versionPairs := make([]portainer.Pair, 0)
 	for _, v := range kvs {
-		pair := portaineree.Pair{
+		pair := portainer.Pair{
 			Name:  v,
 			Value: v,
 		}

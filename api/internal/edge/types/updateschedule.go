@@ -1,7 +1,7 @@
 package types
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
@@ -25,25 +25,25 @@ type (
 		// Name of the schedule
 		Name string `json:"name" example:"Update Schedule"`
 
-		EdgeStackID portaineree.EdgeStackID `json:"edgeStackId" example:"1"`
+		EdgeStackID portainer.EdgeStackID `json:"edgeStackId" example:"1"`
 		// Type of the update (1 - update, 2 - rollback)
 		Type    UpdateScheduleType `json:"type" example:"1" enums:"1,2"`
 		Version string             `json:"version" example:"1.0.0"`
 		// Created timestamp
 		Created int64 `json:"created" example:"1564897200"`
 		// Created by user id
-		CreatedBy portaineree.UserID `json:"createdBy" example:"1"`
+		CreatedBy portainer.UserID `json:"createdBy" example:"1"`
 		// ID of registry
-		RegistryID portaineree.RegistryID `json:"registryId" example:"1"`
+		RegistryID portainer.RegistryID `json:"registryId" example:"1"`
 
-		EnvironmentsPreviousVersions map[portaineree.EndpointID]string `json:"environmentsPreviousVersions"`
+		EnvironmentsPreviousVersions map[portainer.EndpointID]string `json:"environmentsPreviousVersions"`
 
 		// EdgeGroups to be updated
 		//
 		// There is some duplication here with EdgeStack.EdgeGroups
 		// EdgeStack.EdgeGroup should have only one group which a temporary group, used only for the update
 		// This field is saved only to show which groups the user chose when creating the schedule
-		EdgeGroupIDs []portaineree.EdgeGroupID `json:"edgeGroupIds" example:"1"`
+		EdgeGroupIDs []portainer.EdgeGroupID `json:"edgeGroupIds" example:"1"`
 	}
 
 	// UpdateScheduleType represents type of an Edge update schedule
@@ -84,10 +84,10 @@ type (
 
 	// EndpointUpdateScheduleRelation represents the relation between an environment(endpoint) and an update schedule
 	EndpointUpdateScheduleRelation struct {
-		EnvironmentID portaineree.EndpointID  `json:"environmentId"`
-		ScheduleID    UpdateScheduleID        `json:"scheduleId"`
-		TargetVersion string                  `json:"targetVersion"`
-		EdgeStackID   portaineree.EdgeStackID `json:"edgeStackId"`
+		EnvironmentID portainer.EndpointID  `json:"environmentId"`
+		ScheduleID    UpdateScheduleID      `json:"scheduleId"`
+		TargetVersion string                `json:"targetVersion"`
+		EdgeStackID   portainer.EdgeStackID `json:"edgeStackId"`
 	}
 )
 

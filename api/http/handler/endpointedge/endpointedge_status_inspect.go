@@ -28,14 +28,14 @@ import (
 
 type stackStatusResponse struct {
 	// EdgeStack Identifier
-	ID portaineree.EdgeStackID `example:"1"`
+	ID portainer.EdgeStackID `example:"1"`
 	// Version of this stack
 	Version int `example:"3"`
 }
 
 type edgeJobResponse struct {
 	// EdgeJob Identifier
-	ID portaineree.EdgeJobID `json:"Id" example:"2"`
+	ID portainer.EdgeJobID `json:"Id" example:"2"`
 	// Whether to collect logs
 	CollectLogs bool `json:"CollectLogs" example:"true"`
 	// A cron expression to schedule this job
@@ -83,17 +83,17 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	cachedResp := handler.respondFromCache(w, r, portaineree.EndpointID(endpointID))
+	cachedResp := handler.respondFromCache(w, r, portainer.EndpointID(endpointID))
 	if cachedResp {
 		return nil
 	}
 
-	if _, ok := handler.DataStore.Endpoint().Heartbeat(portaineree.EndpointID(endpointID)); !ok {
+	if _, ok := handler.DataStore.Endpoint().Heartbeat(portainer.EndpointID(endpointID)); !ok {
 		// EE-5190
 		return httperror.Forbidden("Permission denied to access environment", errors.New("the device has not been trusted yet"))
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		// EE-5190
 		return httperror.Forbidden("Permission denied to access environment", errors.New("the device has not been trusted yet"))
@@ -129,7 +129,7 @@ func (handler *Handler) endpointEdgeStatusInspect(w http.ResponseWriter, r *http
 	return cacheResponse(w, endpoint.ID, *statusResponse, skipCache)
 }
 
-func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Request, endpointID portaineree.EndpointID) (*endpointEdgeStatusInspectResponse, bool, error) {
+func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Request, endpointID portainer.EndpointID) (*endpointEdgeStatusInspectResponse, bool, error) {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil {
 		return nil, false, err
@@ -262,7 +262,7 @@ func parseLocation(endpoint *portaineree.Endpoint) (*time.Location, error) {
 	return location, nil
 }
 
-func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
+func parseAgentPlatform(r *http.Request) (portainer.EndpointType, error) {
 	agentPlatformHeader := r.Header.Get(portaineree.HTTPResponseAgentPlatform)
 	if agentPlatformHeader == "" {
 		return 0, errors.New("agent platform header is missing")
@@ -273,7 +273,7 @@ func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
 		return 0, err
 	}
 
-	agentPlatform := portaineree.AgentPlatform(agentPlatformNumber)
+	agentPlatform := portainer.AgentPlatform(agentPlatformNumber)
 
 	switch agentPlatform {
 	case portaineree.AgentPlatformDocker:
@@ -287,7 +287,7 @@ func parseAgentPlatform(r *http.Request) (portaineree.EndpointType, error) {
 	}
 }
 
-func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, edgeStack *portaineree.EdgeStack, environmentID portaineree.EndpointID) error {
+func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, edgeStack *portaineree.EdgeStack, environmentID portainer.EndpointID) error {
 	status, ok := edgeStack.Status[environmentID]
 	if !ok {
 		status = portainer.EdgeStackStatus{
@@ -318,7 +318,7 @@ func (handler *Handler) handleSuccessfulUpdate(tx dataservices.DataStoreTx, acti
 	return handler.updateEdgeStackStatus(tx, edgeStack, activeUpdateSchedule.EnvironmentID)
 }
 
-func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel portaineree.TunnelDetails) ([]edgeJobResponse, *httperror.HandlerError) {
+func (handler *Handler) buildSchedules(endpointID portainer.EndpointID, tunnel portaineree.TunnelDetails) ([]edgeJobResponse, *httperror.HandlerError) {
 	schedules := []edgeJobResponse{}
 	for _, job := range tunnel.Jobs {
 		var collectLogs bool
@@ -347,7 +347,7 @@ func (handler *Handler) buildSchedules(endpointID portaineree.EndpointID, tunnel
 	return schedules, nil
 }
 
-func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, timeZone *time.Location, skipCache *bool) ([]stackStatusResponse, *httperror.HandlerError) {
+func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, timeZone *time.Location, skipCache *bool) ([]stackStatusResponse, *httperror.HandlerError) {
 	relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve relation object from the database", err)
@@ -538,7 +538,7 @@ func (handler *Handler) buildEdgeStacks(tx dataservices.DataStoreTx, endpointID 
 	return edgeStacksStatus, nil
 }
 
-func cacheResponse(w http.ResponseWriter, endpointID portaineree.EndpointID, statusResponse endpointEdgeStatusInspectResponse, skipCache bool) *httperror.HandlerError {
+func cacheResponse(w http.ResponseWriter, endpointID portainer.EndpointID, statusResponse endpointEdgeStatusInspectResponse, skipCache bool) *httperror.HandlerError {
 	rr := httptest.NewRecorder()
 
 	httpErr := response.JSON(rr, statusResponse)
@@ -569,7 +569,7 @@ func cacheResponse(w http.ResponseWriter, endpointID portaineree.EndpointID, sta
 	return nil
 }
 
-func (handler *Handler) respondFromCache(w http.ResponseWriter, r *http.Request, endpointID portaineree.EndpointID) bool {
+func (handler *Handler) respondFromCache(w http.ResponseWriter, r *http.Request, endpointID portainer.EndpointID) bool {
 	inmHeader := r.Header.Get("If-None-Match")
 	etags := strings.Split(inmHeader, ",")
 

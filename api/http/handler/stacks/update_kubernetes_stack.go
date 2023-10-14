@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -33,7 +34,7 @@ type kubernetesGitStackUpdatePayload struct {
 	RepositoryAuthentication bool
 	RepositoryUsername       string
 	RepositoryPassword       string
-	AutoUpdate               *portaineree.AutoUpdateSettings
+	AutoUpdate               *portainer.AutoUpdateSettings
 	TLSSkipVerify            bool
 }
 

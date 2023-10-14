@@ -5,9 +5,9 @@ import (
 	"slices"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -18,11 +18,11 @@ import (
 
 type createPayload struct {
 	Name          string
-	GroupIDs      []portaineree.EdgeGroupID
+	GroupIDs      []portainer.EdgeGroupID
 	Type          edgetypes.UpdateScheduleType
 	Version       string
 	ScheduledTime string
-	RegistryID    portaineree.RegistryID
+	RegistryID    portainer.RegistryID
 }
 
 func (payload *createPayload) Validate(r *http.Request) error {
@@ -76,7 +76,7 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.InternalServerError("Unable to retrieve user information from token", err)
 	}
 
-	var edgeStackID portaineree.EdgeStackID
+	var edgeStackID portainer.EdgeStackID
 	var scheduleID edgetypes.UpdateScheduleID
 	needCleanup := true
 	defer func() {

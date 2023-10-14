@@ -131,7 +131,7 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request) (hasAccess bool, 
 	if err != nil {
 		return false, false, err
 	}
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return false, false, err
 	}
@@ -143,7 +143,7 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request) (hasAccess bool, 
 	if err != nil {
 		return false, false, err
 	}
-	_, isEndpointAdmin := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
+	_, isEndpointAdmin := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
 	return true, isEndpointAdmin, nil
 }

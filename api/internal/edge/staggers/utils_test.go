@@ -4,19 +4,19 @@ import (
 	"reflect"
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestBuildStaggerQueueWithFixedDeviceNumber(t *testing.T) {
-	arr := []portaineree.EndpointID{1, 2, 3, 4, 5, 6, 7}
+	arr := []portainer.EndpointID{1, 2, 3, 4, 5, 6, 7}
 
 	tt := []struct {
 		deviceNumber int
-		expected     [][]portaineree.EndpointID
+		expected     [][]portainer.EndpointID
 	}{
 		{
 			deviceNumber: 2,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1, 2},
 				{3, 4},
 				{5, 6},
@@ -25,7 +25,7 @@ func TestBuildStaggerQueueWithFixedDeviceNumber(t *testing.T) {
 		},
 		{
 			deviceNumber: 3,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1, 2, 3},
 				{4, 5, 6},
 				{7},
@@ -33,7 +33,7 @@ func TestBuildStaggerQueueWithFixedDeviceNumber(t *testing.T) {
 		},
 		{
 			deviceNumber: 1,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1},
 				{2},
 				{3},
@@ -54,17 +54,17 @@ func TestBuildStaggerQueueWithFixedDeviceNumber(t *testing.T) {
 }
 
 func TestBuildStaggerQueueWithIncrementalDeviceNumber(t *testing.T) {
-	arr := []portaineree.EndpointID{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	arr := []portainer.EndpointID{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 	tt := []struct {
 		deviceStartFrom   int
 		deviceIncremental int
-		expected          [][]portaineree.EndpointID
+		expected          [][]portainer.EndpointID
 	}{
 		{
 			deviceStartFrom:   1,
 			deviceIncremental: 2,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1},
 				{2, 3},
 				{4, 5, 6, 7},
@@ -74,7 +74,7 @@ func TestBuildStaggerQueueWithIncrementalDeviceNumber(t *testing.T) {
 		{
 			deviceStartFrom:   1,
 			deviceIncremental: 3,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1},
 				{2, 3, 4},
 				{5, 6, 7, 8, 9},
@@ -83,7 +83,7 @@ func TestBuildStaggerQueueWithIncrementalDeviceNumber(t *testing.T) {
 		{
 			deviceStartFrom:   2,
 			deviceIncremental: 2,
-			expected: [][]portaineree.EndpointID{
+			expected: [][]portainer.EndpointID{
 				{1, 2},
 				{3, 4, 5, 6},
 				{7, 8, 9},
@@ -101,11 +101,11 @@ func TestBuildStaggerQueueWithIncrementalDeviceNumber(t *testing.T) {
 
 func TestCalculateNextStaggerCheckIntervalForAsyncUpdate(t *testing.T) {
 	tt := []struct {
-		edge     portaineree.EnvironmentEdgeSettings
+		edge     portainer.EnvironmentEdgeSettings
 		expected int
 	}{
 		{
-			edge: portaineree.EnvironmentEdgeSettings{
+			edge: portainer.EnvironmentEdgeSettings{
 				PingInterval:     10,
 				CommandInterval:  20,
 				SnapshotInterval: 30,
@@ -113,7 +113,7 @@ func TestCalculateNextStaggerCheckIntervalForAsyncUpdate(t *testing.T) {
 			expected: 5,
 		},
 		{
-			edge: portaineree.EnvironmentEdgeSettings{
+			edge: portainer.EnvironmentEdgeSettings{
 				PingInterval:     10,
 				CommandInterval:  10,
 				SnapshotInterval: 10,
@@ -121,7 +121,7 @@ func TestCalculateNextStaggerCheckIntervalForAsyncUpdate(t *testing.T) {
 			expected: 5,
 		},
 		{
-			edge: portaineree.EnvironmentEdgeSettings{
+			edge: portainer.EnvironmentEdgeSettings{
 				PingInterval:     -1,
 				CommandInterval:  -1,
 				SnapshotInterval: -1,

@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -79,16 +80,16 @@ func (handler *Handler) userCreateGitCredential(w http.ResponseWriter, r *http.R
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Couldn't create git credential for another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		return httperror.BadRequest("Unable to find a user", err)
 	}
 
-	cred, err := handler.DataStore.GitCredential().GetGitCredentialByName(portaineree.UserID(userID), payload.Name)
+	cred, err := handler.DataStore.GitCredential().GetGitCredentialByName(portainer.UserID(userID), payload.Name)
 	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.InternalServerError("Unable to verify the git credential with name", err)
 	}
@@ -98,7 +99,7 @@ func (handler *Handler) userCreateGitCredential(w http.ResponseWriter, r *http.R
 	}
 
 	newCred := &portaineree.GitCredential{
-		UserID:       portaineree.UserID(userID),
+		UserID:       portainer.UserID(userID),
 		Name:         payload.Name,
 		Username:     payload.Username,
 		Password:     payload.Password,

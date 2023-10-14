@@ -14,13 +14,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const (
 	serviceObjectIdentifier = "ID"
 )
 
-func getInheritedResourceControlFromServiceLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, serviceID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromServiceLabels(dockerClient *client.Client, endpointID portainer.EndpointID, serviceID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	service, _, err := dockerClient.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
 	if err != nil {
 		return nil, err

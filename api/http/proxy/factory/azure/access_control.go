@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -45,7 +46,7 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 			return nil, err
 		}
 
-		userTeamIDs := make([]portaineree.TeamID, 0)
+		userTeamIDs := make([]portainer.TeamID, 0)
 		for _, membership := range teamMemberships {
 			userTeamIDs = append(userTeamIDs, membership.TeamID)
 		}
@@ -55,7 +56,7 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 	return context, nil
 }
 
-func decorateObject(object map[string]interface{}, resourceControl *portaineree.ResourceControl) map[string]interface{} {
+func decorateObject(object map[string]interface{}, resourceControl *portainer.ResourceControl) map[string]interface{} {
 	if object["Portainer"] == nil {
 		object["Portainer"] = make(map[string]interface{})
 	}
@@ -67,8 +68,8 @@ func decorateObject(object map[string]interface{}, resourceControl *portaineree.
 
 func (transport *Transport) createPrivateResourceControl(
 	resourceIdentifier string,
-	resourceType portaineree.ResourceControlType,
-	userID portaineree.UserID) (*portaineree.ResourceControl, error) {
+	resourceType portainer.ResourceControlType,
+	userID portainer.UserID) (*portainer.ResourceControl, error) {
 
 	resourceControl := authorization.NewPrivateResourceControl(resourceIdentifier, resourceType, userID)
 
@@ -128,7 +129,7 @@ func (transport *Transport) filterContainerGroups(containerGroups []interface{},
 		containerGroup := containerGroup.(map[string]interface{})
 		portainerObject, ok := containerGroup["Portainer"].(map[string]interface{})
 		if ok {
-			resourceControl, ok := portainerObject["ResourceControl"].(*portaineree.ResourceControl)
+			resourceControl, ok := portainerObject["ResourceControl"].(*portainer.ResourceControl)
 			if ok {
 				userCanAccessResource = authorization.UserCanAccessResource(context.userID, context.userTeamIDs, resourceControl)
 			}
@@ -157,7 +158,7 @@ func (transport *Transport) removeResourceControl(containerGroup map[string]inte
 	return nil
 }
 
-func (transport *Transport) findResourceControl(containerGroupId string, context *azureRequestContext) *portaineree.ResourceControl {
+func (transport *Transport) findResourceControl(containerGroupId string, context *azureRequestContext) *portainer.ResourceControl {
 	resourceControl := authorization.GetResourceControlByResourceIDAndType(containerGroupId, portaineree.ContainerGroupResourceControl, context.resourceControls)
 	return resourceControl
 }

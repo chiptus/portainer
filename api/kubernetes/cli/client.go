@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
@@ -29,7 +30,7 @@ type (
 	ClientFactory struct {
 		dataStore            dataservices.DataStore
 		reverseTunnelService portaineree.ReverseTunnelService
-		signatureService     portaineree.DigitalSignatureService
+		signatureService     portainer.DigitalSignatureService
 		instanceID           string
 		endpointClients      map[string]*KubeClient
 		endpointProxyClients *cache.Cache
@@ -46,7 +47,7 @@ type (
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*ClientFactory, error) {
+func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*ClientFactory, error) {
 	if userSessionTimeout == "" {
 		userSessionTimeout = portaineree.DefaultUserSessionTimeout
 	}
@@ -71,7 +72,7 @@ func (factory *ClientFactory) GetInstanceID() (instanceID string) {
 }
 
 // Remove the cached kube client so a new one can be created
-func (factory *ClientFactory) RemoveKubeClient(endpointID portaineree.EndpointID) {
+func (factory *ClientFactory) RemoveKubeClient(endpointID portainer.EndpointID) {
 	factory.mu.Lock()
 	delete(factory.endpointClients, strconv.Itoa(int(endpointID)))
 	factory.mu.Unlock()
@@ -365,7 +366,7 @@ func (factory *ClientFactory) MigrateEndpointIngresses(e *portaineree.Endpoint) 
 	}
 
 	// Locally, disable "allow none" for namespaces not inside shouldAllowNone.
-	var newClasses []portaineree.KubernetesIngressClassConfig
+	var newClasses []portainer.KubernetesIngressClassConfig
 	for _, c := range classes {
 		var blocked []string
 		for namespace := range namespaces {
@@ -375,7 +376,7 @@ func (factory *ClientFactory) MigrateEndpointIngresses(e *portaineree.Endpoint) 
 			blocked = append(blocked, namespace)
 		}
 
-		newClasses = append(newClasses, portaineree.KubernetesIngressClassConfig{
+		newClasses = append(newClasses, portainer.KubernetesIngressClassConfig{
 			Name:              c.Name,
 			Type:              c.Type,
 			GloballyBlocked:   false,
@@ -393,7 +394,7 @@ func (factory *ClientFactory) MigrateEndpointIngresses(e *portaineree.Endpoint) 
 			}
 			disallowNone = append(disallowNone, namespace)
 		}
-		newClasses = append(newClasses, portaineree.KubernetesIngressClassConfig{
+		newClasses = append(newClasses, portainer.KubernetesIngressClassConfig{
 			Name:              "none",
 			Type:              "custom",
 			GloballyBlocked:   false,

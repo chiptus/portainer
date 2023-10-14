@@ -3,8 +3,8 @@ package endpoints
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -13,10 +13,10 @@ import (
 )
 
 type endpointUpdateRelationsPayload struct {
-	Relations map[portaineree.EndpointID]struct {
-		EdgeGroups []portaineree.EdgeGroupID
-		Tags       []portaineree.TagID
-		Group      portaineree.EndpointGroupID
+	Relations map[portainer.EndpointID]struct {
+		EdgeGroups []portainer.EdgeGroupID
+		Tags       []portainer.TagID
+		Group      portainer.EndpointGroupID
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/client"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
@@ -21,7 +22,7 @@ type (
 	}
 
 	Transport struct {
-		credentials         *portaineree.AzureCredentials
+		credentials         *portainer.AzureCredentials
 		client              *client.HTTPClient
 		token               *azureAPIToken
 		mutex               sync.Mutex
@@ -33,15 +34,15 @@ type (
 	azureRequestContext struct {
 		isAdmin                bool
 		endpointResourceAccess bool
-		userID                 portaineree.UserID
-		userTeamIDs            []portaineree.TeamID
-		resourceControls       []portaineree.ResourceControl
+		userID                 portainer.UserID
+		userTeamIDs            []portainer.TeamID
+		resourceControls       []portainer.ResourceControl
 	}
 )
 
 // NewTransport returns a pointer to a new instance of Transport that implements the HTTP Transport
 // interface for proxying requests to the Azure API.
-func NewTransport(credentials *portaineree.AzureCredentials, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, endpoint *portaineree.Endpoint) *Transport {
+func NewTransport(credentials *portainer.AzureCredentials, userActivityService portaineree.UserActivityService, dataStore dataservices.DataStore, endpoint *portaineree.Endpoint) *Transport {
 	return &Transport{
 		credentials:         credentials,
 		client:              client.NewHTTPClient(),

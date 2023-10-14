@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -47,7 +48,7 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.BadRequest("Invalid edge configuration state route variable", err)
 	}
 
-	endpoint, err := h.dataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := h.dataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment", err)
 	}
@@ -67,7 +68,7 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return TransitionToState(tx, portaineree.EdgeConfigID(edgeConfigID), portaineree.EndpointID(endpointID), portaineree.EdgeConfigStateType(state))
+		return TransitionToState(tx, portaineree.EdgeConfigID(edgeConfigID), portainer.EndpointID(endpointID), portaineree.EdgeConfigStateType(state))
 	})
 	if err != nil {
 		return httperror.InternalServerError("Could not update the edge config state", err)
@@ -81,7 +82,7 @@ func (h *Handler) edgeConfigState(w http.ResponseWriter, r *http.Request) *httpe
 func TransitionToState(
 	tx dataservices.DataStoreTx,
 	edgeConfigID portaineree.EdgeConfigID,
-	endpointID portaineree.EndpointID,
+	endpointID portainer.EndpointID,
 	nextEnvState portaineree.EdgeConfigStateType) error {
 
 	edgeConfigState, err := tx.EdgeConfigState().Read(endpointID)

@@ -41,7 +41,7 @@ func (service ServiceTx) EdgeStacks() ([]portaineree.EdgeStack, error) {
 }
 
 // EdgeStack returns an Edge stack by ID.
-func (service ServiceTx) EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error) {
+func (service ServiceTx) EdgeStack(ID portainer.EdgeStackID) (*portaineree.EdgeStack, error) {
 	var stack portaineree.EdgeStack
 	identifier := service.service.connection.ConvertToKey(int(ID))
 
@@ -54,7 +54,7 @@ func (service ServiceTx) EdgeStack(ID portaineree.EdgeStackID) (*portaineree.Edg
 }
 
 // EdgeStackVersion returns the version of the given edge stack ID directly from an in-memory index
-func (service ServiceTx) EdgeStackVersion(ID portaineree.EdgeStackID) (int, bool) {
+func (service ServiceTx) EdgeStackVersion(ID portainer.EdgeStackID) (int, bool) {
 	service.service.mu.RLock()
 	v, ok := service.service.idxVersion[ID]
 	service.service.mu.RUnlock()
@@ -63,7 +63,7 @@ func (service ServiceTx) EdgeStackVersion(ID portaineree.EdgeStackID) (int, bool
 }
 
 // CreateEdgeStack saves an Edge stack object to db.
-func (service ServiceTx) Create(id portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error {
+func (service ServiceTx) Create(id portainer.EdgeStackID, edgeStack *portaineree.EdgeStack) error {
 	edgeStack.ID = id
 
 	err := service.tx.CreateObjectWithId(
@@ -84,7 +84,7 @@ func (service ServiceTx) Create(id portaineree.EdgeStackID, edgeStack *portainer
 }
 
 // UpdateEdgeStack updates an Edge stack.
-func (service ServiceTx) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack, cleanupCache bool) error {
+func (service ServiceTx) UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *portaineree.EdgeStack, cleanupCache bool) error {
 	service.service.mu.Lock()
 	defer service.service.mu.Unlock()
 
@@ -105,7 +105,7 @@ func (service ServiceTx) UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *
 }
 
 // Deprecated: use UpdateEdgeStack inside a transaction instead.
-func (service ServiceTx) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
+func (service ServiceTx) UpdateEdgeStackFunc(ID portainer.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error {
 	edgeStack, err := service.EdgeStack(ID)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (service ServiceTx) UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateF
 }
 
 // DeleteEdgeStack deletes an Edge stack.
-func (service ServiceTx) DeleteEdgeStack(ID portaineree.EdgeStackID) error {
+func (service ServiceTx) DeleteEdgeStack(ID portainer.EdgeStackID) error {
 	service.service.mu.Lock()
 	defer service.service.mu.Unlock()
 

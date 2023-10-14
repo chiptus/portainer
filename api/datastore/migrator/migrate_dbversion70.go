@@ -45,7 +45,7 @@ func (m *Migrator) migrateDBVersionToDB70() error {
 		// set to nil old fields
 		log.Info().Msgf("deleting snapshot from endpoint %d", endpoint.ID)
 		endpoint.Snapshots = []portainer.DockerSnapshot{}
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
+		endpoint.Kubernetes.Snapshots = []portainer.KubernetesSnapshot{}
 		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
 
 		log.Info().Msg("update default image notification toggle")

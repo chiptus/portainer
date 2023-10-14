@@ -6,12 +6,13 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func hasPermission(
 	dataStore dataservices.DataStore,
-	userID portaineree.UserID,
-	endpointID portaineree.EndpointID,
+	userID portainer.UserID,
+	endpointID portainer.EndpointID,
 	registry *portaineree.Registry,
 ) (hasPermission bool, err error) {
 	user, err := dataStore.User().Read(userID)
@@ -36,9 +37,9 @@ func hasPermission(
 // GetAccessibleRegistry get the registry if the user has permission
 func GetAccessibleRegistry(
 	dataStore dataservices.DataStore,
-	userID portaineree.UserID,
-	endpointID portaineree.EndpointID,
-	registryID portaineree.RegistryID,
+	userID portainer.UserID,
+	endpointID portainer.EndpointID,
+	registryID portainer.RegistryID,
 ) (registry *portaineree.Registry, err error) {
 
 	registry, err = dataStore.Registry().Read(registryID)

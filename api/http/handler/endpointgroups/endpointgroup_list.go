@@ -18,7 +18,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portaineree.EndpointGroup "Environment(Endpoint) group"
+// @success 200 {array} portainer.EndpointGroup "Environment(Endpoint) group"
 // @failure 500 "Server error"
 // @router /endpoint_groups [get]
 func (handler *Handler) endpointGroupList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

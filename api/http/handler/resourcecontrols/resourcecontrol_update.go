@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -45,7 +46,7 @@ func (payload *resourceControlUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Resource control identifier"
 // @param body body resourceControlUpdatePayload true "Resource control details"
-// @success 200 {object} portaineree.ResourceControl "Success"
+// @success 200 {object} portainer.ResourceControl "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Unauthorized"
 // @failure 404 "Resource control not found"
@@ -63,7 +64,7 @@ func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Req
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	resourceControl, err := handler.DataStore.ResourceControl().Read(portaineree.ResourceControlID(resourceControlID))
+	resourceControl, err := handler.DataStore.ResourceControl().Read(portainer.ResourceControlID(resourceControlID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a resource control with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -82,20 +83,20 @@ func (handler *Handler) resourceControlUpdate(w http.ResponseWriter, r *http.Req
 	resourceControl.Public = payload.Public
 	resourceControl.AdministratorsOnly = payload.AdministratorsOnly
 
-	var userAccesses = make([]portaineree.UserResourceAccess, 0)
+	var userAccesses = make([]portainer.UserResourceAccess, 0)
 	for _, v := range payload.Users {
-		userAccess := portaineree.UserResourceAccess{
-			UserID:      portaineree.UserID(v),
+		userAccess := portainer.UserResourceAccess{
+			UserID:      portainer.UserID(v),
 			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		userAccesses = append(userAccesses, userAccess)
 	}
 	resourceControl.UserAccesses = userAccesses
 
-	var teamAccesses = make([]portaineree.TeamResourceAccess, 0)
+	var teamAccesses = make([]portainer.TeamResourceAccess, 0)
 	for _, v := range payload.Teams {
-		teamAccess := portaineree.TeamResourceAccess{
-			TeamID:      portaineree.TeamID(v),
+		teamAccess := portainer.TeamResourceAccess{
+			TeamID:      portainer.TeamID(v),
 			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		teamAccesses = append(teamAccesses, teamAccess)

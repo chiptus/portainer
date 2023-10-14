@@ -31,7 +31,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // Schedule returns a schedule by ID.
-func (service *Service) Schedule(ID portaineree.ScheduleID) (*portaineree.Schedule, error) {
+func (service *Service) Schedule(ID portainer.ScheduleID) (*portaineree.Schedule, error) {
 	var schedule portaineree.Schedule
 	identifier := service.connection.ConvertToKey(int(ID))
 
@@ -44,13 +44,13 @@ func (service *Service) Schedule(ID portaineree.ScheduleID) (*portaineree.Schedu
 }
 
 // UpdateSchedule updates a schedule.
-func (service *Service) UpdateSchedule(ID portaineree.ScheduleID, schedule *portaineree.Schedule) error {
+func (service *Service) UpdateSchedule(ID portainer.ScheduleID, schedule *portaineree.Schedule) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, schedule)
 }
 
 // DeleteSchedule deletes a schedule.
-func (service *Service) DeleteSchedule(ID portaineree.ScheduleID) error {
+func (service *Service) DeleteSchedule(ID portainer.ScheduleID) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.DeleteObject(BucketName, identifier)
 }
@@ -68,7 +68,7 @@ func (service *Service) Schedules() ([]portaineree.Schedule, error) {
 
 // SchedulesByJobType return a array containing all the schedules
 // with the specified JobType.
-func (service *Service) SchedulesByJobType(jobType portaineree.JobType) ([]portaineree.Schedule, error) {
+func (service *Service) SchedulesByJobType(jobType portainer.JobType) ([]portaineree.Schedule, error) {
 	var schedules = make([]portaineree.Schedule, 0)
 
 	return schedules, service.connection.GetAll(

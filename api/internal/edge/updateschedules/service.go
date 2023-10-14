@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
@@ -16,10 +15,10 @@ import (
 )
 
 type EdgeUpdateService interface {
-	ActiveSchedule(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation
-	ActiveSchedules(environmentsIDs []portaineree.EndpointID) []edgetypes.EndpointUpdateScheduleRelation
-	RemoveActiveSchedule(environmentID portaineree.EndpointID, scheduleID edgetypes.UpdateScheduleID) error
-	EdgeStackDeployed(environmentID portaineree.EndpointID, updateID edgetypes.UpdateScheduleID)
+	ActiveSchedule(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation
+	ActiveSchedules(environmentsIDs []portainer.EndpointID) []edgetypes.EndpointUpdateScheduleRelation
+	RemoveActiveSchedule(environmentID portainer.EndpointID, scheduleID edgetypes.UpdateScheduleID) error
+	EdgeStackDeployed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID)
 	Schedules() ([]edgetypes.UpdateSchedule, error)
 	Schedule(scheduleID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
 	CreateSchedule(schedule *edgetypes.UpdateSchedule) error
@@ -32,12 +31,12 @@ type Service struct {
 	dataStore dataservices.DataStore
 
 	mu                 sync.Mutex
-	idxActiveSchedules map[portaineree.EndpointID]*edgetypes.EndpointUpdateScheduleRelation
+	idxActiveSchedules map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation
 }
 
 // NewService returns a new instance of Service
 func NewService(dataStore dataservices.DataStore) (*Service, error) {
-	idxActiveSchedules := map[portaineree.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
+	idxActiveSchedules := map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
 
 	schedules, err := dataStore.EdgeUpdateSchedule().ReadAll()
 	if err != nil {
@@ -81,7 +80,7 @@ func NewService(dataStore dataservices.DataStore) (*Service, error) {
 }
 
 // ActiveSchedule returns the active schedule for the given environment
-func (service *Service) ActiveSchedule(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
+func (service *Service) ActiveSchedule(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -89,7 +88,7 @@ func (service *Service) ActiveSchedule(environmentID portaineree.EndpointID) *ed
 }
 
 // ActiveSchedules returns the active schedules for the given environments
-func (service *Service) ActiveSchedules(environmentsIDs []portaineree.EndpointID) []edgetypes.EndpointUpdateScheduleRelation {
+func (service *Service) ActiveSchedules(environmentsIDs []portainer.EndpointID) []edgetypes.EndpointUpdateScheduleRelation {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -105,7 +104,7 @@ func (service *Service) ActiveSchedules(environmentsIDs []portaineree.EndpointID
 }
 
 // RemoveActiveSchedule removes the active schedule for the given environment
-func (service *Service) RemoveActiveSchedule(environmentID portaineree.EndpointID, scheduleID edgetypes.UpdateScheduleID) error {
+func (service *Service) RemoveActiveSchedule(environmentID portainer.EndpointID, scheduleID edgetypes.UpdateScheduleID) error {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -132,7 +131,7 @@ func (service *Service) RemoveActiveSchedule(environmentID portaineree.EndpointI
 // After this call, if the schedule will not be removed from the active schedules after three minute, it means the stack have failed
 // Edge agents mark a stack as failed if the exit status of `docker-compose up` or `docker stack deploy` is not 0,
 // which only happens if something failed in deployment (e.g pull failed), while ignoring failures in the run of the container, resulting in "ok" edge stack but failed update
-func (service *Service) EdgeStackDeployed(environmentID portaineree.EndpointID, updateID edgetypes.UpdateScheduleID) {
+func (service *Service) EdgeStackDeployed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 

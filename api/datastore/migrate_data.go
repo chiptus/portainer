@@ -11,6 +11,7 @@ import (
 	dserrors "github.com/portainer/portainer-ee/api/dataservices/errors"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -95,7 +96,7 @@ func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version *models
 	}
 
 	// If DB is CE Edition we need to upgrade settings to EE
-	if portaineree.SoftwareEdition(version.Edition) < portaineree.PortainerEE {
+	if portainer.SoftwareEdition(version.Edition) < portaineree.PortainerEE {
 		err = migrator.UpgradeToEE()
 		if err != nil {
 			return errors.Wrap(err, "while upgrading to EE")
@@ -158,7 +159,7 @@ func (store *Store) rollbackToCE(forceUpdate bool) error {
 		return err
 	}
 
-	edition := portaineree.SoftwareEdition(v.Edition)
+	edition := portainer.SoftwareEdition(v.Edition)
 
 	log.Info().
 		Str("current_software_edition", edition.GetEditionLabel()).

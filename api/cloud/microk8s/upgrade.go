@@ -12,6 +12,7 @@ import (
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
 
@@ -383,7 +384,7 @@ func (u *Microk8sUpgrade) Upgrade() (string, error) {
 	return u.nextVersion, err
 }
 
-func (service *Microk8sUpgrade) setMessageHandler(id portaineree.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
+func (service *Microk8sUpgrade) setMessageHandler(id portainer.EndpointID, operation string) func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 	return func(summary, detail string, operationStatus portaineree.EndpointOperationStatus) error {
 		status := portaineree.EndpointStatusMessage{Summary: summary, Detail: detail, OperationStatus: operationStatus, Operation: operation}
 		err := service.dataStore.Endpoint().SetMessage(id, status)

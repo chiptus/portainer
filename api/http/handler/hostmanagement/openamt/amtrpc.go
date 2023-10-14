@@ -9,6 +9,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/hostmanagement/openamt"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -23,14 +24,14 @@ import (
 )
 
 type HostInfo struct {
-	EndpointID     portaineree.EndpointID `json:"EndpointID"`
-	RawOutput      string                 `json:"RawOutput"`
-	AMT            string                 `json:"AMT"`
-	UUID           string                 `json:"UUID"`
-	DNSSuffix      string                 `json:"DNS Suffix"`
-	BuildNumber    string                 `json:"Build Number"`
-	ControlMode    string                 `json:"Control Mode"`
-	ControlModeRaw int                    `json:"Control Mode (Raw)"`
+	EndpointID     portainer.EndpointID `json:"EndpointID"`
+	RawOutput      string               `json:"RawOutput"`
+	AMT            string               `json:"AMT"`
+	UUID           string               `json:"UUID"`
+	DNSSuffix      string               `json:"DNS Suffix"`
+	BuildNumber    string               `json:"Build Number"`
+	ControlMode    string               `json:"Control Mode"`
+	ControlModeRaw int                  `json:"Control Mode (Raw)"`
 }
 
 const (
@@ -61,7 +62,7 @@ func (handler *Handler) openAMTHostInfo(w http.ResponseWriter, r *http.Request) 
 
 	log.Info().Int("endpointID", endpointID).Msg("OpenAMTHostInfo")
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an endpoint with the specified identifier inside the database", err)
 	} else if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/portainer-ee/api/git/update"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/stackbuilders"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -22,7 +23,7 @@ type swarmStackFromFileContentPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
@@ -42,7 +43,7 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	return nil
 }
 
-func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, fileContent string, env []portaineree.Pair, fromAppTemplate bool, webhook string) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, fileContent string, env []portainer.Pair, fromAppTemplate bool, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		SwarmID:          swarmID,
@@ -68,7 +69,7 @@ func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, 
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/swarm/string [post]
-func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	var payload swarmStackFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -118,7 +119,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Swarm cluster identifier
 	SwarmID string `example:"jpofkc0i9uo9wtx1zesuk649w" validate:"required"`
 	// A list of environment variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 
 	// URL of a Git repository hosting the Stack file
 	RepositoryURL string `example:"https://github.com/openfaas/faas" validate:"required"`
@@ -140,7 +141,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional GitOps update configuration
-	AutoUpdate *portaineree.AutoUpdateSettings
+	AutoUpdate *portainer.AutoUpdateSettings
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// Whether the stack suppors relative path volume
@@ -151,7 +152,7 @@ type swarmStackFromGitRepositoryPayload struct {
 	TLSSkipVerify bool `example:"false"`
 }
 
-func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portainer.AutoUpdateSettings, env []portainer.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:    name,
 		SwarmID: swarmID,
@@ -208,7 +209,7 @@ func (payload *swarmStackFromGitRepositoryPayload) Validate(r *http.Request) err
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/swarm/repository [post]
-func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	var payload swarmStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -277,12 +278,12 @@ type swarmStackFromFileUploadPayload struct {
 	Name             string
 	SwarmID          string
 	StackFileContent []byte
-	Env              []portaineree.Pair
+	Env              []portainer.Pair
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
-func createStackPayloadFromSwarmFileUploadPayload(name, swarmID string, fileContentBytes []byte, env []portaineree.Pair, webhook string) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmFileUploadPayload(name, swarmID string, fileContentBytes []byte, env []portainer.Pair, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:                  name,
 		SwarmID:               swarmID,
@@ -311,7 +312,7 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 	}
 	payload.StackFileContent = composeFileContent
 
-	var env []portaineree.Pair
+	var env []portainer.Pair
 	err = request.RetrieveMultiPartFormJSONValue(r, "Env", &env, true)
 	if err != nil {
 		return errors.New("Invalid Env parameter")
@@ -342,7 +343,7 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/swarm/file [post]
-func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	var payload swarmStackFromFileUploadPayload
 	err := payload.Validate(r)
 	if err != nil {

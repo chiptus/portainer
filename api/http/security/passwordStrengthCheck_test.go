@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestStrengthCheck(t *testing.T) {
@@ -42,7 +43,7 @@ type settingsStub struct {
 
 func (s settingsStub) Settings() (*portaineree.Settings, error) {
 	return &portaineree.Settings{
-		InternalAuthSettings: portaineree.InternalAuthSettings{
+		InternalAuthSettings: portainer.InternalAuthSettings{
 			RequiredPasswordLength: s.minLength,
 		},
 	}, nil

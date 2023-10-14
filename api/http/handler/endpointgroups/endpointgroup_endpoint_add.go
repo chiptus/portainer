@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -37,7 +37,7 @@ func (handler *Handler) endpointGroupAddEndpoint(w http.ResponseWriter, r *http.
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.addEndpoint(tx, portaineree.EndpointGroupID(endpointGroupID), portaineree.EndpointID(endpointID))
+		return handler.addEndpoint(tx, portainer.EndpointGroupID(endpointGroupID), portainer.EndpointID(endpointID))
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -51,7 +51,7 @@ func (handler *Handler) endpointGroupAddEndpoint(w http.ResponseWriter, r *http.
 	return response.Empty(w)
 }
 
-func (handler *Handler) addEndpoint(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, endpointID portaineree.EndpointID) error {
+func (handler *Handler) addEndpoint(tx dataservices.DataStoreTx, endpointGroupID portainer.EndpointGroupID, endpointID portainer.EndpointID) error {
 	endpointGroup, err := tx.EndpointGroup().Read(endpointGroupID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)

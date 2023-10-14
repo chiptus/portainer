@@ -2,6 +2,7 @@ package migrator
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -22,13 +23,13 @@ func (m *Migrator) updateEndpointSettingsToDB26() error {
 	for i := range endpoints {
 		endpoint := endpoints[i]
 
-		securitySettings := portaineree.EndpointSecuritySettings{}
+		securitySettings := portainer.EndpointSecuritySettings{}
 
 		if endpoint.Type == portaineree.EdgeAgentOnDockerEnvironment ||
 			endpoint.Type == portaineree.AgentOnDockerEnvironment ||
 			endpoint.Type == portaineree.DockerEnvironment {
 
-			securitySettings = portaineree.EndpointSecuritySettings{
+			securitySettings = portainer.EndpointSecuritySettings{
 				AllowBindMountsForRegularUsers:            settings.AllowBindMountsForRegularUsers,
 				AllowContainerCapabilitiesForRegularUsers: settings.AllowContainerCapabilitiesForRegularUsers,
 				AllowDeviceMappingForRegularUsers:         settings.AllowDeviceMappingForRegularUsers,

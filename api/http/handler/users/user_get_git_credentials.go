@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -38,11 +39,11 @@ func (handler *Handler) userGetGitCredentials(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Couldn't retrieve git credential of another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
@@ -50,7 +51,7 @@ func (handler *Handler) userGetGitCredentials(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
 
-	credentials, err := handler.DataStore.GitCredential().GetGitCredentialsByUserID(portaineree.UserID(userID))
+	credentials, err := handler.DataStore.GitCredential().GetGitCredentialsByUserID(portainer.UserID(userID))
 	if err != nil {
 		return httperror.InternalServerError("Couldn't retrieve git credential", err)
 	}
@@ -95,11 +96,11 @@ func (handler *Handler) userGetGitCredential(w http.ResponseWriter, r *http.Requ
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Couldn't retrieve git credential of another user", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.Forbidden("Unable to find a user with the specified identifier inside the database", err)
@@ -112,7 +113,7 @@ func (handler *Handler) userGetGitCredential(w http.ResponseWriter, r *http.Requ
 		return httperror.InternalServerError("Couldn't retrieve git credential", err)
 	}
 
-	if cred.UserID != portaineree.UserID(userID) {
+	if cred.UserID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to get git-credential", httperrors.ErrUnauthorized)
 	}
 

@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,8 +18,8 @@ func Test_updateEdgeGroups(t *testing.T) {
 			group := &portaineree.EdgeGroup{
 				Name:      name,
 				Dynamic:   false,
-				TagIDs:    make([]portaineree.TagID, 0),
-				Endpoints: make([]portaineree.EndpointID, 0),
+				TagIDs:    make([]portainer.TagID, 0),
+				Endpoints: make([]portainer.EndpointID, 0),
 			}
 
 			err := store.EdgeGroup().Create(group)
@@ -32,7 +33,7 @@ func Test_updateEdgeGroups(t *testing.T) {
 		return groups, nil
 	}
 
-	checkGroups := func(store *datastore.Store, is *assert.Assertions, groupIDs []portaineree.EdgeGroupID, endpointID portaineree.EndpointID) {
+	checkGroups := func(store *datastore.Store, is *assert.Assertions, groupIDs []portainer.EdgeGroupID, endpointID portainer.EndpointID) {
 		for _, groupID := range groupIDs {
 			group, err := store.EdgeGroup().Read(groupID)
 			is.NoError(err)
@@ -88,7 +89,7 @@ func Test_updateEdgeGroups(t *testing.T) {
 		}
 
 		expectedGroups := groupsByName(groups, testCase.groupsToApply)
-		expectedIDs := make([]portaineree.EdgeGroupID, len(expectedGroups))
+		expectedIDs := make([]portainer.EdgeGroupID, len(expectedGroups))
 		for i, tag := range expectedGroups {
 			expectedIDs[i] = tag.ID
 		}

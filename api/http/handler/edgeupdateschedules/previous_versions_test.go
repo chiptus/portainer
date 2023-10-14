@@ -3,21 +3,21 @@ package edgeupdateschedules
 import (
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPreviousVersions(t *testing.T) {
 
-	activeSchedulesMap := map[portaineree.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
+	activeSchedulesMap := map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
 
 	schedules := []edgetypes.UpdateSchedule{
 		{
 			ID:   1,
 			Type: edgetypes.UpdateScheduleUpdate,
-			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+			EnvironmentsPreviousVersions: map[portainer.EndpointID]string{
 				1: "2.11.0",
 
 				2: "2.12.0",
@@ -27,7 +27,7 @@ func TestPreviousVersions(t *testing.T) {
 		{
 			ID:   2,
 			Type: edgetypes.UpdateScheduleRollback,
-			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+			EnvironmentsPreviousVersions: map[portainer.EndpointID]string{
 				1: "2.14.0",
 			},
 			Created: 1500000001,
@@ -35,7 +35,7 @@ func TestPreviousVersions(t *testing.T) {
 		{
 			ID:   3,
 			Type: edgetypes.UpdateScheduleUpdate,
-			EnvironmentsPreviousVersions: map[portaineree.EndpointID]string{
+			EnvironmentsPreviousVersions: map[portainer.EndpointID]string{
 				2: "2.13.0",
 			},
 			Created: 1500000002,
@@ -44,13 +44,13 @@ func TestPreviousVersions(t *testing.T) {
 
 	actual := previousVersions(
 		schedules,
-		func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
+		func(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
 			return activeSchedulesMap[environmentID]
 		},
 		0,
 	)
 
-	assert.Equal(t, map[portaineree.EndpointID]string{
+	assert.Equal(t, map[portainer.EndpointID]string{
 		2: "2.13.0",
 	}, actual)
 

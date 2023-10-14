@@ -31,7 +31,7 @@ func (payload *usersPayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept json
 // @param body body usersPayload true "details"
-// @success 200 {array} portaineree.LDAPUser "Success"
+// @success 200 {array} portainer.LDAPUser "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /ldap/users [post]

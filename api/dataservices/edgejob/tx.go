@@ -3,21 +3,21 @@ package edgejob
 import (
 	"errors"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type ServiceTx struct {
-	dataservices.BaseDataServiceTx[portaineree.EdgeJob, portaineree.EdgeJobID]
+	dataservices.BaseDataServiceTx[portainer.EdgeJob, portainer.EdgeJobID]
 }
 
 // Create creates a new EdgeJob
-func (service ServiceTx) Create(edgeJob *portaineree.EdgeJob) error {
-	return service.CreateWithID(portaineree.EdgeJobID(service.GetNextIdentifier()), edgeJob)
+func (service ServiceTx) Create(edgeJob *portainer.EdgeJob) error {
+	return service.CreateWithID(portainer.EdgeJobID(service.GetNextIdentifier()), edgeJob)
 }
 
 // CreateWithID creates a new EdgeJob
-func (service ServiceTx) CreateWithID(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error {
+func (service ServiceTx) CreateWithID(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error {
 	edgeJob.ID = ID
 
 	return service.Tx.CreateObjectWithId(
@@ -28,7 +28,7 @@ func (service ServiceTx) CreateWithID(ID portaineree.EdgeJobID, edgeJob *portain
 }
 
 // UpdateEdgeJobFunc is a no-op inside a transaction
-func (service ServiceTx) UpdateEdgeJobFunc(ID portaineree.EdgeJobID, updateFunc func(edgeJob *portaineree.EdgeJob)) error {
+func (service ServiceTx) UpdateEdgeJobFunc(ID portainer.EdgeJobID, updateFunc func(edgeJob *portainer.EdgeJob)) error {
 	return errors.New("cannot be called inside a transaction")
 }
 

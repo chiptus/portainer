@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/license"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -101,11 +102,11 @@ func NewHandler(
 }
 
 // Check if the user is an admin or can write to the cluster node
-func canWriteK8sClusterNode(user *portaineree.User, endpointID portaineree.EndpointID) bool {
+func canWriteK8sClusterNode(user *portaineree.User, endpointID portainer.EndpointID) bool {
 	isAdmin := user.Role == portaineree.AdministratorRole
 	hasAccess := false
-	if user.EndpointAuthorizations[portaineree.EndpointID(endpointID)] != nil {
-		_, hasAccess = user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
+	if user.EndpointAuthorizations[portainer.EndpointID(endpointID)] != nil {
+		_, hasAccess = user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]
 	}
 	return isAdmin || hasAccess
 }

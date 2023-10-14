@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Create
@@ -22,7 +23,7 @@ func TestCreateAndInspect(t *testing.T) {
 		Name:         "EdgeGroup 1",
 		Dynamic:      false,
 		TagIDs:       nil,
-		Endpoints:    []portaineree.EndpointID{endpoint.ID},
+		Endpoints:    []portainer.EndpointID{endpoint.ID},
 		PartialMatch: false,
 	}
 
@@ -31,9 +32,9 @@ func TestCreateAndInspect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{},
+		EdgeStacks: map[portainer.EdgeStackID]bool{},
 	}
 
 	err = handler.DataStore.EndpointRelation().Create(&endpointRelation)
@@ -44,7 +45,7 @@ func TestCreateAndInspect(t *testing.T) {
 	payload := edgeStackFromStringPayload{
 		Name:             "Test Stack",
 		StackFileContent: "stack content",
-		EdgeGroups:       []portaineree.EdgeGroupID{1},
+		EdgeGroups:       []portainer.EdgeGroupID{1},
 		DeploymentType:   portaineree.EdgeStackDeploymentCompose,
 	}
 
@@ -151,7 +152,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 			Payload: edgeStackFromStringPayload{
 				Name:             edgeStack.Name,
 				StackFileContent: "content",
-				EdgeGroups:       []portaineree.EdgeGroupID{},
+				EdgeGroups:       []portainer.EdgeGroupID{},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
 			Method:             "string",
@@ -162,7 +163,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 			Payload: edgeStackFromStringPayload{
 				Name:             "Stack name",
 				StackFileContent: "content",
-				EdgeGroups:       []portaineree.EdgeGroupID{1},
+				EdgeGroups:       []portainer.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentKubernetes,
 			},
 			Method:             "string",
@@ -173,7 +174,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 			Payload: edgeStackFromStringPayload{
 				Name:             "Stack name",
 				StackFileContent: "",
-				EdgeGroups:       []portaineree.EdgeGroupID{1},
+				EdgeGroups:       []portainer.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentCompose,
 			},
 			Method:             "string",
@@ -189,7 +190,7 @@ func TestCreateWithInvalidPayload(t *testing.T) {
 				RepositoryUsername:       "",
 				RepositoryPassword:       "",
 				FilePathInRepository:     "/file/path",
-				EdgeGroups:               []portaineree.EdgeGroupID{1},
+				EdgeGroups:               []portainer.EdgeGroupID{1},
 				DeploymentType:           portaineree.EdgeStackDeploymentCompose,
 			},
 			Method:             "repository",

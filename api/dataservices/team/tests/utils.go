@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,10 +14,10 @@ type teamBuilder struct {
 	store *datastore.Store
 }
 
-func (b *teamBuilder) createNew(name string) *portaineree.Team {
+func (b *teamBuilder) createNew(name string) *portainer.Team {
 	b.count++
-	team := &portaineree.Team{
-		ID:   portaineree.TeamID(b.count),
+	team := &portainer.Team{
+		ID:   portainer.TeamID(b.count),
 		Name: name,
 	}
 

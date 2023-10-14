@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
@@ -44,7 +44,7 @@ func (handler *Handler) endpointTrust(w http.ResponseWriter, r *http.Request) *h
 	return response.Empty(w)
 }
 
-func (handler *Handler) trustEndpoint(tx dataservices.DataStoreTx, ID portaineree.EndpointID) error {
+func (handler *Handler) trustEndpoint(tx dataservices.DataStoreTx, ID portainer.EndpointID) error {
 	endpoint, err := tx.Endpoint().Endpoint(ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment from the database", err)

@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -65,7 +66,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 
 	user = &portaineree.User{
 		Username:                payload.Username,
-		Role:                    portaineree.UserRole(payload.Role),
+		Role:                    portainer.UserRole(payload.Role),
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 	}
 

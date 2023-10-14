@@ -19,7 +19,7 @@ type KubernetesStackGitBuilder struct {
 	GitMethodStackBuilder
 	stackCreateMut          *sync.Mutex
 	KuberneteDeployer       portaineree.KubernetesDeployer
-	TokenData               *portaineree.TokenData
+	TokenData               *portainer.TokenData
 	AuthorizationService    *authorization.Service
 	KubernetesClientFactory *cli.ClientFactory
 }
@@ -32,7 +32,7 @@ func CreateKubernetesStackGitBuilder(userActivityService portaineree.UserActivit
 	scheduler *scheduler.Scheduler,
 	stackDeployer deployments.StackDeployer,
 	kuberneteDeployer portaineree.KubernetesDeployer,
-	tokenData *portaineree.TokenData,
+	tokenData *portainer.TokenData,
 	AuthorizationService *authorization.Service,
 	KubernetesClientFactory *cli.ClientFactory) *KubernetesStackGitBuilder {
 
@@ -70,7 +70,7 @@ func (b *KubernetesStackGitBuilder) SetUniqueInfo(payload *StackPayload) GitMeth
 	return b
 }
 
-func (b *KubernetesStackGitBuilder) SetGitRepository(payload *StackPayload, userID portaineree.UserID) GitMethodStackBuildProcess {
+func (b *KubernetesStackGitBuilder) SetGitRepository(payload *StackPayload, userID portainer.UserID) GitMethodStackBuildProcess {
 	b.GitMethodStackBuilder.SetGitRepository(payload, userID)
 	return b
 }

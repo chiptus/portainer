@@ -31,7 +31,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // Extension returns a extension by ID
-func (service *Service) Extension(ID portaineree.ExtensionID) (*portaineree.Extension, error) {
+func (service *Service) Extension(ID portainer.ExtensionID) (*portaineree.Extension, error) {
 	var extension portaineree.Extension
 	identifier := service.connection.ConvertToKey(int(ID))
 
@@ -61,7 +61,7 @@ func (service *Service) Persist(extension *portaineree.Extension) error {
 }
 
 // DeleteExtension deletes a Extension.
-func (service *Service) DeleteExtension(ID portaineree.ExtensionID) error {
+func (service *Service) DeleteExtension(ID portainer.ExtensionID) error {
 	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.DeleteObject(BucketName, identifier)
 }

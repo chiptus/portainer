@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -29,7 +30,7 @@ func (service *Microk8sCluster) GetAddons(credential *models.CloudCredential, en
 	log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msg("processing get info request")
 
 	// Gather nodeIP from environmentID
-	endpoint, err := service.DataStore.Endpoint().Endpoint(portaineree.EndpointID(environmentID))
+	endpoint, err := service.DataStore.Endpoint().Endpoint(portainer.EndpointID(environmentID))
 	if err != nil {
 		log.Debug().Str("provider", portaineree.CloudProviderMicrok8s).Msg("failed looking up environment nodeIP")
 		return nil, err

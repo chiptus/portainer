@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -51,7 +52,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
-func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portaineree.Endpoint, authorizations []portaineree.Authorization) (bool, *httperror.HandlerError) {
+func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portaineree.Endpoint, authorizations []portainer.Authorization) (bool, *httperror.HandlerError) {
 	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {
 		return false, httperror.Forbidden("Permission denied to access environment", err)

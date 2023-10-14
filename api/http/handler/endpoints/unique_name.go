@@ -1,8 +1,8 @@
 package endpoints
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import portainer "github.com/portainer/portainer/api"
 
-func (handler *Handler) isNameUnique(name string, endpointID portaineree.EndpointID) (bool, error) {
+func (handler *Handler) isNameUnique(name string, endpointID portainer.EndpointID) (bool, error) {
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
 	if err != nil {
 		return false, err

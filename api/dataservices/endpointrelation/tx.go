@@ -19,19 +19,19 @@ func (service ServiceTx) BucketName() string {
 }
 
 // EndpointRelations returns an array of all EndpointRelations
-func (service ServiceTx) EndpointRelations() ([]portaineree.EndpointRelation, error) {
-	var all = make([]portaineree.EndpointRelation, 0)
+func (service ServiceTx) EndpointRelations() ([]portainer.EndpointRelation, error) {
+	var all = make([]portainer.EndpointRelation, 0)
 
 	return all, service.tx.GetAll(
 		BucketName,
-		&portaineree.EndpointRelation{},
+		&portainer.EndpointRelation{},
 		dataservices.AppendFn(&all),
 	)
 }
 
 // EndpointRelation returns a Environment(Endpoint) relation object by EndpointID
-func (service ServiceTx) EndpointRelation(endpointID portaineree.EndpointID) (*portaineree.EndpointRelation, error) {
-	var endpointRelation portaineree.EndpointRelation
+func (service ServiceTx) EndpointRelation(endpointID portainer.EndpointID) (*portainer.EndpointRelation, error) {
+	var endpointRelation portainer.EndpointRelation
 	identifier := service.service.connection.ConvertToKey(int(endpointID))
 
 	err := service.tx.GetObject(BucketName, identifier, &endpointRelation)
@@ -43,7 +43,7 @@ func (service ServiceTx) EndpointRelation(endpointID portaineree.EndpointID) (*p
 }
 
 // CreateEndpointRelation saves endpointRelation
-func (service ServiceTx) Create(endpointRelation *portaineree.EndpointRelation) error {
+func (service ServiceTx) Create(endpointRelation *portainer.EndpointRelation) error {
 	err := service.tx.CreateObjectWithId(BucketName, int(endpointRelation.EndpointID), endpointRelation)
 	cache.Del(endpointRelation.EndpointID)
 
@@ -51,7 +51,7 @@ func (service ServiceTx) Create(endpointRelation *portaineree.EndpointRelation) 
 }
 
 // UpdateEndpointRelation updates an Environment(Endpoint) relation object
-func (service ServiceTx) UpdateEndpointRelation(endpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error {
+func (service ServiceTx) UpdateEndpointRelation(endpointID portainer.EndpointID, endpointRelation *portainer.EndpointRelation) error {
 	previousRelationState, _ := service.EndpointRelation(endpointID)
 
 	identifier := service.service.connection.ConvertToKey(int(endpointID))
@@ -69,7 +69,7 @@ func (service ServiceTx) UpdateEndpointRelation(endpointID portaineree.EndpointI
 }
 
 // DeleteEndpointRelation deletes an Environment(Endpoint) relation object
-func (service ServiceTx) DeleteEndpointRelation(endpointID portaineree.EndpointID) error {
+func (service ServiceTx) DeleteEndpointRelation(endpointID portainer.EndpointID) error {
 	deletedRelation, _ := service.EndpointRelation(endpointID)
 
 	identifier := service.service.connection.ConvertToKey(int(endpointID))
@@ -84,7 +84,7 @@ func (service ServiceTx) DeleteEndpointRelation(endpointID portaineree.EndpointI
 	return nil
 }
 
-func (service ServiceTx) InvalidateEdgeCacheForEdgeStack(edgeStackID portaineree.EdgeStackID) {
+func (service ServiceTx) InvalidateEdgeCacheForEdgeStack(edgeStackID portainer.EdgeStackID) {
 	rels, err := service.EndpointRelations()
 	if err != nil {
 		log.Error().Err(err).Msg("cannot retrieve endpoint relations")
@@ -100,10 +100,10 @@ func (service ServiceTx) InvalidateEdgeCacheForEdgeStack(edgeStackID portaineree
 	}
 }
 
-func (service ServiceTx) updateEdgeStacksAfterRelationChange(previousRelationState *portaineree.EndpointRelation, updatedRelationState *portaineree.EndpointRelation) {
+func (service ServiceTx) updateEdgeStacksAfterRelationChange(previousRelationState *portainer.EndpointRelation, updatedRelationState *portainer.EndpointRelation) {
 	relations, _ := service.EndpointRelations()
 
-	stacksToUpdate := map[portaineree.EdgeStackID]bool{}
+	stacksToUpdate := map[portainer.EdgeStackID]bool{}
 
 	if previousRelationState != nil {
 		for stackId, enabled := range previousRelationState.EdgeStacks {

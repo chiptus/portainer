@@ -6,9 +6,10 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
-var PredefinedRoles = map[portaineree.RoleID]*portaineree.Role{
+var PredefinedRoles = map[portainer.RoleID]*portaineree.Role{
 	portaineree.RoleIDEndpointAdmin: {
 		Name:           "Environment administrator",
 		Description:    "Full control of all resources in an environment",
@@ -58,7 +59,7 @@ func (service *Service) CreateOrUpdatePredefinedRoles() error {
 	sort.Ints(roles)
 
 	for _, roleid := range roles {
-		roleID := portaineree.RoleID(roleid)
+		roleID := portainer.RoleID(roleid)
 		predefinedRole := PredefinedRoles[roleID]
 
 		_, err := service.Read(roleID)

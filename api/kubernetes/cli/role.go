@@ -8,6 +8,7 @@ import (
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	"github.com/portainer/portainer-ee/api/internal/concurrent"
 	"github.com/portainer/portainer-ee/api/internal/errorlist"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -28,8 +29,8 @@ type (
 	}
 )
 
-func getPortainerK8sRoleMapping() map[portaineree.RoleID]k8sRoleSet {
-	return map[portaineree.RoleID]k8sRoleSet{
+func getPortainerK8sRoleMapping() map[portainer.RoleID]k8sRoleSet {
+	return map[portainer.RoleID]k8sRoleSet{
 		portaineree.RoleIDEndpointAdmin: {
 			k8sClusterRoles: []portaineree.K8sRole{
 				portaineree.K8sRoleClusterAdmin,

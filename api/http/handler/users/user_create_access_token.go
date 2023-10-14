@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -76,11 +77,11 @@ func (handler *Handler) userCreateAccessToken(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to create user access token", httperrors.ErrUnauthorized)
 	}
 
-	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		return httperror.BadRequest("Unable to find a user", err)
 	}

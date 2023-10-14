@@ -3,7 +3,7 @@ package edgestacks
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -32,7 +32,7 @@ func (handler *Handler) edgeStackLogsDelete(w http.ResponseWriter, r *http.Reque
 		return httperror.BadRequest("Invalid endpoint identifier route variable", err)
 	}
 
-	err = handler.DataStore.EdgeStackLog().Delete(portaineree.EdgeStackID(edgeStackID), portaineree.EndpointID(endpointID))
+	err = handler.DataStore.EdgeStackLog().Delete(portainer.EdgeStackID(edgeStackID), portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.BadRequest("Could not delete the logs", err)
 	}

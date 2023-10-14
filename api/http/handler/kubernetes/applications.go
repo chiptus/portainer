@@ -3,8 +3,8 @@ package kubernetes
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -113,7 +113,7 @@ func (handler *Handler) getKubernetesApplication(w http.ResponseWriter, r *http.
 			return httperror.BadRequest("Invalid environment identifier route variable", err)
 		}
 
-		output, httperr := handler.restartKubernetesApplication(tokenData.ID, portaineree.EndpointID(endpointID), namespace, kind, name)
+		output, httperr := handler.restartKubernetesApplication(tokenData.ID, portainer.EndpointID(endpointID), namespace, kind, name)
 		if httperr != nil {
 			return httperr
 		}
@@ -124,10 +124,10 @@ func (handler *Handler) getKubernetesApplication(w http.ResponseWriter, r *http.
 	return response.Empty(w)
 }
 
-func (handler *Handler) restartKubernetesApplication(userID portaineree.UserID, endpointID portaineree.EndpointID, namespace, kind, name string) (string, *httperror.HandlerError) {
+func (handler *Handler) restartKubernetesApplication(userID portainer.UserID, endpointID portainer.EndpointID, namespace, kind, name string) (string, *httperror.HandlerError) {
 	resourceList := []string{kind + "/" + name}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		returnCode := http.StatusInternalServerError
 		if handler.DataStore.IsErrObjectNotFound(err) {

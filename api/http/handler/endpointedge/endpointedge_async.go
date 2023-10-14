@@ -29,16 +29,16 @@ import (
 const edgeIntervalUseDefault = -1
 
 type MetaFields struct {
-	EdgeGroupsIDs      []portaineree.EdgeGroupID   `json:"edgeGroupsIds"`
-	TagsIDs            []portaineree.TagID         `json:"tagsIds"`
-	EnvironmentGroupID portaineree.EndpointGroupID `json:"environmentGroupId"`
+	EdgeGroupsIDs      []portainer.EdgeGroupID   `json:"edgeGroupsIds"`
+	TagsIDs            []portainer.TagID         `json:"tagsIds"`
+	EnvironmentGroupID portainer.EndpointGroupID `json:"environmentGroupId"`
 }
 
 type EdgeAsyncRequest struct {
-	CommandTimestamp *time.Time             `json:"commandTimestamp"`
-	Snapshot         *snapshot              `json:"snapshot"`
-	EndpointID       portaineree.EndpointID `json:"endpointId"`
-	MetaFields       *MetaFields            `json:"metaFields"`
+	CommandTimestamp *time.Time           `json:"commandTimestamp"`
+	Snapshot         *snapshot            `json:"snapshot"`
+	EndpointID       portainer.EndpointID `json:"endpointId"`
+	MetaFields       *MetaFields          `json:"metaFields"`
 }
 
 type snapshot struct {
@@ -46,20 +46,20 @@ type snapshot struct {
 	DockerPatch jsonpatch.Patch           `json:"dockerPatch,omitempty"`
 	DockerHash  *uint32                   `json:"dockerHash,omitempty"`
 
-	Kubernetes      *portaineree.KubernetesSnapshot `json:"kubernetes,omitempty"`
-	KubernetesPatch jsonpatch.Patch                 `json:"kubernetesPatch,omitempty"`
-	KubernetesHash  *uint32                         `json:"kubernetesHash,omitempty"`
+	Kubernetes      *portainer.KubernetesSnapshot `json:"kubernetes,omitempty"`
+	KubernetesPatch jsonpatch.Patch               `json:"kubernetesPatch,omitempty"`
+	KubernetesHash  *uint32                       `json:"kubernetesHash,omitempty"`
 
 	StackLogs []portaineree.EdgeStackLog `json:"stackLogs,omitempty"`
 	// Deprecated: StackStatus is deprecated, use StackStatusArray instead
-	StackStatus      map[portaineree.EdgeStackID]portainer.EdgeStackStatus             `json:"stackStatus,omitempty"`
-	StackStatusArray map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatusArray,omitempty"`
-	JobsStatus       map[portaineree.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
-	EdgeConfigStates map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType      `json:"edgeConfigStates,omitempty"`
+	StackStatus      map[portainer.EdgeStackID]portainer.EdgeStackStatus             `json:"stackStatus,omitempty"`
+	StackStatusArray map[portainer.EdgeStackID][]portainer.EdgeStackDeploymentStatus `json:"stackStatusArray,omitempty"`
+	JobsStatus       map[portainer.EdgeJobID]portaineree.EdgeJobStatus               `json:"jobsStatus,omitempty"`
+	EdgeConfigStates map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType    `json:"edgeConfigStates,omitempty"`
 }
 
 type EdgeAsyncResponse struct {
-	EndpointID portaineree.EndpointID `json:"endpointID"`
+	EndpointID portainer.EndpointID `json:"endpointID"`
 
 	PingInterval     time.Duration `json:"pingInterval"`
 	SnapshotInterval time.Duration `json:"snapshotInterval"`
@@ -201,7 +201,7 @@ func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID strin
 		endpoint.LocalTimeZone = timeZone
 	}
 	endpoint.LastCheckInDate = time.Now().Unix()
-	endpoint.Status = portaineree.EndpointStatusUp
+	endpoint.Status = portainer.EndpointStatusUp
 	endpoint.Edge.AsyncMode = true
 	endpoint.Agent.Version = version
 
@@ -286,7 +286,7 @@ func parseBodyPayload(req *http.Request) (EdgeAsyncRequest, error) {
 	return payload, nil
 }
 
-func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx, req *http.Request, edgeID string, endpointType portaineree.EndpointType, version string, timeZone string, metaFields *MetaFields) (*portaineree.Endpoint, *httperror.HandlerError) {
+func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx, req *http.Request, edgeID string, endpointType portainer.EndpointType, version string, timeZone string, metaFields *MetaFields) (*portaineree.Endpoint, *httperror.HandlerError) {
 	settings, err := tx.Settings().Settings()
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve the settings", err)
@@ -301,21 +301,21 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(settings.EdgePortainerURL, settings.Edge.TunnelServerAddress, endpointID)
 
 	endpoint := &portaineree.Endpoint{
-		ID:     portaineree.EndpointID(endpointID),
+		ID:     portainer.EndpointID(endpointID),
 		EdgeID: edgeID,
 		Name:   edgeID,
 		URL:    settings.EdgePortainerURL,
 		Type:   endpointType,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS: false,
 		},
-		GroupID:            portaineree.EndpointGroupID(1),
-		AuthorizedUsers:    []portaineree.UserID{},
-		AuthorizedTeams:    []portaineree.TeamID{},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
+		GroupID:            portainer.EndpointGroupID(1),
+		AuthorizedUsers:    []portainer.UserID{},
+		AuthorizedTeams:    []portainer.TeamID{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
+		TagIDs:             []portainer.TagID{},
+		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		EdgeKey:            edgeKey,
 		Kubernetes:         portaineree.KubernetesDefault(),
@@ -323,7 +323,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 			Enabled: false,
 		},
 		LocalTimeZone: timeZone,
-		SecuritySettings: portaineree.EndpointSecuritySettings{
+		SecuritySettings: portainer.EndpointSecuritySettings{
 			AllowVolumeBrowserForRegularUsers:         false,
 			EnableHostManagementFeatures:              false,
 			AllowSysctlSettingForRegularUsers:         true,
@@ -336,7 +336,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 		},
 	}
 
-	var edgeGroupsIDs []portaineree.EdgeGroupID
+	var edgeGroupsIDs []portainer.EdgeGroupID
 	if metaFields != nil {
 		if metaFields.EnvironmentGroupID == 0 {
 			metaFields.EnvironmentGroupID = 1
@@ -350,7 +350,7 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 		endpoint.GroupID = metaFields.EnvironmentGroupID
 
 		// validate tags
-		tagsIDs := []portaineree.TagID{}
+		tagsIDs := []portainer.TagID{}
 		for _, tagID := range metaFields.TagsIDs {
 			_, err = tx.Tag().Read(tagID)
 			if err != nil {
@@ -506,7 +506,7 @@ func (handler *Handler) updateKubernetesSnapshot(tx dataservices.DataStoreTx, en
 			return fmt.Errorf("could not apply the patch to the Kubernetes snapshot: %w", err)
 		}
 
-		var newSnapshot portaineree.KubernetesSnapshot
+		var newSnapshot portainer.KubernetesSnapshot
 		err = json.Unmarshal(newSnapshotJSON, &newSnapshot)
 		if err != nil {
 			*needFullSnapshot = true
@@ -679,7 +679,7 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 			continue
 		}
 
-		meta := portaineree.EdgeJobEndpointMeta{CollectLogs: false, LogsStatus: portaineree.EdgeJobLogsStatusCollected}
+		meta := portainer.EdgeJobEndpointMeta{CollectLogs: false, LogsStatus: portaineree.EdgeJobLogsStatusCollected}
 		if _, ok := edgeJob.GroupLogsCollection[endpoint.ID]; ok {
 			edgeJob.GroupLogsCollection[endpoint.ID] = meta
 		} else {
@@ -766,7 +766,7 @@ func (handler *Handler) sendCommandsSince(tx dataservices.DataStoreTx, endpoint 
 	return commandsResponse, nil
 }
 
-func (handler *Handler) getEndpoint(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
+func (handler *Handler) getEndpoint(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeID string) (*portaineree.Endpoint, error) {
 	if endpointID == 0 {
 		var ok bool
 		endpointID, ok = handler.DataStore.Endpoint().EndpointIDByEdgeID(edgeID)
@@ -806,8 +806,8 @@ func snapshotHash(snapshot []byte) uint32 {
 	return h.Sum32()
 }
 
-func convertOldStackStatus(stackStatus map[portaineree.EdgeStackID]portainer.EdgeStackStatus) map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus {
-	stackStatusArray := make(map[portaineree.EdgeStackID][]portainer.EdgeStackDeploymentStatus)
+func convertOldStackStatus(stackStatus map[portainer.EdgeStackID]portainer.EdgeStackStatus) map[portainer.EdgeStackID][]portainer.EdgeStackDeploymentStatus {
+	stackStatusArray := make(map[portainer.EdgeStackID][]portainer.EdgeStackDeploymentStatus)
 
 	for endpointID, status := range stackStatus {
 

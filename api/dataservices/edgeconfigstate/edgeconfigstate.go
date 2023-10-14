@@ -9,11 +9,11 @@ import (
 const BucketName = "edgeconfigstates"
 
 type Service struct {
-	dataservices.BaseDataService[portaineree.EdgeConfigState, portaineree.EndpointID]
+	dataservices.BaseDataService[portaineree.EdgeConfigState, portainer.EndpointID]
 }
 
 type ServiceTx struct {
-	dataservices.BaseDataServiceTx[portaineree.EdgeConfigState, portaineree.EndpointID]
+	dataservices.BaseDataServiceTx[portaineree.EdgeConfigState, portainer.EndpointID]
 }
 
 func NewService(connection portainer.Connection) (*Service, error) {
@@ -23,7 +23,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.EdgeConfigState, portaineree.EndpointID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.EdgeConfigState, portainer.EndpointID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -38,7 +38,7 @@ func (s *Service) Create(state *portaineree.EdgeConfigState) error {
 
 func (s *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EdgeConfigState, portaineree.EndpointID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.EdgeConfigState, portainer.EndpointID]{
 			Bucket:     BucketName,
 			Connection: s.Connection,
 			Tx:         tx,

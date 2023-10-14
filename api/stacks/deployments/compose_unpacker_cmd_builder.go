@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type StackRemoteOperation string
@@ -223,7 +224,7 @@ func getRegistry(registries []portaineree.Registry, dataStore dataservices.DataS
 	return cmds
 }
 
-func getEnv(env []portaineree.Pair) []string {
+func getEnv(env []portainer.Pair) []string {
 	if len(env) == 0 {
 		return nil
 	}

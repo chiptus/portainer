@@ -7,9 +7,10 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func updateEnvironmentEdgeGroups(tx dataservices.DataStoreTx, newEdgeGroups []portaineree.EdgeGroupID, environmentID portaineree.EndpointID) (bool, error) {
+func updateEnvironmentEdgeGroups(tx dataservices.DataStoreTx, newEdgeGroups []portainer.EdgeGroupID, environmentID portainer.EndpointID) (bool, error) {
 	edgeGroups, err := tx.EdgeGroup().ReadAll()
 	if err != nil {
 		return false, errors.WithMessage(err, "Unable to retrieve edge groups from the database")
@@ -17,7 +18,7 @@ func updateEnvironmentEdgeGroups(tx dataservices.DataStoreTx, newEdgeGroups []po
 
 	newEdgeGroupsSet := set.ToSet(newEdgeGroups)
 
-	environmentEdgeGroupsSet := set.Set[portaineree.EdgeGroupID]{}
+	environmentEdgeGroupsSet := set.Set[portainer.EdgeGroupID]{}
 	for _, edgeGroup := range edgeGroups {
 		for _, eID := range edgeGroup.Endpoints {
 			if eID == environmentID {
@@ -33,7 +34,7 @@ func updateEnvironmentEdgeGroups(tx dataservices.DataStoreTx, newEdgeGroups []po
 		return false, nil
 	}
 
-	updateSet := func(groupIDs set.Set[portaineree.EdgeGroupID], updateItem func(*portaineree.EdgeGroup)) error {
+	updateSet := func(groupIDs set.Set[portainer.EdgeGroupID], updateItem func(*portaineree.EdgeGroup)) error {
 		for groupID := range groupIDs {
 			group, err := tx.EdgeGroup().Read(groupID)
 			if err != nil {
@@ -53,7 +54,7 @@ func updateEnvironmentEdgeGroups(tx dataservices.DataStoreTx, newEdgeGroups []po
 
 	removeEdgeGroups := environmentEdgeGroupsSet.Difference(newEdgeGroupsSet)
 	err = updateSet(removeEdgeGroups, func(edgeGroup *portaineree.EdgeGroup) {
-		edgeGroup.Endpoints = slices.DeleteFunc(edgeGroup.Endpoints, func(eID portaineree.EndpointID) bool {
+		edgeGroup.Endpoints = slices.DeleteFunc(edgeGroup.Endpoints, func(eID portainer.EndpointID) bool {
 			return eID == environmentID
 		})
 	})

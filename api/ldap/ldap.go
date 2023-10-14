@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
 
 	ldap "github.com/go-ldap/ldap/v3"
@@ -170,16 +171,16 @@ func (*Service) SearchUsers(settings *portaineree.LDAPSettings) ([]string, error
 }
 
 // SearchGroups searches for groups with the GroupSearchSettings
-func (*Service) SearchGroups(settings *portaineree.LDAPSettings) ([]portaineree.LDAPUser, error) {
+func (*Service) SearchGroups(settings *portaineree.LDAPSettings) ([]portainer.LDAPUser, error) {
 	userGroups, err := searchUserGroups(settings, false)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed searching user groups")
 	}
 
-	users := []portaineree.LDAPUser{}
+	users := []portainer.LDAPUser{}
 
 	for username, groups := range userGroups {
-		user := portaineree.LDAPUser{
+		user := portainer.LDAPUser{
 			Name:   username,
 			Groups: groups,
 		}
@@ -210,7 +211,7 @@ func (*Service) SearchAdminGroups(settings *portaineree.LDAPSettings) ([]string,
 	return groups, nil
 }
 
-func searchUser(username string, conn *ldap.Conn, settings []portaineree.LDAPSearchSettings) (string, error) {
+func searchUser(username string, conn *ldap.Conn, settings []portainer.LDAPSearchSettings) (string, error) {
 	var userDN string
 	found := false
 	usernameEscaped := ldap.EscapeFilter(username)
@@ -291,7 +292,7 @@ func searchUserGroups(settings *portaineree.LDAPSettings, useAutoAdminSearchSett
 }
 
 // Get a list of group names for specified user from LDAP/AD
-func getGroupsByUser(userDN string, conn *ldap.Conn, settings []portaineree.LDAPGroupSearchSettings) []string {
+func getGroupsByUser(userDN string, conn *ldap.Conn, settings []portainer.LDAPGroupSearchSettings) []string {
 	groups := make([]string, 0)
 	userDNEscaped := ldap.EscapeFilter(userDN)
 

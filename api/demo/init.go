@@ -9,8 +9,8 @@ import (
 
 func initDemoUser(
 	store dataservices.DataStore,
-	cryptoService portaineree.CryptoService,
-) (portaineree.UserID, error) {
+	cryptoService portainer.CryptoService,
+) (portainer.UserID, error) {
 
 	password, err := cryptoService.Hash("tryportainer")
 	if err != nil {
@@ -27,7 +27,7 @@ func initDemoUser(
 	return admin.ID, errors.WithMessage(err, "failed creating user")
 }
 
-func initDemoEndpoints(store dataservices.DataStore) ([]portaineree.EndpointID, error) {
+func initDemoEndpoints(store dataservices.DataStore) ([]portainer.EndpointID, error) {
 	localEndpointId, err := initDemoLocalEndpoint(store)
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed creating local endpoint")
@@ -35,27 +35,27 @@ func initDemoEndpoints(store dataservices.DataStore) ([]portaineree.EndpointID, 
 
 	// second and third endpoints are going to be created with docker-compose as a part of the demo environment set up.
 	// ref: https://github.com/portainer/portainer-demo/blob/master/docker-compose.yml
-	return []portaineree.EndpointID{localEndpointId, localEndpointId + 1, localEndpointId + 2}, nil
+	return []portainer.EndpointID{localEndpointId, localEndpointId + 1, localEndpointId + 2}, nil
 }
 
-func initDemoLocalEndpoint(store dataservices.DataStore) (portaineree.EndpointID, error) {
-	id := portaineree.EndpointID(store.Endpoint().GetNextIdentifier())
+func initDemoLocalEndpoint(store dataservices.DataStore) (portainer.EndpointID, error) {
+	id := portainer.EndpointID(store.Endpoint().GetNextIdentifier())
 	localEndpoint := &portaineree.Endpoint{
 		ID:        id,
 		Name:      "local",
 		URL:       "unix:///var/run/docker.sock",
 		PublicURL: "demo.portaineree.io",
 		Type:      portaineree.DockerEnvironment,
-		GroupID:   portaineree.EndpointGroupID(1),
-		TLSConfig: portaineree.TLSConfiguration{
+		GroupID:   portainer.EndpointGroupID(1),
+		TLSConfig: portainer.TLSConfiguration{
 			TLS: false,
 		},
-		AuthorizedUsers:    []portaineree.UserID{},
-		AuthorizedTeams:    []portaineree.TeamID{},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
+		AuthorizedUsers:    []portainer.UserID{},
+		AuthorizedTeams:    []portainer.TeamID{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
+		TagIDs:             []portainer.TagID{},
+		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 	}

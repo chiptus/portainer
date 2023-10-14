@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -118,7 +119,7 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 		return httperror.BadRequest("Invalid registry identifier route variable", err)
 	}
 
-	registry, err := handler.DataStore.Registry().Read(portaineree.RegistryID(registryID))
+	registry, err := handler.DataStore.Registry().Read(portainer.RegistryID(registryID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a registry with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -139,9 +140,9 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	var tlsConfig portaineree.TLSConfiguration
+	var tlsConfig portainer.TLSConfiguration
 	if payload.TLS {
-		tlsConfig = portaineree.TLSConfiguration{
+		tlsConfig = portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: payload.TLSSkipVerify,
 		}

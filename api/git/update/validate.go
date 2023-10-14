@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func ValidateAutoUpdateSettings(autoUpdate *portaineree.AutoUpdateSettings) error {
+func ValidateAutoUpdateSettings(autoUpdate *portainer.AutoUpdateSettings) error {
 	if autoUpdate == nil {
 		return nil
 	}

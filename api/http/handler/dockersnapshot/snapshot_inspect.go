@@ -3,7 +3,6 @@ package dockersnapshot
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -59,7 +58,7 @@ type snapshotResponse struct {
 func (handler *Handler) snapshotInspect(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
-	environmentSnapshot, err := handler.dataStore.Snapshot().Read(portaineree.EndpointID(environmentId))
+	environmentSnapshot, err := handler.dataStore.Snapshot().Read(portainer.EndpointID(environmentId))
 	if err != nil || environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return httperror.NotFound("Unable to find a snapshot", err)
 	}

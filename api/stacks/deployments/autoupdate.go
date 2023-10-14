@@ -12,7 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func StartAutoupdate(stackID portaineree.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
+func StartAutoupdate(stackID portainer.StackID, interval string, scheduler *scheduler.Scheduler, stackDeployer StackDeployer, datastore dataservices.DataStore, gitService portainer.GitService, activityService portaineree.UserActivityService) (jobID string, e *httperror.HandlerError) {
 	d, err := time.ParseDuration(interval)
 	if err != nil {
 		return "", httperror.BadRequest("Unable to parse stack's auto update interval", err)
@@ -25,7 +25,7 @@ func StartAutoupdate(stackID portaineree.StackID, interval string, scheduler *sc
 	return jobID, nil
 }
 
-func StopAutoupdate(stackID portaineree.StackID, jobID string, scheduler *scheduler.Scheduler) {
+func StopAutoupdate(stackID portainer.StackID, jobID string, scheduler *scheduler.Scheduler) {
 	if jobID == "" {
 		return
 	}

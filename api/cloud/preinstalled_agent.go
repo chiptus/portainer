@@ -2,11 +2,11 @@ package cloud
 
 import (
 	"github.com/gofrs/uuid"
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type PreinstalledAgentProvisioningClusterRequest struct {
-	EnvironmentID portaineree.EndpointID `json:"environmentID"`
+	EnvironmentID portainer.EndpointID `json:"environmentID"`
 }
 
 func (service *CloudManagementService) PreinstalledAgentProvisionCluster(req PreinstalledAgentProvisioningClusterRequest) (string, error) {

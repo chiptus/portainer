@@ -7,14 +7,15 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type registryAccessPayload struct {
-	UserAccessPolicies portaineree.UserAccessPolicies
-	TeamAccessPolicies portaineree.TeamAccessPolicies
+	UserAccessPolicies portainer.UserAccessPolicies
+	TeamAccessPolicies portainer.TeamAccessPolicies
 	Namespaces         []string
 }
 
@@ -51,7 +52,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.updateRegistryAccess(tx, r, portaineree.EndpointID(endpointID), portaineree.RegistryID(registryID))
+		return handler.updateRegistryAccess(tx, r, portainer.EndpointID(endpointID), portainer.RegistryID(registryID))
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -65,7 +66,7 @@ func (handler *Handler) endpointRegistryAccess(w http.ResponseWriter, r *http.Re
 	return response.Empty(w)
 }
 
-func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *http.Request, endpointID portaineree.EndpointID, registryID portaineree.RegistryID) error {
+func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *http.Request, endpointID portainer.EndpointID, registryID portainer.RegistryID) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
@@ -100,11 +101,11 @@ func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *htt
 	}
 
 	if registry.RegistryAccesses == nil {
-		registry.RegistryAccesses = portaineree.RegistryAccesses{}
+		registry.RegistryAccesses = portainer.RegistryAccesses{}
 	}
 
 	if _, ok := registry.RegistryAccesses[endpoint.ID]; !ok {
-		registry.RegistryAccesses[endpoint.ID] = portaineree.RegistryAccessPolicies{}
+		registry.RegistryAccesses[endpoint.ID] = portainer.RegistryAccessPolicies{}
 	}
 
 	registryAccess := registry.RegistryAccesses[endpoint.ID]
@@ -121,7 +122,7 @@ func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *htt
 		registryAccess.TeamAccessPolicies = payload.TeamAccessPolicies
 	}
 
-	registry.RegistryAccesses[portaineree.EndpointID(endpointID)] = registryAccess
+	registry.RegistryAccesses[portainer.EndpointID(endpointID)] = registryAccess
 
 	return tx.Registry().Update(registry.ID, registry)
 }

@@ -3,7 +3,6 @@ package version
 import (
 	"errors"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
@@ -53,13 +52,13 @@ func (service *Service) UpdateSchemaVersion(version string) error {
 	return service.UpdateVersion(v)
 }
 
-func (service *Service) Edition() (portaineree.SoftwareEdition, error) {
+func (service *Service) Edition() (portainer.SoftwareEdition, error) {
 	v, err := service.Version()
 	if err != nil {
 		return 0, err
 	}
 
-	return portaineree.SoftwareEdition(v.Edition), nil
+	return portainer.SoftwareEdition(v.Edition), nil
 }
 
 // IsUpdating retrieves the database updating status.

@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -64,11 +65,11 @@ func (handler *Handler) userUpdateOpenAIConfig(w http.ResponseWriter, r *http.Re
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to update OpenAI API token", httperrors.ErrUnauthorized)
 	}
 
-	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		return httperror.NotFound("Unable to find a user", err)
 	}

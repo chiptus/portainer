@@ -7,6 +7,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
@@ -15,8 +16,8 @@ type decoratedEdgeGroup struct {
 	HasEdgeStack     bool `json:"HasEdgeStack"`
 	HasEdgeJob       bool `json:"HasEdgeJob"`
 	HasEdgeConfig    bool `json:"HasEdgeConfig"`
-	EndpointTypes    []portaineree.EndpointType
-	TrustedEndpoints []portaineree.EndpointID `json:"TrustedEndpoints"`
+	EndpointTypes    []portainer.EndpointType
+	TrustedEndpoints []portainer.EndpointID `json:"TrustedEndpoints"`
 }
 
 // @id EdgeGroupList
@@ -53,7 +54,7 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 		return nil, httperror.InternalServerError("Unable to retrieve Edge stacks from the database", err)
 	}
 
-	usedEdgeGroups := make(map[portaineree.EdgeGroupID]bool)
+	usedEdgeGroups := make(map[portainer.EdgeGroupID]bool)
 
 	for _, stack := range edgeStacks {
 		for _, groupID := range stack.EdgeGroups {
@@ -75,7 +76,7 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 
 		usedByEdgeJob := false
 		for _, edgeJob := range edgeJobs {
-			if slices.Contains(edgeJob.EdgeGroups, portaineree.EdgeGroupID(orgEdgeGroup.ID)) {
+			if slices.Contains(edgeJob.EdgeGroups, portainer.EdgeGroupID(orgEdgeGroup.ID)) {
 				usedByEdgeJob = true
 				break
 			}
@@ -88,7 +89,7 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 		}
 
 		for _, edgeConfig := range edgeConfigs {
-			if slices.Contains(edgeConfig.EdgeGroupIDs, portaineree.EdgeGroupID(orgEdgeGroup.ID)) {
+			if slices.Contains(edgeConfig.EdgeGroupIDs, portainer.EdgeGroupID(orgEdgeGroup.ID)) {
 				usedByEdgeConfig = true
 				break
 			}
@@ -96,7 +97,7 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 
 		edgeGroup := decoratedEdgeGroup{
 			EdgeGroup:     orgEdgeGroup,
-			EndpointTypes: []portaineree.EndpointType{},
+			EndpointTypes: []portainer.EndpointType{},
 		}
 		if edgeGroup.Dynamic {
 			endpointIDs, err := GetEndpointsByTags(tx, edgeGroup.TagIDs, edgeGroup.PartialMatch)
@@ -131,8 +132,8 @@ func getEdgeGroupList(tx dataservices.DataStoreTx) ([]decoratedEdgeGroup, error)
 	return decoratedEdgeGroups, nil
 }
 
-func getEndpointTypes(tx dataservices.DataStoreTx, endpointIds []portaineree.EndpointID) ([]portaineree.EndpointType, error) {
-	typeSet := map[portaineree.EndpointType]bool{}
+func getEndpointTypes(tx dataservices.DataStoreTx, endpointIds []portainer.EndpointID) ([]portainer.EndpointType, error) {
+	typeSet := map[portainer.EndpointType]bool{}
 	for _, endpointID := range endpointIds {
 		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {
@@ -142,7 +143,7 @@ func getEndpointTypes(tx dataservices.DataStoreTx, endpointIds []portaineree.End
 		typeSet[endpoint.Type] = true
 	}
 
-	endpointTypes := make([]portaineree.EndpointType, 0, len(typeSet))
+	endpointTypes := make([]portainer.EndpointType, 0, len(typeSet))
 	for endpointType := range typeSet {
 		endpointTypes = append(endpointTypes, endpointType)
 	}

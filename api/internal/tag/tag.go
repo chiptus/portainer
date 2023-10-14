@@ -1,12 +1,12 @@
 package tag
 
-import portaineree "github.com/portainer/portainer-ee/api"
+import portainer "github.com/portainer/portainer/api"
 
-type tagSet map[portaineree.TagID]bool
+type tagSet map[portainer.TagID]bool
 
 // Set converts an array of ids to a set
-func Set(tagIDs []portaineree.TagID) tagSet {
-	set := map[portaineree.TagID]bool{}
+func Set(tagIDs []portainer.TagID) tagSet {
+	set := map[portainer.TagID]bool{}
 	for _, tagID := range tagIDs {
 		set[tagID] = true
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/providers"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -45,7 +46,7 @@ func (handler *Handler) addNodes(w http.ResponseWriter, r *http.Request) *httper
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
-	authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+	authorized := canWriteK8sClusterNode(user, portainer.EndpointID(endpoint.ID))
 	if !authorized {
 		return httperror.Forbidden("Permission denied to add new nodes to the cluster", nil)
 	}
@@ -115,7 +116,7 @@ func (handler *Handler) removeNodes(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
-	authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+	authorized := canWriteK8sClusterNode(user, portainer.EndpointID(endpoint.ID))
 	if !authorized {
 		return httperror.Forbidden("Permission denied to remove nodes from the cluster", nil)
 	}

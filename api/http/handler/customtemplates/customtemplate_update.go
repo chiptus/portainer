@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -31,9 +32,9 @@ type customTemplateUpdatePayload struct {
 	// Platform associated to the template.
 	// Valid values are: 1 - 'linux', 2 - 'windows'
 	// Required for Docker stacks
-	Platform portaineree.CustomTemplatePlatform `example:"1" enums:"1,2"`
+	Platform portainer.CustomTemplatePlatform `example:"1" enums:"1,2"`
 	// Type of created stack (1 - swarm, 2 - compose, 3 - kubernetes)
-	Type portaineree.StackType `example:"1" enums:"1,2,3" validate:"required"`
+	Type portainer.StackType `example:"1" enums:"1,2,3" validate:"required"`
 	// URL of a Git repository hosting the Stack file
 	RepositoryURL string `example:"https://github.com/openfaas/faas" validate:"required"`
 	// Reference name of a Git repository hosting the Stack file
@@ -54,7 +55,7 @@ type customTemplateUpdatePayload struct {
 	// Content of stack file
 	FileContent string `validate:"required"`
 	// Definitions of variables in the stack file
-	Variables []portaineree.CustomTemplateVariableDefinition
+	Variables []portainer.CustomTemplateVariableDefinition
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
 	// IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file
@@ -68,7 +69,7 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.FileContent) && govalidator.IsNull(payload.RepositoryURL) {
 		return errors.New("Either file content or git repository url need to be provided")
 	}
-	if payload.Type != portaineree.KubernetesStack && payload.Platform != portaineree.CustomTemplatePlatformLinux && payload.Platform != portaineree.CustomTemplatePlatformWindows {
+	if payload.Type != portaineree.KubernetesStack && payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
 	if payload.Type != portaineree.KubernetesStack && payload.Type != portaineree.DockerSwarmStack && payload.Type != portaineree.DockerComposeStack {
@@ -104,7 +105,7 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Template identifier"
 // @param body body customTemplateUpdatePayload true "Template details"
-// @success 200 {object} portaineree.CustomTemplate "Success"
+// @success 200 {object} portainer.CustomTemplate "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to access template"
 // @failure 404 "Template not found"
@@ -128,12 +129,12 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 	}
 
 	for _, existingTemplate := range customTemplates {
-		if existingTemplate.ID != portaineree.CustomTemplateID(customTemplateID) && existingTemplate.Title == payload.Title {
+		if existingTemplate.ID != portainer.CustomTemplateID(customTemplateID) && existingTemplate.Title == payload.Title {
 			return httperror.InternalServerError("Template name must be unique", errors.New("Template name must be unique"))
 		}
 	}
 
-	customTemplate, err := handler.DataStore.CustomTemplate().Read(portaineree.CustomTemplateID(customTemplateID))
+	customTemplate, err := handler.DataStore.CustomTemplate().Read(portainer.CustomTemplateID(customTemplateID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a custom template with the specified identifier inside the database", err)
 	} else if err != nil {

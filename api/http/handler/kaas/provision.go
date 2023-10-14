@@ -120,7 +120,7 @@ func (handler *Handler) provisionCluster(w http.ResponseWriter, r *http.Request)
 	return response.JSON(w, endpoint)
 }
 
-func getUserID(r *http.Request) portaineree.UserID {
+func getUserID(r *http.Request) portainer.UserID {
 	tokenData, _ := security.RetrieveTokenData(r)
 	return tokenData.ID
 }
@@ -134,16 +134,16 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 	}
 
 	endpoint := &portaineree.Endpoint{
-		ID:      portaineree.EndpointID(endpointID),
+		ID:      portainer.EndpointID(endpointID),
 		Name:    name,
 		Type:    portaineree.AgentOnKubernetesEnvironment,
 		GroupID: metadata.GroupId,
-		TLSConfig: portaineree.TLSConfiguration{
+		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
 		TagIDs:             metadata.TagIds,
 		Status:             portaineree.EndpointStatusProvisioning,
 		StatusMessage: portaineree.EndpointStatusMessage{

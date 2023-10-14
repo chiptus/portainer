@@ -4,14 +4,14 @@ import (
 	"io"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 )
 
 // introduced for swagger
 type listResponse struct {
 	Version   string
-	Templates []portaineree.Template
+	Templates []portainer.Template
 }
 
 // @id TemplateList

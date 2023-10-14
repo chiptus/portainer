@@ -8,21 +8,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/fvbommel/sortorder"
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const defaultRegion = "us-west-2"
 
 type (
 	InstanceType struct {
-		portaineree.Pair
+		portainer.Pair
 		CompatibleAmiTypes []string `json:"compatibleAmiTypes" example:"AL2_x86_64"`
 	}
 
 	EksInfo struct {
-		Regions            []portaineree.Pair        `json:"regions"`
-		KubernetesVersions []portaineree.Pair        `json:"kubernetesVersions"`
-		AmiTypes           []portaineree.Pair        `json:"amiTypes"`
+		Regions            []portainer.Pair          `json:"regions"`
+		KubernetesVersions []portainer.Pair          `json:"kubernetesVersions"`
+		AmiTypes           []portainer.Pair          `json:"amiTypes"`
 		InstanceTypes      map[string][]InstanceType `json:"instanceTypes"`
 	}
 )
@@ -65,7 +65,7 @@ func (t InstanceTypeByName) Less(i, j int) bool {
 	return sortorder.NaturalLess(t[i].Name, t[j].Name)
 }
 
-type RegionByName []portaineree.Pair
+type RegionByName []portainer.Pair
 
 func (t RegionByName) Len() int {
 	return len(t)
@@ -88,7 +88,7 @@ func (t RegionByName) Less(i, j int) bool {
 	return sortorder.NaturalLess(t[i].Name, t[j].Name)
 }
 
-type KubeByVersion []portaineree.Pair
+type KubeByVersion []portainer.Pair
 
 func (e KubeByVersion) Len() int {
 	return len(e)

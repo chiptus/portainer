@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -13,7 +14,7 @@ import (
 type webhookReassignPayload struct {
 	ResourceID string
 	// Type of webhook (1 - service, 2 - container)
-	WebhookType portaineree.WebhookType
+	WebhookType portainer.WebhookType
 }
 
 func (payload *webhookReassignPayload) Validate(r *http.Request) error {
@@ -33,7 +34,7 @@ func (payload *webhookReassignPayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Webhook id"
 // @param body body webhookReassignPayload true "Webhook data"
-// @success 200 {object} portaineree.Webhook
+// @success 200 {object} portainer.Webhook
 // @success 204
 // @failure 400
 // @failure 404
@@ -44,7 +45,7 @@ func (handler *Handler) webhookReassign(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return httperror.BadRequest("Invalid webhook id", err)
 	}
-	webhookID := portaineree.WebhookID(id)
+	webhookID := portainer.WebhookID(id)
 
 	var payload webhookReassignPayload
 	err = request.DecodeAndValidateJSONPayload(r, &payload)
@@ -65,7 +66,7 @@ func (handler *Handler) webhookReassign(w http.ResponseWriter, r *http.Request) 
 
 	webhook.ResourceID = payload.ResourceID
 
-	err = handler.DataStore.Webhook().Update(portaineree.WebhookID(id), webhook)
+	err = handler.DataStore.Webhook().Update(portainer.WebhookID(id), webhook)
 	if err != nil {
 		return httperror.InternalServerError("Unable to persist the webhook inside the database", err)
 	}

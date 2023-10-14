@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type DefaultProvisionPayload struct {
@@ -66,7 +67,7 @@ func (payload *DefaultProvisionPayload) GetEnvironmentMetadata() types.Environme
 	return payload.Meta
 }
 
-func (payload *DefaultProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, provider string) *portaineree.CloudProvisioningRequest {
+func (payload *DefaultProvisionPayload) GetCloudProvisioningRequest(endpointID portainer.EndpointID, provider string) *portaineree.CloudProvisioningRequest {
 	return &portaineree.CloudProvisioningRequest{
 		EndpointID:            endpointID,
 		Provider:              provider,

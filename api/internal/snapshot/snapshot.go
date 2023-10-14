@@ -61,7 +61,7 @@ func NewService(
 // NewBackgroundSnapshotter queues snapshots of existing edge environments that
 // do not have one already
 func NewBackgroundSnapshotter(dataStore dataservices.DataStore, tunnelService portaineree.ReverseTunnelService) {
-	var endpointIDs []portaineree.EndpointID
+	var endpointIDs []portainer.EndpointID
 
 	err := dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
 		endpoints, err := tx.Endpoint().Endpoints()
@@ -283,14 +283,14 @@ func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portaineree.End
 		return
 	}
 
-	latestEndpointReference.Status = portaineree.EndpointStatusUp
+	latestEndpointReference.Status = portainer.EndpointStatusUp
 	if snapshotError != nil {
 		log.Debug().
 			Str("endpoint", endpoint.Name).
 			Str("URL", endpoint.URL).Err(err).
 			Msg("background schedule error (environment snapshot), unable to create snapshot")
 
-		latestEndpointReference.Status = portaineree.EndpointStatusDown
+		latestEndpointReference.Status = portainer.EndpointStatusDown
 	}
 
 	latestEndpointReference.Agent.Version = endpoint.Agent.Version
@@ -304,7 +304,7 @@ func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portaineree.End
 	}
 
 	// Run the pending actions
-	if latestEndpointReference.Status == portaineree.EndpointStatusUp {
+	if latestEndpointReference.Status == portainer.EndpointStatusUp {
 		pendingActionsService.Execute(endpoint.ID)
 	}
 }
@@ -330,7 +330,7 @@ func FillSnapshotData(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoin
 	snapshot, err := tx.Snapshot().Read(endpoint.ID)
 	if tx.IsErrObjectNotFound(err) {
 		endpoint.Snapshots = []portainer.DockerSnapshot{}
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
+		endpoint.Kubernetes.Snapshots = []portainer.KubernetesSnapshot{}
 		endpoint.Nomad.Snapshots = []portaineree.NomadSnapshot{}
 
 		return nil
@@ -345,7 +345,7 @@ func FillSnapshotData(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoin
 	}
 
 	if snapshot.Kubernetes != nil {
-		endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{*snapshot.Kubernetes}
+		endpoint.Kubernetes.Snapshots = []portainer.KubernetesSnapshot{*snapshot.Kubernetes}
 	}
 
 	if snapshot.Nomad != nil {

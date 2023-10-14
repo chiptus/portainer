@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackbuilders"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -25,7 +26,7 @@ type composeStackFromFileContentPayload struct {
 	// Content of the Stack file
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
@@ -43,7 +44,7 @@ func (payload *composeStackFromFileContentPayload) Validate(r *http.Request) err
 	return nil
 }
 
-func createStackPayloadFromComposeFileContentPayload(name string, fileContent string, env []portaineree.Pair, fromAppTemplate bool, webhook string) stackbuilders.StackPayload {
+func createStackPayloadFromComposeFileContentPayload(name string, fileContent string, env []portainer.Pair, fromAppTemplate bool, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		StackFileContent: fileContent,
@@ -53,7 +54,7 @@ func createStackPayloadFromComposeFileContentPayload(name string, fileContent st
 	}
 }
 
-func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID, stack *portaineree.Stack) error {
+func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID, stack *portaineree.Stack) error {
 	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portaineree.StackResourceControl)
 	if err != nil {
 		return err
@@ -105,7 +106,7 @@ func (handler *Handler) checkAndCleanStackDupFromSwarm(w http.ResponseWriter, r 
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/standalone/string [post]
-func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	var payload composeStackFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -185,9 +186,9 @@ type composeStackFromGitRepositoryPayload struct {
 	// Applicable when deploying with multiple stack files
 	AdditionalFiles []string `example:"[nz.compose.yml, uat.compose.yml]"`
 	// Optional GitOps update configuration
-	AutoUpdate *portaineree.AutoUpdateSettings
+	AutoUpdate *portainer.AutoUpdateSettings
 	// A list of environment variables used during stack deployment
-	Env []portaineree.Pair
+	Env []portainer.Pair
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 	// Whether the stack supports relative path volume
@@ -198,7 +199,7 @@ type composeStackFromGitRepositoryPayload struct {
 	TLSSkipVerify bool `example:"false"`
 }
 
-func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portaineree.AutoUpdateSettings, env []portaineree.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
+func createStackPayloadFromComposeGitPayload(name, repoUrl, repoReference, repoUsername, repoPassword string, repoGitCredentialID int, repoAuthentication bool, composeFile string, additionalFiles []string, autoUpdate *portainer.AutoUpdateSettings, env []portainer.Pair, fromAppTemplate, supportRelativePath bool, filesystemPath string, repoTLSSkipVerify bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name: name,
 		RepositoryConfigPayload: stackbuilders.RepositoryConfigPayload{
@@ -251,7 +252,7 @@ func (payload *composeStackFromGitRepositoryPayload) Validate(r *http.Request) e
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/standalone/repository [post]
-func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	var payload composeStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -335,12 +336,12 @@ func (handler *Handler) createComposeStackFromGitRepository(w http.ResponseWrite
 type composeStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
-	Env              []portaineree.Pair
+	Env              []portainer.Pair
 	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
 	Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 }
 
-func createStackPayloadFromComposeFileUploadPayload(name string, fileContentBytes []byte, env []portaineree.Pair, webhook string) stackbuilders.StackPayload {
+func createStackPayloadFromComposeFileUploadPayload(name string, fileContentBytes []byte, env []portainer.Pair, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:                  name,
 		StackFileContentBytes: fileContentBytes,
@@ -363,7 +364,7 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 	}
 	payload.StackFileContent = composeFileContent
 
-	var env []portaineree.Pair
+	var env []portainer.Pair
 	err = request.RetrieveMultiPartFormJSONValue(r, "Env", &env, true)
 	if err != nil {
 		return nil, errors.New("Invalid Env parameter")
@@ -393,7 +394,7 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /stacks/create/standalone/file [post]
-func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portaineree.UserID) *httperror.HandlerError {
+func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, r *http.Request, endpoint *portaineree.Endpoint, userID portainer.UserID) *httperror.HandlerError {
 	payload, err := decodeRequestForm(r)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)

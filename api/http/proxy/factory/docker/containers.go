@@ -5,24 +5,25 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/portainer/portainer-ee/api/docker/consts"
 	"io"
-
 	"net/http"
 	"strings"
 
-	"github.com/docker/docker/client"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/docker/consts"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
+
+	"github.com/docker/docker/client"
 )
 
 const (
 	containerObjectIdentifier = "Id"
 )
 
-func getInheritedResourceControlFromContainerLabels(dockerClient *client.Client, endpointID portaineree.EndpointID, containerID string, resourceControls []portaineree.ResourceControl) (*portaineree.ResourceControl, error) {
+func getInheritedResourceControlFromContainerLabels(dockerClient *client.Client, endpointID portainer.EndpointID, containerID string, resourceControls []portainer.ResourceControl) (*portainer.ResourceControl, error) {
 	container, err := dockerClient.ContainerInspect(context.Background(), containerID)
 	if err != nil {
 		return nil, err
@@ -124,7 +125,7 @@ func selectorContainerLabelsFromContainerListOperation(responseObject map[string
 
 // filterContainersWithLabels loops through a list of containers, and filters containers that do not contains
 // any labels in the labels black list.
-func filterContainersWithBlackListedLabels(containerData []interface{}, labelBlackList []portaineree.Pair) ([]interface{}, error) {
+func filterContainersWithBlackListedLabels(containerData []interface{}, labelBlackList []portainer.Pair) ([]interface{}, error) {
 	filteredContainerData := make([]interface{}, 0)
 
 	for _, container := range containerData {
@@ -143,7 +144,7 @@ func filterContainersWithBlackListedLabels(containerData []interface{}, labelBla
 	return filteredContainerData, nil
 }
 
-func containerHasBlackListedLabel(containerLabels map[string]interface{}, labelBlackList []portaineree.Pair) bool {
+func containerHasBlackListedLabel(containerLabels map[string]interface{}, labelBlackList []portainer.Pair) bool {
 	for key, value := range containerLabels {
 		labelName := key
 		labelValue := value.(string)
@@ -158,7 +159,7 @@ func containerHasBlackListedLabel(containerLabels map[string]interface{}, labelB
 	return false
 }
 
-func (transport *Transport) decorateContainerCreationOperation(request *http.Request, resourceIdentifierAttribute string, resourceType portaineree.ResourceControlType) (*http.Response, error) {
+func (transport *Transport) decorateContainerCreationOperation(request *http.Request, resourceIdentifierAttribute string, resourceType portainer.ResourceControlType) (*http.Response, error) {
 	type PartialContainer struct {
 		HostConfig struct {
 			Privileged bool                   `json:"Privileged"`

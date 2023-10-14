@@ -4,13 +4,14 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
-type endpointSetType map[portaineree.EndpointID]bool
+type endpointSetType map[portainer.EndpointID]bool
 
-func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID, partialMatch bool) ([]portaineree.EndpointID, error) {
+func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portainer.TagID, partialMatch bool) ([]portainer.EndpointID, error) {
 	if len(tagIDs) == 0 {
-		return []portaineree.EndpointID{}, nil
+		return []portainer.EndpointID{}, nil
 	}
 
 	endpoints, err := tx.Endpoint().Endpoints()
@@ -20,7 +21,7 @@ func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID,
 
 	groupEndpoints := mapEndpointGroupToEndpoints(endpoints)
 
-	tags := []portaineree.Tag{}
+	tags := []portainer.Tag{}
 	for _, tagID := range tagIDs {
 		tag, err := tx.Tag().Read(tagID)
 		if err != nil {
@@ -39,7 +40,7 @@ func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID,
 		endpointSet = setsIntersection(setsOfEndpoints)
 	}
 
-	results := []portaineree.EndpointID{}
+	results := []portainer.EndpointID{}
 	for _, endpoint := range endpoints {
 		if _, ok := endpointSet[endpoint.ID]; ok && endpointutils.IsEdgeEndpoint(&endpoint) && endpoint.UserTrusted {
 			results = append(results, endpoint.ID)
@@ -49,8 +50,8 @@ func GetEndpointsByTags(tx dataservices.DataStoreTx, tagIDs []portaineree.TagID,
 	return results, nil
 }
 
-func getTrustedEndpoints(tx dataservices.DataStoreTx, endpointIDs []portaineree.EndpointID) ([]portaineree.EndpointID, error) {
-	results := []portaineree.EndpointID{}
+func getTrustedEndpoints(tx dataservices.DataStoreTx, endpointIDs []portainer.EndpointID) ([]portainer.EndpointID, error) {
+	results := []portainer.EndpointID{}
 	for _, endpointID := range endpointIDs {
 		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {
@@ -67,8 +68,8 @@ func getTrustedEndpoints(tx dataservices.DataStoreTx, endpointIDs []portaineree.
 	return results, nil
 }
 
-func mapEndpointGroupToEndpoints(endpoints []portaineree.Endpoint) map[portaineree.EndpointGroupID]endpointSetType {
-	groupEndpoints := map[portaineree.EndpointGroupID]endpointSetType{}
+func mapEndpointGroupToEndpoints(endpoints []portaineree.Endpoint) map[portainer.EndpointGroupID]endpointSetType {
+	groupEndpoints := map[portainer.EndpointGroupID]endpointSetType{}
 
 	for _, endpoint := range endpoints {
 		groupID := endpoint.GroupID
@@ -82,7 +83,7 @@ func mapEndpointGroupToEndpoints(endpoints []portaineree.Endpoint) map[portainer
 	return groupEndpoints
 }
 
-func mapTagsToEndpoints(tags []portaineree.Tag, groupEndpoints map[portaineree.EndpointGroupID]endpointSetType) []endpointSetType {
+func mapTagsToEndpoints(tags []portainer.Tag, groupEndpoints map[portainer.EndpointGroupID]endpointSetType) []endpointSetType {
 	sets := []endpointSetType{}
 
 	for _, tag := range tags {

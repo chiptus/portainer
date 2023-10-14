@@ -5,6 +5,7 @@ import (
 	"path"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 	"k8s.io/client-go/kubernetes"
 )
@@ -21,7 +22,7 @@ func NewGateKeeper(kubernetesDeployer portaineree.KubernetesDeployer, assetsPath
 	}
 }
 
-func (g *GateKeeper) Deploy(userID portaineree.UserID, endpoint *portaineree.Endpoint) error {
+func (g *GateKeeper) Deploy(userID portainer.UserID, endpoint *portaineree.Endpoint) error {
 	manifest := path.Join(g.assetsPath, "pod-security-policy", GateKeeperFile)
 	_, err := g.kubernetesDeployer.Deploy(userID, endpoint, []string{manifest}, GateKeeperNameSpace)
 	if err != nil {
@@ -33,7 +34,7 @@ func (g *GateKeeper) Deploy(userID portaineree.UserID, endpoint *portaineree.End
 	return nil
 }
 
-func (g *GateKeeper) Remove(userID portaineree.UserID, endpoint *portaineree.Endpoint) error {
+func (g *GateKeeper) Remove(userID portainer.UserID, endpoint *portaineree.Endpoint) error {
 	manifest := path.Join(g.assetsPath, "pod-security-policy", GateKeeperFile)
 	_, err := g.kubernetesDeployer.Remove(userID, endpoint, []string{manifest}, GateKeeperNameSpace)
 	if err != nil {
@@ -44,7 +45,7 @@ func (g *GateKeeper) Remove(userID portaineree.UserID, endpoint *portaineree.End
 	return nil
 }
 
-func (g *GateKeeper) DeployExcludedNamespaces(userID portaineree.UserID, endpoint *portaineree.Endpoint) error {
+func (g *GateKeeper) DeployExcludedNamespaces(userID portainer.UserID, endpoint *portaineree.Endpoint) error {
 	gatekeeperExcludedNamespacesManifest := path.Join(g.assetsPath, "pod-security-policy", GateKeeperExcludedNamespacesFile)
 	_, err := g.kubernetesDeployer.Deploy(userID, endpoint, []string{gatekeeperExcludedNamespacesManifest}, GateKeeperNameSpace)
 	if err != nil {
@@ -56,7 +57,7 @@ func (g *GateKeeper) DeployExcludedNamespaces(userID portaineree.UserID, endpoin
 	return nil
 }
 
-func (g *GateKeeper) RemoveExcludedNamespaces(userID portaineree.UserID, endpoint *portaineree.Endpoint) error {
+func (g *GateKeeper) RemoveExcludedNamespaces(userID portainer.UserID, endpoint *portaineree.Endpoint) error {
 	gatekeeperExcludedNamespacesManifest := path.Join(g.assetsPath, "pod-security-policy", GateKeeperExcludedNamespacesFile)
 	_, err := g.kubernetesDeployer.Remove(userID, endpoint, []string{gatekeeperExcludedNamespacesManifest}, GateKeeperNameSpace)
 	if err != nil {
@@ -67,7 +68,7 @@ func (g *GateKeeper) RemoveExcludedNamespaces(userID portaineree.UserID, endpoin
 	return nil
 }
 
-func (g *GateKeeper) DeployPodSecurityConstraints(userID portaineree.UserID, endpoint *portaineree.Endpoint) error {
+func (g *GateKeeper) DeployPodSecurityConstraints(userID portainer.UserID, endpoint *portaineree.Endpoint) error {
 	for _, v := range PodSecurityConstraintsMap {
 		log.Info().Str("template", v).Msg("deploying constraint template")
 
@@ -84,7 +85,7 @@ func (g *GateKeeper) DeployPodSecurityConstraints(userID portaineree.UserID, end
 	return nil
 }
 
-func (g *GateKeeper) UpgradeEndpoint(userID portaineree.UserID, endpoint *portaineree.Endpoint, kubeclient portaineree.KubeClient, kubeClientSet *kubernetes.Clientset, exitingRule *PodSecurityRule) error {
+func (g *GateKeeper) UpgradeEndpoint(userID portainer.UserID, endpoint *portaineree.Endpoint, kubeclient portaineree.KubeClient, kubeClientSet *kubernetes.Clientset, exitingRule *PodSecurityRule) error {
 
 	_, err := kubeclient.GetNamespaces()
 	if err != nil {

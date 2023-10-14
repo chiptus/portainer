@@ -2,6 +2,7 @@ package migrator
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -15,7 +16,7 @@ func (m *Migrator) updateUsersToDBVersion18() error {
 	}
 
 	for _, user := range legacyUsers {
-		user.PortainerAuthorizations = map[portaineree.Authorization]bool{
+		user.PortainerAuthorizations = map[portainer.Authorization]bool{
 			portaineree.OperationPortainerDockerHubInspect:        true,
 			portaineree.OperationPortainerEndpointGroupList:       true,
 			portaineree.OperationPortainerEndpointList:            true,
@@ -51,16 +52,16 @@ func (m *Migrator) updateEndpointsToDBVersion18() error {
 	}
 
 	for _, endpoint := range legacyEndpoints {
-		endpoint.UserAccessPolicies = make(portaineree.UserAccessPolicies)
+		endpoint.UserAccessPolicies = make(portainer.UserAccessPolicies)
 		for _, userID := range endpoint.AuthorizedUsers {
-			endpoint.UserAccessPolicies[userID] = portaineree.AccessPolicy{
+			endpoint.UserAccessPolicies[userID] = portainer.AccessPolicy{
 				RoleID: 4,
 			}
 		}
 
-		endpoint.TeamAccessPolicies = make(portaineree.TeamAccessPolicies)
+		endpoint.TeamAccessPolicies = make(portainer.TeamAccessPolicies)
 		for _, teamID := range endpoint.AuthorizedTeams {
-			endpoint.TeamAccessPolicies[teamID] = portaineree.AccessPolicy{
+			endpoint.TeamAccessPolicies[teamID] = portainer.AccessPolicy{
 				RoleID: 4,
 			}
 		}
@@ -83,16 +84,16 @@ func (m *Migrator) updateEndpointGroupsToDBVersion18() error {
 	}
 
 	for _, endpointGroup := range legacyEndpointGroups {
-		endpointGroup.UserAccessPolicies = make(portaineree.UserAccessPolicies)
+		endpointGroup.UserAccessPolicies = make(portainer.UserAccessPolicies)
 		for _, userID := range endpointGroup.AuthorizedUsers {
-			endpointGroup.UserAccessPolicies[userID] = portaineree.AccessPolicy{
+			endpointGroup.UserAccessPolicies[userID] = portainer.AccessPolicy{
 				RoleID: 4,
 			}
 		}
 
-		endpointGroup.TeamAccessPolicies = make(portaineree.TeamAccessPolicies)
+		endpointGroup.TeamAccessPolicies = make(portainer.TeamAccessPolicies)
 		for _, teamID := range endpointGroup.AuthorizedTeams {
-			endpointGroup.TeamAccessPolicies[teamID] = portaineree.AccessPolicy{
+			endpointGroup.TeamAccessPolicies[teamID] = portainer.AccessPolicy{
 				RoleID: 4,
 			}
 		}
@@ -115,14 +116,14 @@ func (m *Migrator) updateRegistriesToDBVersion18() error {
 	}
 
 	for _, registry := range legacyRegistries {
-		registry.UserAccessPolicies = make(portaineree.UserAccessPolicies)
+		registry.UserAccessPolicies = make(portainer.UserAccessPolicies)
 		for _, userID := range registry.AuthorizedUsers {
-			registry.UserAccessPolicies[userID] = portaineree.AccessPolicy{}
+			registry.UserAccessPolicies[userID] = portainer.AccessPolicy{}
 		}
 
-		registry.TeamAccessPolicies = make(portaineree.TeamAccessPolicies)
+		registry.TeamAccessPolicies = make(portainer.TeamAccessPolicies)
 		for _, teamID := range registry.AuthorizedTeams {
-			registry.TeamAccessPolicies[teamID] = portaineree.AccessPolicy{}
+			registry.TeamAccessPolicies[teamID] = portainer.AccessPolicy{}
 		}
 
 		err = m.registryService.Update(registry.ID, &registry)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -19,7 +20,7 @@ import (
 // - The shell pod will be automatically removed if it's not ready after specified period of time
 // - The shell pod will be automatically removed after a specified max life (prevent zombie pods)
 // - The shell pod will be automatically removed if request is cancelled (or client closes websocket connection)
-func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*portaineree.KubernetesShellPod, error) {
+func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*portainer.KubernetesShellPod, error) {
 	maxPodKeepAliveSecondsStr := fmt.Sprintf("%d", int(portaineree.WebSocketKeepAlive.Seconds()))
 
 	podPrefix := userShellPodPrefix(serviceAccountName)
@@ -63,7 +64,7 @@ func (kcl *KubeClient) CreateUserShellPod(ctx context.Context, serviceAccountNam
 		return nil, errors.Wrap(err, "aborting pod creation; error waiting for shell pod ready status")
 	}
 
-	podData := &portaineree.KubernetesShellPod{
+	podData := &portainer.KubernetesShellPod{
 		Namespace:        shellPod.Namespace,
 		PodName:          shellPod.Name,
 		ContainerName:    shellPod.Spec.Containers[0].Name,

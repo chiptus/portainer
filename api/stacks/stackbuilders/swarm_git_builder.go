@@ -53,7 +53,7 @@ func (b *SwarmStackGitBuilder) SetUniqueInfo(payload *StackPayload) GitMethodSta
 	return b
 }
 
-func (b *SwarmStackGitBuilder) SetGitRepository(payload *StackPayload, userID portaineree.UserID) GitMethodStackBuildProcess {
+func (b *SwarmStackGitBuilder) SetGitRepository(payload *StackPayload, userID portainer.UserID) GitMethodStackBuildProcess {
 	b.GitMethodStackBuilder.SetGitRepository(payload, userID)
 	return b
 }

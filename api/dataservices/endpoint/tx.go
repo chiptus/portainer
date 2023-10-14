@@ -19,7 +19,7 @@ func (service ServiceTx) BucketName() string {
 }
 
 // Endpoint returns an environment(endpoint) by ID.
-func (service ServiceTx) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error) {
+func (service ServiceTx) Endpoint(ID portainer.EndpointID) (*portaineree.Endpoint, error) {
 	var endpoint portaineree.Endpoint
 	identifier := service.service.connection.ConvertToKey(int(ID))
 
@@ -33,7 +33,7 @@ func (service ServiceTx) Endpoint(ID portaineree.EndpointID) (*portaineree.Endpo
 	return &endpoint, nil
 }
 
-func (service ServiceTx) SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
+func (service ServiceTx) SetMessage(ID portainer.EndpointID, statusMessage portaineree.EndpointStatusMessage) error {
 	endpoint, err := service.Endpoint(ID)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (service ServiceTx) SetMessage(ID portaineree.EndpointID, statusMessage por
 }
 
 // UpdateEndpoint updates an environment(endpoint).
-func (service ServiceTx) UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error {
+func (service ServiceTx) UpdateEndpoint(ID portainer.EndpointID, endpoint *portaineree.Endpoint) error {
 	identifier := service.service.connection.ConvertToKey(int(ID))
 
 	err := service.tx.UpdateObject(BucketName, identifier, endpoint)
@@ -66,7 +66,7 @@ func (service ServiceTx) UpdateEndpoint(ID portaineree.EndpointID, endpoint *por
 }
 
 // DeleteEndpoint deletes an environment(endpoint).
-func (service ServiceTx) DeleteEndpoint(ID portaineree.EndpointID) error {
+func (service ServiceTx) DeleteEndpoint(ID portainer.EndpointID) error {
 	identifier := service.service.connection.ConvertToKey(int(ID))
 
 	err := service.tx.DeleteObject(BucketName, identifier)
@@ -101,19 +101,19 @@ func (service ServiceTx) Endpoints() ([]portaineree.Endpoint, error) {
 	)
 }
 
-func (service ServiceTx) EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool) {
+func (service ServiceTx) EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool) {
 	log.Error().Str("func", "EndpointIDByEdgeID").Msg("cannot be called inside a transaction")
 
 	return 0, false
 }
 
-func (service ServiceTx) Heartbeat(endpointID portaineree.EndpointID) (int64, bool) {
+func (service ServiceTx) Heartbeat(endpointID portainer.EndpointID) (int64, bool) {
 	log.Error().Str("func", "Heartbeat").Msg("cannot be called inside a transaction")
 
 	return 0, false
 }
 
-func (service ServiceTx) UpdateHeartbeat(endpointID portaineree.EndpointID) {
+func (service ServiceTx) UpdateHeartbeat(endpointID portainer.EndpointID) {
 	log.Error().Str("func", "UpdateHeartbeat").Msg("cannot be called inside a transaction")
 }
 

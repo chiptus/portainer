@@ -5,14 +5,15 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
 	registryAccessContext struct {
 		isAdmin         bool
 		user            *portaineree.User
-		endpointID      portaineree.EndpointID
-		teamMemberships []portaineree.TeamMembership
+		endpointID      portainer.EndpointID
+		teamMemberships []portainer.TeamMembership
 		registries      []portaineree.Registry
 	}
 
@@ -23,13 +24,13 @@ type (
 	}
 
 	portainerRegistryAuthenticationHeader struct {
-		RegistryId *portaineree.RegistryID `json:"registryId"`
+		RegistryId *portainer.RegistryID `json:"registryId"`
 	}
 )
 
 func createRegistryAuthenticationHeader(
 	dataStore dataservices.DataStore,
-	registryId portaineree.RegistryID,
+	registryId portainer.RegistryID,
 	accessContext *registryAccessContext,
 ) (authenticationHeader registryAuthenticationHeader, err error) {
 	if registryId == 0 { // dockerhub (anonymous)

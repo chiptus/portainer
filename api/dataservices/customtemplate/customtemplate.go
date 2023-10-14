@@ -1,7 +1,6 @@
 package customtemplate
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
@@ -11,7 +10,7 @@ const BucketName = "customtemplates"
 
 // Service represents a service for managing custom template data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.CustomTemplate, portaineree.CustomTemplateID]
+	dataservices.BaseDataService[portainer.CustomTemplate, portainer.CustomTemplateID]
 }
 
 // NewService creates a new instance of a service.
@@ -22,7 +21,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.CustomTemplate, portaineree.CustomTemplateID]{
+		BaseDataService: dataservices.BaseDataService[portainer.CustomTemplate, portainer.CustomTemplateID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -31,7 +30,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 // CreateCustomTemplate uses the existing id and saves it.
 // TODO: where does the ID come from, and is it safe?
-func (service *Service) Create(customTemplate *portaineree.CustomTemplate) error {
+func (service *Service) Create(customTemplate *portainer.CustomTemplate) error {
 	return service.Connection.CreateObjectWithId(BucketName, int(customTemplate.ID), customTemplate)
 }
 

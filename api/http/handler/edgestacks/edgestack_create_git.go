@@ -39,15 +39,15 @@ type edgeStackFromGitRepositoryPayload struct {
 	// Path to the Stack file inside the Git repository
 	FilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// List of identifiers of EdgeGroups
-	EdgeGroups []portaineree.EdgeGroupID `example:"1"`
+	EdgeGroups []portainer.EdgeGroupID `example:"1"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// compose is enabled only for docker environments
 	// kubernetes is enabled only for kubernetes environments
 	// nomad is enabled only for nomad environments
-	DeploymentType portaineree.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
+	DeploymentType portainer.EdgeStackDeploymentType `example:"0" enums:"0,1,2"`
 	// List of Registries to use for this stack
-	Registries []portaineree.RegistryID
+	Registries []portainer.RegistryID
 	// Uses the manifest's namespaces instead of the default one
 	UseManifestNamespaces bool
 	// Pre Pull image
@@ -57,7 +57,7 @@ type edgeStackFromGitRepositoryPayload struct {
 	// TLSSkipVerify skips SSL verification when cloning the Git repository
 	TLSSkipVerify bool `example:"false"`
 	// Optional GitOps update configuration
-	AutoUpdate *portaineree.AutoUpdateSettings
+	AutoUpdate *portainer.AutoUpdateSettings
 	// Whether the stack supports relative path volume
 	SupportRelativePath bool `example:"false"`
 	// Local filesystem path
@@ -130,7 +130,7 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 // @failure 500 "Internal server error"
 // @failure 503 "Edge compute features are disabled"
 // @router /edge_stacks/create/repository [post]
-func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dataservices.DataStoreTx, dryrun bool, userID portaineree.UserID) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dataservices.DataStoreTx, dryrun bool, userID portainer.UserID) (*portaineree.EdgeStack, error) {
 	var payload edgeStackFromGitRepositoryPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
 	if err != nil {
@@ -191,7 +191,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	edgeStack, err := handler.edgeStacksService.PersistEdgeStack(
 		tx,
 		stack,
-		func(stackFolder string, relatedEndpointIds []portaineree.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
+		func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 			return handler.storeManifestFromGitRepository(tx, stackFolder, relatedEndpointIds, payload.DeploymentType, userID, payload.RepositoryGitCredentialID, stack.GitConfig)
 		},
 	)
@@ -215,7 +215,7 @@ func (handler *Handler) createEdgeStackFromGitRepository(r *http.Request, tx dat
 	return edgeStack, nil
 }
 
-func (handler *Handler) handleAutoUpdate(stackID portaineree.EdgeStackID, autoUpdate *portaineree.AutoUpdateSettings) (string, error) {
+func (handler *Handler) handleAutoUpdate(stackID portainer.EdgeStackID, autoUpdate *portainer.AutoUpdateSettings) (string, error) {
 	// no auto update or interval not set
 	if autoUpdate == nil || autoUpdate.Interval == "" {
 		return "", nil
@@ -263,9 +263,9 @@ func (handler *Handler) checkUniqueWebhookID(webhookID string) error {
 func (handler *Handler) storeManifestFromGitRepository(
 	tx dataservices.DataStoreTx,
 	stackFolder string,
-	relatedEndpointIds []portaineree.EndpointID,
-	deploymentType portaineree.EdgeStackDeploymentType,
-	currentUserID portaineree.UserID,
+	relatedEndpointIds []portainer.EndpointID,
+	deploymentType portainer.EdgeStackDeploymentType,
+	currentUserID portainer.UserID,
 	gitCredentialId portaineree.GitCredentialID,
 	repoConfig *gittypes.RepoConfig,
 ) (composePath, manifestPath, projectPath string, err error) {

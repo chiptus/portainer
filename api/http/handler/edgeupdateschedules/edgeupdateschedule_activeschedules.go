@@ -3,14 +3,14 @@ package edgeupdateschedules
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type activeSchedulePayload struct {
-	EnvironmentIDs []portaineree.EndpointID
+	EnvironmentIDs []portainer.EndpointID
 }
 
 func (payload *activeSchedulePayload) Validate(r *http.Request) error {

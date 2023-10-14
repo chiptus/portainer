@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -45,7 +46,7 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeStack)
 }
 
-func (handler *Handler) createSwarmStack(tx dataservices.DataStoreTx, method string, dryrun bool, userID portaineree.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createSwarmStack(tx dataservices.DataStoreTx, method string, dryrun bool, userID portainer.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
 
 	switch method {
 	case "string":

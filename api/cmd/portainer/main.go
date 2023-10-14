@@ -218,7 +218,7 @@ func initComposeStackManager(composeDeployer libstack.Deployer, proxyManager *pr
 func initSwarmStackManager(
 	assetsPath string,
 	configPath string,
-	signatureService portaineree.DigitalSignatureService,
+	signatureService portainer.DigitalSignatureService,
 	fileService portainer.FileService,
 	reverseTunnelService portaineree.ReverseTunnelService,
 	dataStore dataservices.DataStore,
@@ -226,7 +226,7 @@ func initSwarmStackManager(
 	return exec.NewSwarmStackManager(assetsPath, configPath, signatureService, fileService, reverseTunnelService, dataStore)
 }
 
-func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore dataservices.DataStore, reverseTunnelService portaineree.ReverseTunnelService, signatureService portaineree.DigitalSignatureService, proxyManager *proxy.Manager, assetsPath string) portaineree.KubernetesDeployer {
+func initKubernetesDeployer(authService *authorization.Service, kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore dataservices.DataStore, reverseTunnelService portaineree.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager, assetsPath string) portaineree.KubernetesDeployer {
 	return exec.NewKubernetesDeployer(authService, kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager, assetsPath)
 }
 
@@ -253,11 +253,11 @@ func initJWTService(userSessionTimeout string, dataStore dataservices.DataStore)
 	return jwtService, nil
 }
 
-func initDigitalSignatureService() portaineree.DigitalSignatureService {
+func initDigitalSignatureService() portainer.DigitalSignatureService {
 	return crypto.NewECDSAService(os.Getenv("AGENT_SECRET"))
 }
 
-func initCryptoService() portaineree.CryptoService {
+func initCryptoService() portainer.CryptoService {
 	return &crypto.Service{}
 }
 
@@ -306,15 +306,15 @@ func initSSLService(addr, certPath, keyPath, caCertPath, mTLSCertPath, mTLSKeyPa
 	return sslService, nil
 }
 
-func initDockerClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *dockerclient.ClientFactory {
+func initDockerClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService) *dockerclient.ClientFactory {
 	return dockerclient.NewClientFactory(signatureService, reverseTunnelService)
 }
 
-func initKubernetesClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*kubecli.ClientFactory, error) {
+func initKubernetesClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*kubecli.ClientFactory, error) {
 	return kubecli.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID, addrHTTPS, userSessionTimeout)
 }
 
-func initNomadClientFactory(signatureService portaineree.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *clientFactory.ClientFactory {
+func initNomadClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portaineree.ReverseTunnelService, dataStore dataservices.DataStore, instanceID string) *clientFactory.ClientFactory {
 	return clientFactory.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID)
 }
 
@@ -338,8 +338,8 @@ func initSnapshotService(
 	return snapshotService, nil
 }
 
-func initStatus(instanceID string) *portaineree.Status {
-	return &portaineree.Status{
+func initStatus(instanceID string) *portainer.Status {
+	return &portainer.Status{
 		Version:    portaineree.APIVersion,
 		InstanceID: instanceID,
 	}
@@ -396,7 +396,7 @@ func updateSettingsFromFlags(dataStore dataservices.DataStore, flags *portainere
 	return dataStore.SSLSettings().UpdateSettings(sslSettings)
 }
 
-func loadAndParseKeyPair(fileService portainer.FileService, signatureService portaineree.DigitalSignatureService) error {
+func loadAndParseKeyPair(fileService portainer.FileService, signatureService portainer.DigitalSignatureService) error {
 	private, public, err := fileService.LoadKeyPair()
 	if err != nil {
 		return err
@@ -404,7 +404,7 @@ func loadAndParseKeyPair(fileService portainer.FileService, signatureService por
 	return signatureService.ParseKeyPair(private, public)
 }
 
-func generateAndStoreKeyPair(fileService portainer.FileService, signatureService portaineree.DigitalSignatureService) error {
+func generateAndStoreKeyPair(fileService portainer.FileService, signatureService portainer.DigitalSignatureService) error {
 	private, public, err := signatureService.GenerateKeyPair()
 	if err != nil {
 		return err
@@ -413,7 +413,7 @@ func generateAndStoreKeyPair(fileService portainer.FileService, signatureService
 	return fileService.StoreKeyPair(private, public, privateHeader, publicHeader)
 }
 
-func initKeyPair(fileService portainer.FileService, signatureService portaineree.DigitalSignatureService) error {
+func initKeyPair(fileService portainer.FileService, signatureService portainer.DigitalSignatureService) error {
 	existingKeyPair, err := fileService.KeyPairFilesExist()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed checking for existing key pair")

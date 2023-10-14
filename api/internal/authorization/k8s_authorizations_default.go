@@ -2,12 +2,13 @@ package authorization
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // DefaultK8sClusterAuthorizations returns a set of default k8s cluster-level authorizations
 // based on user's role. The operations are supposed to be used in front-end.
-func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Authorizations {
-	return map[portaineree.RoleID]portaineree.Authorizations{
+func DefaultK8sClusterAuthorizations() map[portainer.RoleID]portainer.Authorizations {
+	return map[portainer.RoleID]portainer.Authorizations{
 		portaineree.RoleIDEndpointAdmin: {
 			portaineree.OperationK8sAccessAllNamespaces:              true,
 			portaineree.OperationK8sAccessSystemNamespaces:           true,
@@ -142,8 +143,8 @@ func DefaultK8sClusterAuthorizations() map[portaineree.RoleID]portaineree.Author
 
 // DefaultK8sNamespaceAuthorizations returns a set of default k8s namespace-level authorizations
 // based on user's role. The operations are supposed to be used in front-end.
-func DefaultK8sNamespaceAuthorizations() map[portaineree.RoleID]portaineree.Authorizations {
-	return map[portaineree.RoleID]portaineree.Authorizations{
+func DefaultK8sNamespaceAuthorizations() map[portainer.RoleID]portainer.Authorizations {
+	return map[portainer.RoleID]portainer.Authorizations{
 		portaineree.RoleIDEndpointAdmin: {
 			portaineree.OperationK8sAccessNamespaceRead:  true,
 			portaineree.OperationK8sAccessNamespaceWrite: true,

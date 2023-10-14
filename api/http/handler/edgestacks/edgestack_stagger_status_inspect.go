@@ -3,7 +3,7 @@ package edgestacks
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -32,13 +32,13 @@ func (handler *Handler) edgeStackStaggerStatusInspect(w http.ResponseWriter, r *
 		return httperror.BadRequest("Invalid edge stack identifier route variable", err)
 	}
 
-	_, err = handler.DataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackID))
+	_, err = handler.DataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(edgeStackID))
 	if err != nil {
 		return handler.handlerDBErr(err, "Unable to find an edge stack with the specified identifier inside the database")
 	}
 
 	resp := edgeStackStaggerStatusResponse{"idle"}
-	if handler.staggerService.IsEdgeStackUpdating(portaineree.EdgeStackID(edgeStackID)) {
+	if handler.staggerService.IsEdgeStackUpdating(portainer.EdgeStackID(edgeStackID)) {
 		resp.Status = "updating"
 	}
 

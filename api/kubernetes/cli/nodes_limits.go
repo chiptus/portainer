@@ -3,14 +3,14 @@ package cli
 import (
 	"context"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GetNodesLimits gets the CPU and Memory limits(unused resources) of all nodes in the current k8s environment(endpoint) connection
-func (kcl *KubeClient) GetNodesLimits() (portaineree.K8sNodesLimits, error) {
-	nodesLimits := make(portaineree.K8sNodesLimits)
+func (kcl *KubeClient) GetNodesLimits() (portainer.K8sNodesLimits, error) {
+	nodesLimits := make(portainer.K8sNodesLimits)
 
 	nodes, err := kcl.cli.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -26,7 +26,7 @@ func (kcl *KubeClient) GetNodesLimits() (portaineree.K8sNodesLimits, error) {
 		cpu := item.Status.Allocatable.Cpu().MilliValue()
 		memory := item.Status.Allocatable.Memory().Value()
 
-		nodesLimits[item.ObjectMeta.Name] = &portaineree.K8sNodeLimits{
+		nodesLimits[item.ObjectMeta.Name] = &portainer.K8sNodeLimits{
 			CPU:    cpu,
 			Memory: memory,
 		}
@@ -46,8 +46,8 @@ func (kcl *KubeClient) GetNodesLimits() (portaineree.K8sNodesLimits, error) {
 
 // GetMaxResourceLimits gets the maximum CPU and Memory limits(unused resources) of all nodes in the current k8s environment(endpoint) connection, minus the accumulated resourcequotas for all namespaces except the one we're editing (skipNamespace)
 // if skipNamespace is set to "" then all namespaces are considered
-func (client *KubeClient) GetMaxResourceLimits(skipNamespace string, overCommitEnabled bool, resourceOverCommitPercent int) (portaineree.K8sNodeLimits, error) {
-	limits := portaineree.K8sNodeLimits{}
+func (client *KubeClient) GetMaxResourceLimits(skipNamespace string, overCommitEnabled bool, resourceOverCommitPercent int) (portainer.K8sNodeLimits, error) {
+	limits := portainer.K8sNodeLimits{}
 	nodes, err := client.cli.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return limits, err
@@ -69,7 +69,7 @@ func (client *KubeClient) GetMaxResourceLimits(skipNamespace string, overCommitE
 
 		reservedPercent := float64(resourceOverCommitPercent) / 100.0
 
-		reserved := portaineree.K8sNodeLimits{}
+		reserved := portainer.K8sNodeLimits{}
 		for _, namespace := range namespaces.Items {
 			// skip the namespace we're editing
 			if namespace.Name == skipNamespace {

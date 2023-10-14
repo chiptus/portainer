@@ -6,11 +6,12 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 )
 
 type ServiceTx struct {
-	dataservices.BaseDataServiceTx[portaineree.Stack, portaineree.StackID]
+	dataservices.BaseDataServiceTx[portaineree.Stack, portainer.StackID]
 }
 
 // StackByName returns a stack object by name.

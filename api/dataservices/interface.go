@@ -73,12 +73,12 @@ type (
 
 	// CustomTemplateService represents a service to manage custom templates
 	CustomTemplateService interface {
-		BaseCRUD[portaineree.CustomTemplate, portaineree.CustomTemplateID]
+		BaseCRUD[portainer.CustomTemplate, portainer.CustomTemplateID]
 		GetNextIdentifier() int
 	}
 
 	PendingActionsService interface {
-		BaseCRUD[portaineree.PendingActions, portaineree.PendingActionsID]
+		BaseCRUD[portainer.PendingActions, portainer.PendingActionsID]
 		GetNextIdentifier() int
 	}
 
@@ -86,7 +86,7 @@ type (
 	EdgeAsyncCommandService interface {
 		Create(command *portaineree.EdgeAsyncCommand) error
 		Update(id int, command *portaineree.EdgeAsyncCommand) error
-		EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error)
+		EndpointCommands(endpointID portainer.EndpointID) ([]portaineree.EdgeAsyncCommand, error)
 	}
 
 	// CloudProvisioningService
@@ -104,20 +104,20 @@ type (
 	}
 
 	EdgeConfigStateService interface {
-		BaseCRUD[portaineree.EdgeConfigState, portaineree.EndpointID]
+		BaseCRUD[portaineree.EdgeConfigState, portainer.EndpointID]
 	}
 
 	// EdgeGroupService represents a service to manage Edge groups
 	EdgeGroupService interface {
-		BaseCRUD[portaineree.EdgeGroup, portaineree.EdgeGroupID]
-		UpdateEdgeGroupFunc(ID portaineree.EdgeGroupID, updateFunc func(group *portaineree.EdgeGroup)) error
+		BaseCRUD[portaineree.EdgeGroup, portainer.EdgeGroupID]
+		UpdateEdgeGroupFunc(ID portainer.EdgeGroupID, updateFunc func(group *portaineree.EdgeGroup)) error
 	}
 
 	// EdgeJobService represents a service to manage Edge jobs
 	EdgeJobService interface {
-		BaseCRUD[portaineree.EdgeJob, portaineree.EdgeJobID]
-		CreateWithID(ID portaineree.EdgeJobID, edgeJob *portaineree.EdgeJob) error
-		UpdateEdgeJobFunc(ID portaineree.EdgeJobID, updateFunc func(edgeJob *portaineree.EdgeJob)) error
+		BaseCRUD[portainer.EdgeJob, portainer.EdgeJobID]
+		CreateWithID(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error
+		UpdateEdgeJobFunc(ID portainer.EdgeJobID, updateFunc func(edgeJob *portainer.EdgeJob)) error
 		GetNextIdentifier() int
 	}
 
@@ -128,12 +128,12 @@ type (
 	// EdgeStackService represents a service to manage Edge stacks
 	EdgeStackService interface {
 		EdgeStacks() ([]portaineree.EdgeStack, error)
-		EdgeStack(ID portaineree.EdgeStackID) (*portaineree.EdgeStack, error)
-		EdgeStackVersion(ID portaineree.EdgeStackID) (int, bool)
-		Create(id portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack) error
-		UpdateEdgeStack(ID portaineree.EdgeStackID, edgeStack *portaineree.EdgeStack, cleanupCache bool) error
-		UpdateEdgeStackFunc(ID portaineree.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
-		DeleteEdgeStack(ID portaineree.EdgeStackID) error
+		EdgeStack(ID portainer.EdgeStackID) (*portaineree.EdgeStack, error)
+		EdgeStackVersion(ID portainer.EdgeStackID) (int, bool)
+		Create(id portainer.EdgeStackID, edgeStack *portaineree.EdgeStack) error
+		UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *portaineree.EdgeStack, cleanupCache bool) error
+		UpdateEdgeStackFunc(ID portainer.EdgeStackID, updateFunc func(edgeStack *portaineree.EdgeStack)) error
+		DeleteEdgeStack(ID portainer.EdgeStackID) error
 		GetNextIdentifier() int
 		BucketName() string
 	}
@@ -141,37 +141,37 @@ type (
 	EdgeStackLogService interface {
 		Create(edgeStack *portaineree.EdgeStackLog) error
 		Update(edgeStack *portaineree.EdgeStackLog) error
-		Delete(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) error
-		EdgeStackLog(edgeStackID portaineree.EdgeStackID, endpointID portaineree.EndpointID) (*portaineree.EdgeStackLog, error)
+		Delete(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) error
+		EdgeStackLog(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) (*portaineree.EdgeStackLog, error)
 	}
 
 	// EndpointService represents a service for managing environment(endpoint) data
 	EndpointService interface {
-		Endpoint(ID portaineree.EndpointID) (*portaineree.Endpoint, error)
-		EndpointIDByEdgeID(edgeID string) (portaineree.EndpointID, bool)
-		Heartbeat(endpointID portaineree.EndpointID) (int64, bool)
-		UpdateHeartbeat(endpointID portaineree.EndpointID)
+		Endpoint(ID portainer.EndpointID) (*portaineree.Endpoint, error)
+		EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool)
+		Heartbeat(endpointID portainer.EndpointID) (int64, bool)
+		UpdateHeartbeat(endpointID portainer.EndpointID)
 		Endpoints() ([]portaineree.Endpoint, error)
 		Create(endpoint *portaineree.Endpoint) error
-		UpdateEndpoint(ID portaineree.EndpointID, endpoint *portaineree.Endpoint) error
-		DeleteEndpoint(ID portaineree.EndpointID) error
+		UpdateEndpoint(ID portainer.EndpointID, endpoint *portaineree.Endpoint) error
+		DeleteEndpoint(ID portainer.EndpointID) error
 		GetNextIdentifier() int
 		BucketName() string
-		SetMessage(ID portaineree.EndpointID, statusMessage portaineree.EndpointStatusMessage) error
+		SetMessage(ID portainer.EndpointID, statusMessage portaineree.EndpointStatusMessage) error
 	}
 
 	// EndpointGroupService represents a service for managing environment(endpoint) group data
 	EndpointGroupService interface {
-		BaseCRUD[portaineree.EndpointGroup, portaineree.EndpointGroupID]
+		BaseCRUD[portainer.EndpointGroup, portainer.EndpointGroupID]
 	}
 
 	// EndpointRelationService represents a service for managing environment(endpoint) relations data
 	EndpointRelationService interface {
-		EndpointRelations() ([]portaineree.EndpointRelation, error)
-		EndpointRelation(EndpointID portaineree.EndpointID) (*portaineree.EndpointRelation, error)
-		Create(endpointRelation *portaineree.EndpointRelation) error
-		UpdateEndpointRelation(EndpointID portaineree.EndpointID, endpointRelation *portaineree.EndpointRelation) error
-		DeleteEndpointRelation(EndpointID portaineree.EndpointID) error
+		EndpointRelations() ([]portainer.EndpointRelation, error)
+		EndpointRelation(EndpointID portainer.EndpointID) (*portainer.EndpointRelation, error)
+		Create(endpointRelation *portainer.EndpointRelation) error
+		UpdateEndpointRelation(EndpointID portainer.EndpointID, endpointRelation *portainer.EndpointRelation) error
+		DeleteEndpointRelation(EndpointID portainer.EndpointID) error
 		BucketName() string
 	}
 
@@ -183,22 +183,22 @@ type (
 
 	// FDOProfileService represents a service to manage FDO Profiles
 	FDOProfileService interface {
-		BaseCRUD[portaineree.FDOProfile, portaineree.FDOProfileID]
+		BaseCRUD[portainer.FDOProfile, portainer.FDOProfileID]
 		GetNextIdentifier() int
 	}
 
 	// HelmUserRepositoryService represents a service to manage HelmUserRepositories
 	HelmUserRepositoryService interface {
-		BaseCRUD[portaineree.HelmUserRepository, portaineree.HelmUserRepositoryID]
-		HelmUserRepositoryByUserID(userID portaineree.UserID) ([]portaineree.HelmUserRepository, error)
+		BaseCRUD[portaineree.HelmUserRepository, portainer.HelmUserRepositoryID]
+		HelmUserRepositoryByUserID(userID portainer.UserID) ([]portaineree.HelmUserRepository, error)
 	}
 
 	// JWTService represents a service for managing JWT tokens
 	JWTService interface {
-		GenerateToken(data *portaineree.TokenData) (string, error)
-		GenerateTokenForOAuth(data *portaineree.TokenData, expiryTime *time.Time) (string, error)
-		GenerateTokenForKubeconfig(data *portaineree.TokenData) (string, error)
-		ParseAndVerifyToken(token string) (*portaineree.TokenData, error)
+		GenerateToken(data *portainer.TokenData) (string, error)
+		GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error)
+		GenerateTokenForKubeconfig(data *portainer.TokenData) (string, error)
+		ParseAndVerifyToken(token string) (*portainer.TokenData, error)
 		SetUserSessionDuration(userSessionDuration time.Duration)
 	}
 
@@ -213,32 +213,32 @@ type (
 
 	// RegistryService represents a service for managing registry data
 	RegistryService interface {
-		BaseCRUD[portaineree.Registry, portaineree.RegistryID]
+		BaseCRUD[portaineree.Registry, portainer.RegistryID]
 	}
 
 	// ResourceControlService represents a service for managing resource control data
 	ResourceControlService interface {
-		BaseCRUD[portaineree.ResourceControl, portaineree.ResourceControlID]
-		ResourceControlByResourceIDAndType(resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error)
+		BaseCRUD[portainer.ResourceControl, portainer.ResourceControlID]
+		ResourceControlByResourceIDAndType(resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error)
 	}
 
 	// RoleService represents a service for managing user roles
 	RoleService interface {
-		BaseCRUD[portaineree.Role, portaineree.RoleID]
+		BaseCRUD[portaineree.Role, portainer.RoleID]
 	}
 
 	// APIKeyRepository
 	APIKeyRepository interface {
-		BaseCRUD[portaineree.APIKey, portaineree.APIKeyID]
-		GetAPIKeysByUserID(userID portaineree.UserID) ([]portaineree.APIKey, error)
+		BaseCRUD[portaineree.APIKey, portainer.APIKeyID]
+		GetAPIKeysByUserID(userID portainer.UserID) ([]portaineree.APIKey, error)
 		GetAPIKeyByDigest(digest []byte) (*portaineree.APIKey, error)
 	}
 
 	// GitCredential
 	GitCredential interface {
 		BaseCRUD[portaineree.GitCredential, portaineree.GitCredentialID]
-		GetGitCredentialsByUserID(userID portaineree.UserID) ([]portaineree.GitCredential, error)
-		GetGitCredentialByName(userID portaineree.UserID, name string) (*portaineree.GitCredential, error)
+		GetGitCredentialsByUserID(userID portainer.UserID) ([]portaineree.GitCredential, error)
+		GetGitCredentialByName(userID portainer.UserID, name string) (*portaineree.GitCredential, error)
 	}
 
 	// S3BackupService represents a storage service for managing S3 backup settings and status
@@ -258,7 +258,7 @@ type (
 	}
 
 	SnapshotService interface {
-		BaseCRUD[portaineree.Snapshot, portaineree.EndpointID]
+		BaseCRUD[portaineree.Snapshot, portainer.EndpointID]
 	}
 
 	// SSLSettingsService represents a service for managing application settings
@@ -270,7 +270,7 @@ type (
 
 	// StackService represents a service for managing stack data
 	StackService interface {
-		BaseCRUD[portaineree.Stack, portaineree.StackID]
+		BaseCRUD[portaineree.Stack, portainer.StackID]
 		StackByName(name string) (*portaineree.Stack, error)
 		StacksByName(name string) ([]portaineree.Stack, error)
 		GetNextIdentifier() int
@@ -289,53 +289,53 @@ type (
 
 	// TagService represents a service for managing tag data
 	TagService interface {
-		BaseCRUD[portaineree.Tag, portaineree.TagID]
-		UpdateTagFunc(ID portaineree.TagID, updateFunc func(tag *portaineree.Tag)) error
+		BaseCRUD[portainer.Tag, portainer.TagID]
+		UpdateTagFunc(ID portainer.TagID, updateFunc func(tag *portainer.Tag)) error
 	}
 
 	// TeamService represents a service for managing user data
 	TeamService interface {
-		BaseCRUD[portaineree.Team, portaineree.TeamID]
-		TeamByName(name string) (*portaineree.Team, error)
+		BaseCRUD[portainer.Team, portainer.TeamID]
+		TeamByName(name string) (*portainer.Team, error)
 	}
 
 	// TeamMembershipService represents a service for managing team membership data
 	TeamMembershipService interface {
-		BaseCRUD[portaineree.TeamMembership, portaineree.TeamMembershipID]
-		TeamMembershipsByUserID(userID portaineree.UserID) ([]portaineree.TeamMembership, error)
-		TeamMembershipsByTeamID(teamID portaineree.TeamID) ([]portaineree.TeamMembership, error)
-		DeleteTeamMembershipByUserID(userID portaineree.UserID) error
-		DeleteTeamMembershipByTeamID(teamID portaineree.TeamID) error
-		DeleteTeamMembershipByTeamIDAndUserID(teamID portaineree.TeamID, userID portaineree.UserID) error
+		BaseCRUD[portainer.TeamMembership, portainer.TeamMembershipID]
+		TeamMembershipsByUserID(userID portainer.UserID) ([]portainer.TeamMembership, error)
+		TeamMembershipsByTeamID(teamID portainer.TeamID) ([]portainer.TeamMembership, error)
+		DeleteTeamMembershipByUserID(userID portainer.UserID) error
+		DeleteTeamMembershipByTeamID(teamID portainer.TeamID) error
+		DeleteTeamMembershipByTeamIDAndUserID(teamID portainer.TeamID, userID portainer.UserID) error
 	}
 
 	// TunnelServerService represents a service for managing data associated to the tunnel server
 	TunnelServerService interface {
-		Info() (*portaineree.TunnelServerInfo, error)
-		UpdateInfo(info *portaineree.TunnelServerInfo) error
+		Info() (*portainer.TunnelServerInfo, error)
+		UpdateInfo(info *portainer.TunnelServerInfo) error
 		BucketName() string
 	}
 
 	// UserService represents a service for managing user data
 	UserService interface {
-		BaseCRUD[portaineree.User, portaineree.UserID]
+		BaseCRUD[portaineree.User, portainer.UserID]
 		UserByUsername(username string) (*portaineree.User, error)
-		UsersByRole(role portaineree.UserRole) ([]portaineree.User, error)
+		UsersByRole(role portainer.UserRole) ([]portaineree.User, error)
 	}
 
 	// VersionService represents a service for managing version data
 	VersionService interface {
 		InstanceID() (string, error)
 		UpdateInstanceID(ID string) error
-		Edition() (portaineree.SoftwareEdition, error)
+		Edition() (portainer.SoftwareEdition, error)
 		Version() (*models.Version, error)
 		UpdateVersion(*models.Version) error
 	}
 
 	// WebhookService represents a service for managing webhook data.
 	WebhookService interface {
-		BaseCRUD[portaineree.Webhook, portaineree.WebhookID]
-		WebhookByResourceID(resourceID string) (*portaineree.Webhook, error)
-		WebhookByToken(token string) (*portaineree.Webhook, error)
+		BaseCRUD[portainer.Webhook, portainer.WebhookID]
+		WebhookByResourceID(resourceID string) (*portainer.Webhook, error)
+		WebhookByToken(token string) (*portainer.Webhook, error)
 	}
 )

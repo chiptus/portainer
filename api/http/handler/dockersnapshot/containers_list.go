@@ -29,7 +29,7 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 	edgeStackId, _ := request.RetrieveNumericQueryParameter(r, "edgeStackId", true)
 	environmentId, _ := request.RetrieveNumericRouteVariableValue(r, "id")
 
-	environmentSnapshot, err := handler.dataStore.Snapshot().Read(portaineree.EndpointID(environmentId))
+	environmentSnapshot, err := handler.dataStore.Snapshot().Read(portainer.EndpointID(environmentId))
 	if err != nil || environmentSnapshot == nil || environmentSnapshot.Docker == nil {
 		return response.JSON(w, []string{})
 	}
@@ -37,7 +37,7 @@ func (handler *Handler) containersList(w http.ResponseWriter, r *http.Request) *
 	containers := environmentSnapshot.Docker.SnapshotRaw.Containers
 
 	if edgeStackId != 0 {
-		edgeStack, err := handler.dataStore.EdgeStack().EdgeStack(portaineree.EdgeStackID(edgeStackId))
+		edgeStack, err := handler.dataStore.EdgeStack().EdgeStack(portainer.EdgeStackID(edgeStackId))
 
 		if err != nil {
 			statusCode := http.StatusNotFound

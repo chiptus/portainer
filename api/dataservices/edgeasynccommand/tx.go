@@ -39,7 +39,7 @@ func (service ServiceTx) Update(id int, cmd *portaineree.EdgeAsyncCommand) error
 }
 
 // EndpointCommands return all EdgeAsyncCommand associated to a given endpoint.
-func (service ServiceTx) EndpointCommands(endpointID portaineree.EndpointID) ([]portaineree.EdgeAsyncCommand, error) {
+func (service ServiceTx) EndpointCommands(endpointID portainer.EndpointID) ([]portaineree.EdgeAsyncCommand, error) {
 	var cmds = make([]portaineree.EdgeAsyncCommand, 0)
 
 	return cmds, service.tx.GetAllWithKeyPrefix(

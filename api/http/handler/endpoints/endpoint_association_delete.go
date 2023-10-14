@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -36,7 +35,7 @@ func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http
 		return httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -49,14 +48,14 @@ func (handler *Handler) endpointAssociationDelete(w http.ResponseWriter, r *http
 
 	endpoint.EdgeID = ""
 	endpoint.Snapshots = []portainer.DockerSnapshot{}
-	endpoint.Kubernetes.Snapshots = []portaineree.KubernetesSnapshot{}
+	endpoint.Kubernetes.Snapshots = []portainer.KubernetesSnapshot{}
 
 	endpoint.EdgeKey, err = handler.updateEdgeKey(endpoint.EdgeKey)
 	if err != nil {
 		return httperror.InternalServerError("Invalid EdgeKey", err)
 	}
 
-	err = handler.DataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
+	err = handler.DataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Failed persisting environment in database", err)
 	}

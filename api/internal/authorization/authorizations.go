@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Service represents a service used to
@@ -26,8 +27,8 @@ func NewService(dataStore dataservices.DataStoreTx) *Service {
 
 // DefaultEndpointAuthorizationsForEndpointAdministratorRole returns the default environment(endpoint) authorizations
 // associated to the environment(endpoint) administrator role.
-func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portaineree.Authorizations {
-	return unionAuthorizations(map[portaineree.Authorization]bool{
+func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portainer.Authorizations {
+	return unionAuthorizations(map[portainer.Authorization]bool{
 		portaineree.OperationDockerContainerArchiveInfo:         true,
 		portaineree.OperationDockerContainerList:                true,
 		portaineree.OperationDockerContainerExport:              true,
@@ -176,8 +177,8 @@ func DefaultEndpointAuthorizationsForEndpointAdministratorRole() portaineree.Aut
 
 // DefaultEndpointAuthorizationsForHelpDeskRole returns the default environment(endpoint) authorizations
 // associated to the helpdesk role.
-func DefaultEndpointAuthorizationsForHelpDeskRole() portaineree.Authorizations {
-	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+func DefaultEndpointAuthorizationsForHelpDeskRole() portainer.Authorizations {
+	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
 		portaineree.OperationDockerContainerArchiveInfo: true,
 		portaineree.OperationDockerContainerList:        true,
 		portaineree.OperationDockerContainerChanges:     true,
@@ -235,8 +236,8 @@ func DefaultEndpointAuthorizationsForHelpDeskRole() portaineree.Authorizations {
 
 // DefaultEndpointAuthorizationsForOperatorRole returns the default environment(endpoint) authorizations
 // associated to the Operator role.
-func DefaultEndpointAuthorizationsForOperatorRole() portaineree.Authorizations {
-	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+func DefaultEndpointAuthorizationsForOperatorRole() portainer.Authorizations {
+	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
 		portaineree.OperationDockerContainerArchiveInfo:      true,
 		portaineree.OperationDockerContainerList:             true,
 		portaineree.OperationDockerContainerChanges:          true,
@@ -307,8 +308,8 @@ func DefaultEndpointAuthorizationsForOperatorRole() portaineree.Authorizations {
 
 // DefaultEndpointAuthorizationsForStandardUserRole returns the default environment(endpoint) authorizations
 // associated to the standard user role.
-func DefaultEndpointAuthorizationsForStandardUserRole() portaineree.Authorizations {
-	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+func DefaultEndpointAuthorizationsForStandardUserRole() portainer.Authorizations {
+	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
 		portaineree.OperationDockerContainerArchiveInfo:         true,
 		portaineree.OperationDockerContainerList:                true,
 		portaineree.OperationDockerContainerExport:              true,
@@ -446,8 +447,8 @@ func DefaultEndpointAuthorizationsForStandardUserRole() portaineree.Authorizatio
 
 // DefaultEndpointAuthorizationsForReadOnlyUserRole returns the default environment(endpoint) authorizations
 // associated to the readonly user role.
-func DefaultEndpointAuthorizationsForReadOnlyUserRole() portaineree.Authorizations {
-	authorizations := unionAuthorizations(map[portaineree.Authorization]bool{
+func DefaultEndpointAuthorizationsForReadOnlyUserRole() portainer.Authorizations {
+	authorizations := unionAuthorizations(map[portainer.Authorization]bool{
 		portaineree.OperationDockerContainerArchiveInfo: true,
 		portaineree.OperationDockerContainerList:        true,
 		portaineree.OperationDockerContainerChanges:     true,
@@ -503,8 +504,8 @@ func DefaultEndpointAuthorizationsForReadOnlyUserRole() portaineree.Authorizatio
 }
 
 // DefaultPortainerAuthorizations returns the default Portainer authorizations used by non-admin users.
-func DefaultPortainerAuthorizations() portaineree.Authorizations {
-	return map[portaineree.Authorization]bool{
+func DefaultPortainerAuthorizations() portainer.Authorizations {
+	return map[portainer.Authorization]bool{
 		portaineree.OperationPortainerEndpointGroupInspect:     true,
 		portaineree.OperationPortainerEndpointGroupList:        true,
 		portaineree.OperationPortainerDockerHubInspect:         true,
@@ -538,7 +539,7 @@ func (service *Service) RegisterEventHandler(id string, handler portaineree.Auth
 // event handlers (e.g. token cache manager)
 func (service *Service) TriggerEndpointAuthUpdate(endpointID int) {
 	for _, handler := range service.authEventHandlers {
-		handler.HandleEndpointAuthUpdate(portaineree.EndpointID(endpointID))
+		handler.HandleEndpointAuthUpdate(portainer.EndpointID(endpointID))
 	}
 }
 
@@ -554,7 +555,7 @@ func (service *Service) TriggerUsersAuthUpdate() {
 // event handlers (e.g. token cache manager)
 func (service *Service) TriggerUserAuthUpdate(userID int) {
 	for _, handler := range service.authEventHandlers {
-		handler.HandleUserAuthDelete(portaineree.UserID(userID))
+		handler.HandleUserAuthDelete(portainer.UserID(userID))
 	}
 }
 
@@ -580,7 +581,7 @@ func populateDeployIngressAuthorizations(restricted bool, role portaineree.Role)
 }
 
 // RemoveTeamAccessPolicies will remove all existing access policies associated to the specified team
-func (service *Service) RemoveTeamAccessPolicies(tx dataservices.DataStoreTx, teamID portaineree.TeamID) error {
+func (service *Service) RemoveTeamAccessPolicies(tx dataservices.DataStoreTx, teamID portainer.TeamID) error {
 	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return err
@@ -645,7 +646,7 @@ func (service *Service) RemoveTeamAccessPolicies(tx dataservices.DataStoreTx, te
 }
 
 // RemoveUserAccessPolicies will remove all existing access policies associated to the specified user
-func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, userID portainer.UserID) error {
 	endpoints, err := tx.Endpoint().Endpoints()
 	if err != nil {
 		return err
@@ -712,7 +713,7 @@ func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, us
 }
 
 // UpdateUserAuthorizations will update the authorizations for the provided userid
-func (service *Service) UpdateUserAuthorizations(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+func (service *Service) UpdateUserAuthorizations(tx dataservices.DataStoreTx, userID portainer.UserID) error {
 	err := service.updateUserAuthorizations(tx, userID)
 	if err != nil {
 		return err
@@ -746,7 +747,7 @@ func (service *Service) UpdateUsersAuthorizationsTx(tx dataservices.DataStoreTx)
 	return nil
 }
 
-func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, userID portaineree.UserID) error {
+func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, userID portainer.UserID) error {
 	user, err := tx.User().Read(userID)
 	if err != nil {
 		return err
@@ -761,8 +762,8 @@ func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, us
 	return tx.User().Update(userID, user)
 }
 
-func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *portaineree.User) (portaineree.EndpointAuthorizations, error) {
-	endpointAuthorizations := portaineree.EndpointAuthorizations{}
+func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *portaineree.User) (portainer.EndpointAuthorizations, error) {
+	endpointAuthorizations := portainer.EndpointAuthorizations{}
 	if user.Role == portaineree.AdministratorRole {
 		return endpointAuthorizations, nil
 	}
@@ -793,10 +794,10 @@ func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *por
 }
 
 func getUserEndpointAuthorizations(user *portaineree.User, endpoints []portaineree.Endpoint,
-	endpointGroups []portaineree.EndpointGroup, roles []portaineree.Role,
-	userMemberships []portaineree.TeamMembership) portaineree.EndpointAuthorizations {
+	endpointGroups []portainer.EndpointGroup, roles []portaineree.Role,
+	userMemberships []portainer.TeamMembership) portainer.EndpointAuthorizations {
 
-	endpointAuthorizations := make(portaineree.EndpointAuthorizations)
+	endpointAuthorizations := make(portainer.EndpointAuthorizations)
 	for endpointID, role := range getUserEndpointRoles(user, endpoints,
 		endpointGroups, roles, userMemberships) {
 		endpointAuthorizations[endpointID] = role.Authorizations
@@ -806,12 +807,12 @@ func getUserEndpointAuthorizations(user *portaineree.User, endpoints []portainer
 }
 
 // get the user and team policies from the environment(endpoint) group definitions
-func getGroupPolicies(endpointGroups []portaineree.EndpointGroup) (
-	map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies,
-	map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies,
+func getGroupPolicies(endpointGroups []portainer.EndpointGroup) (
+	map[portainer.EndpointGroupID]portainer.UserAccessPolicies,
+	map[portainer.EndpointGroupID]portainer.TeamAccessPolicies,
 ) {
-	groupUserAccessPolicies := map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies{}
-	groupTeamAccessPolicies := map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies{}
+	groupUserAccessPolicies := map[portainer.EndpointGroupID]portainer.UserAccessPolicies{}
+	groupTeamAccessPolicies := map[portainer.EndpointGroupID]portainer.TeamAccessPolicies{}
 
 	for _, endpointGroup := range endpointGroups {
 		groupUserAccessPolicies[endpointGroup.ID] = endpointGroup.UserAccessPolicies
@@ -827,8 +828,8 @@ func getGroupPolicies(endpointGroups []portaineree.EndpointGroup) (
 func (service *Service) UpdateUserNamespaceAccessPolicies(
 	tx dataservices.DataStoreTx,
 	userID int, endpoint *portaineree.Endpoint,
-	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
-) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
+) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
 	endpointID := int(endpoint.ID)
 	restrictDefaultNamespace := endpoint.Kubernetes.Configuration.RestrictDefaultNamespace
 
@@ -845,7 +846,7 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 		usersEndpointRole[userID] = -1
 	}
 
-	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(portaineree.UserID(userID))
+	userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(portainer.UserID(userID))
 	if err != nil {
 		return nil, false, err
 	}
@@ -872,9 +873,9 @@ func (service *Service) UpdateUserNamespaceAccessPolicies(
 func (service *Service) updateNamespaceAccessPolicies(
 	selectedUserID int, selectedTeamIDs []int,
 	usersEndpointRole map[int]int, teamsEndpointRole map[int]int,
-	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
+	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
 	restrictDefaultNamespace bool,
-) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
+) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
 	hasChange := false
 	if !restrictDefaultNamespace {
 		delete(policiesToUpdate, "default")
@@ -889,8 +890,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 					delete(nsPolicies.UserAccessPolicies, userID)
 					hasChange = true
 				} else if int(policy.RoleID) != iRoleID {
-					nsPolicies.UserAccessPolicies[userID] = portaineree.AccessPolicy{
-						RoleID: portaineree.RoleID(iRoleID),
+					nsPolicies.UserAccessPolicies[userID] = portainer.AccessPolicy{
+						RoleID: portainer.RoleID(iRoleID),
 					}
 					hasChange = true
 				}
@@ -905,8 +906,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 						delete(nsPolicies.TeamAccessPolicies, teamID)
 						hasChange = true
 					} else if int(policy.RoleID) != iRoleID {
-						nsPolicies.TeamAccessPolicies[teamID] = portaineree.AccessPolicy{
-							RoleID: portaineree.RoleID(iRoleID),
+						nsPolicies.TeamAccessPolicies[teamID] = portainer.AccessPolicy{
+							RoleID: portainer.RoleID(iRoleID),
 						}
 						hasChange = true
 					}
@@ -926,8 +927,8 @@ func (service *Service) updateNamespaceAccessPolicies(
 func (service *Service) RemoveUserNamespaceAccessPolicies(
 	tx dataservices.DataStoreTx,
 	userID int, endpointID int,
-	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
-) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
+) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
 	userRole, err := service.GetUserEndpointRoleTx(tx, userID, endpointID)
 	if err != nil {
 		return nil, false, err
@@ -945,8 +946,8 @@ func (service *Service) RemoveUserNamespaceAccessPolicies(
 // and remove users/teams in it.
 func (service *Service) removeUserInNamespaceAccessPolicies(
 	usersEndpointRole map[int]int,
-	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
-) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
+) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
 	hasChange := false
 	for ns, nsPolicies := range policiesToUpdate {
 		for userID := range nsPolicies.UserAccessPolicies {
@@ -973,8 +974,8 @@ func (service *Service) removeUserInNamespaceAccessPolicies(
 func (service *Service) RemoveTeamNamespaceAccessPolicies(
 	tx dataservices.DataStoreTx,
 	teamID int, endpointID int,
-	policiesToUpdate map[string]portaineree.K8sNamespaceAccessPolicy,
-) (map[string]portaineree.K8sNamespaceAccessPolicy, bool, error) {
+	policiesToUpdate map[string]portainer.K8sNamespaceAccessPolicy,
+) (map[string]portainer.K8sNamespaceAccessPolicy, bool, error) {
 	teamRole, err := service.GetTeamEndpointRole(tx, teamID, endpointID)
 	if err != nil {
 		return nil, false, err
@@ -1013,7 +1014,7 @@ func (service *Service) GetUserEndpointRole(userID int, endpointID int) (*portai
 }
 
 func (service *Service) GetUserEndpointRoleTx(tx dataservices.DataStoreTx, userID int, endpointID int) (*portaineree.Role, error) {
-	user, err := tx.User().Read(portaineree.UserID(userID))
+	user, err := tx.User().Read(portainer.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -1023,7 +1024,7 @@ func (service *Service) GetUserEndpointRoleTx(tx dataservices.DataStoreTx, userI
 		return nil, err
 	}
 
-	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
@@ -1049,8 +1050,8 @@ func (service *Service) GetNamespaceAuthorizations(
 	userID int,
 	endpoint portaineree.Endpoint,
 	kcl portaineree.KubeClient,
-) (map[string]portaineree.Authorizations, error) {
-	namespaceAuthorizations := make(map[string]portaineree.Authorizations)
+) (map[string]portainer.Authorizations, error) {
+	namespaceAuthorizations := make(map[string]portainer.Authorizations)
 
 	// skip non k8s environments(endpoints)
 	if endpoint.Type != portaineree.KubernetesLocalEnvironment &&
@@ -1113,11 +1114,11 @@ func (service *Service) GetUserNamespaceAuthorizations(
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
-	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
 	namespaces map[string]portaineree.K8sNamespaceInfo,
-	endpointAuthorizations portaineree.Authorizations,
+	endpointAuthorizations portainer.Authorizations,
 	endpointConfiguration portaineree.KubernetesConfiguration,
-) (map[string]portaineree.Authorizations, error) {
+) (map[string]portainer.Authorizations, error) {
 	namespaceRoles, err := service.GetUserNamespaceRoles(tx, userID, userEndpointRoleID, endpointID,
 		accessPolicies, namespaces, endpointAuthorizations, endpointConfiguration)
 	if err != nil {
@@ -1126,7 +1127,7 @@ func (service *Service) GetUserNamespaceAuthorizations(
 
 	defaultAuthorizations := DefaultK8sNamespaceAuthorizations()
 
-	namespaceAuthorizations := make(map[string]portaineree.Authorizations)
+	namespaceAuthorizations := make(map[string]portainer.Authorizations)
 	for namespace, role := range namespaceRoles {
 		namespaceAuthorizations[namespace] = defaultAuthorizations[role.ID]
 	}
@@ -1140,9 +1141,9 @@ func (service *Service) GetUserNamespaceRoles(
 	userID int,
 	userEndpointRoleID int,
 	endpointID int,
-	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
 	namespaces map[string]portaineree.K8sNamespaceInfo,
-	endpointAuthorizations portaineree.Authorizations,
+	endpointAuthorizations portainer.Authorizations,
 	endpointConfiguration portaineree.KubernetesConfiguration,
 ) (map[string]portaineree.Role, error) {
 
@@ -1152,7 +1153,7 @@ func (service *Service) GetUserNamespaceRoles(
 		return make(map[string]portaineree.Role), nil
 	}
 
-	user, err := tx.User().Read(portaineree.UserID(userID))
+	user, err := tx.User().Read(portainer.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -1179,8 +1180,8 @@ func getUserNamespaceRoles(
 	user *portaineree.User,
 	userEndpointRoleID int,
 	roles []portaineree.Role,
-	userMemberships []portaineree.TeamMembership,
-	accessPolicies map[string]portaineree.K8sNamespaceAccessPolicy,
+	userMemberships []portainer.TeamMembership,
+	accessPolicies map[string]portainer.K8sNamespaceAccessPolicy,
 	namespaces map[string]portaineree.K8sNamespaceInfo,
 	accessAllNamespaces bool,
 	accessSystemNamespaces bool,
@@ -1242,10 +1243,10 @@ func getUserNamespaceRoles(
 // Then the role with the hightest priority is returned.
 func getUserNamespaceRole(
 	user *portaineree.User,
-	userAccessPolicies portaineree.UserAccessPolicies,
-	teamAccessPolicies portaineree.TeamAccessPolicies,
+	userAccessPolicies portainer.UserAccessPolicies,
+	teamAccessPolicies portainer.TeamAccessPolicies,
 	roles []portaineree.Role,
-	userMemberships []portaineree.TeamMembership,
+	userMemberships []portainer.TeamMembership,
 ) *portaineree.Role {
 
 	role := getRoleFromUserAccessPolicies(user, userAccessPolicies, roles)
@@ -1265,12 +1266,12 @@ func getUserNamespaceRole(
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
 func (service *Service) GetTeamEndpointRole(tx dataservices.DataStoreTx, teamID int, endpointID int) (*portaineree.Role, error) {
-	memberships, err := tx.TeamMembership().TeamMembershipsByTeamID(portaineree.TeamID(teamID))
+	memberships, err := tx.TeamMembership().TeamMembershipsByTeamID(portainer.TeamID(teamID))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return nil, err
 	}
@@ -1307,10 +1308,10 @@ func (service *Service) GetTeamEndpointRole(tx dataservices.DataStoreTx, teamID 
 // If roles are found in any of the step, the search stops.
 // Then the role with the hightest priority is returned.
 func getUserEndpointRole(user *portaineree.User, endpoint portaineree.Endpoint,
-	groupUserAccessPolicies map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies,
-	groupTeamAccessPolicies map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies,
+	groupUserAccessPolicies map[portainer.EndpointGroupID]portainer.UserAccessPolicies,
+	groupTeamAccessPolicies map[portainer.EndpointGroupID]portainer.TeamAccessPolicies,
 	roles []portaineree.Role,
-	userMemberships []portaineree.TeamMembership,
+	userMemberships []portainer.TeamMembership,
 ) *portaineree.Role {
 
 	role := getRoleFromUserAccessPolicies(user, endpoint.UserAccessPolicies, roles)
@@ -1339,9 +1340,9 @@ func getUserEndpointRole(user *portaineree.User, endpoint portaineree.Endpoint,
 }
 
 func getUserEndpointRoles(user *portaineree.User, endpoints []portaineree.Endpoint,
-	endpointGroups []portaineree.EndpointGroup, roles []portaineree.Role,
-	userMemberships []portaineree.TeamMembership) map[portaineree.EndpointID]portaineree.Role {
-	results := make(map[portaineree.EndpointID]portaineree.Role)
+	endpointGroups []portainer.EndpointGroup, roles []portaineree.Role,
+	userMemberships []portainer.TeamMembership) map[portainer.EndpointID]portaineree.Role {
+	results := make(map[portainer.EndpointID]portaineree.Role)
 
 	groupUserAccessPolicies, groupTeamAccessPolicies := getGroupPolicies(endpointGroups)
 
@@ -1367,10 +1368,10 @@ func getUserEndpointRoles(user *portaineree.User, endpoints []portaineree.Endpoi
 // A user may have 1 role in each assigned environments(endpoints).
 func getRoleFromUserAccessPolicies(
 	user *portaineree.User,
-	userAccessPolicies portaineree.UserAccessPolicies,
+	userAccessPolicies portainer.UserAccessPolicies,
 	roles []portaineree.Role,
 ) *portaineree.Role {
-	policyRoles := make([]portaineree.RoleID, 0)
+	policyRoles := make([]portainer.RoleID, 0)
 
 	policy, ok := userAccessPolicies[user.ID]
 	if ok && policy.RoleID != 0 {
@@ -1389,8 +1390,8 @@ func getRoleFromUserAccessPolicies(
 // A user may have 1 role in each assigned EndpointGroups.
 func getRoleFromUserEndpointGroupPolicy(user *portaineree.User,
 	endpoint *portaineree.Endpoint, roles []portaineree.Role,
-	groupAccessPolicies map[portaineree.EndpointGroupID]portaineree.UserAccessPolicies) *portaineree.Role {
-	policyRoles := make([]portaineree.RoleID, 0)
+	groupAccessPolicies map[portainer.EndpointGroupID]portainer.UserAccessPolicies) *portaineree.Role {
+	policyRoles := make([]portainer.RoleID, 0)
 
 	policy, ok := groupAccessPolicies[endpoint.GroupID][user.ID]
 	if ok && policy.RoleID != 0 {
@@ -1406,11 +1407,11 @@ func getRoleFromUserEndpointGroupPolicy(user *portaineree.User,
 
 // A team may have 1 role in each assigned environments(endpoints)
 func getRoleFromTeamAccessPolicies(
-	memberships []portaineree.TeamMembership,
-	teamAccessPolicies portaineree.TeamAccessPolicies,
+	memberships []portainer.TeamMembership,
+	teamAccessPolicies portainer.TeamAccessPolicies,
 	roles []portaineree.Role,
 ) *portaineree.Role {
-	policyRoles := make([]portaineree.RoleID, 0)
+	policyRoles := make([]portainer.RoleID, 0)
 
 	for _, membership := range memberships {
 		policy, ok := teamAccessPolicies[membership.TeamID]
@@ -1429,10 +1430,10 @@ func getRoleFromTeamAccessPolicies(
 // An environment(endpoint) can only have 1 EndpointGroup.
 //
 // A team may have 1 role in each assigned EndpointGroups.
-func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembership,
+func getRoleFromTeamEndpointGroupPolicies(memberships []portainer.TeamMembership,
 	endpoint *portaineree.Endpoint, roles []portaineree.Role,
-	groupTeamAccessPolicies map[portaineree.EndpointGroupID]portaineree.TeamAccessPolicies) *portaineree.Role {
-	policyRoles := make([]portaineree.RoleID, 0)
+	groupTeamAccessPolicies map[portainer.EndpointGroupID]portainer.TeamAccessPolicies) *portaineree.Role {
+	policyRoles := make([]portainer.RoleID, 0)
 
 	for _, membership := range memberships {
 		policy, ok := groupTeamAccessPolicies[endpoint.GroupID][membership.TeamID]
@@ -1450,7 +1451,7 @@ func getRoleFromTeamEndpointGroupPolicies(memberships []portaineree.TeamMembersh
 
 // for each role in the roleIdentifiers,
 // find the highest priority role
-func getKeyRole(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) *portaineree.Role {
+func getKeyRole(roleIdentifiers []portainer.RoleID, roles []portaineree.Role) *portaineree.Role {
 	var associatedRoles []portaineree.Role
 
 	for _, id := range roleIdentifiers {
@@ -1474,8 +1475,8 @@ func getKeyRole(roleIdentifiers []portaineree.RoleID, roles []portaineree.Role) 
 
 // unionAuthorizations returns a union of all the input authorizations
 // using the "or" operator.
-func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Authorizations {
-	authorizations := make(portaineree.Authorizations)
+func unionAuthorizations(auths ...portainer.Authorizations) portainer.Authorizations {
+	authorizations := make(portainer.Authorizations)
 
 	for _, auth := range auths {
 		for authKey, authVal := range auth {
@@ -1490,7 +1491,7 @@ func unionAuthorizations(auths ...portaineree.Authorizations) portaineree.Author
 	return authorizations
 }
 
-func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, userID portaineree.UserID, endpointID portaineree.EndpointID, authorizations []portaineree.Authorization) (bool, error) {
+func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, userID portainer.UserID, endpointID portainer.EndpointID, authorizations []portainer.Authorization) (bool, error) {
 	user, err := tx.User().Read(userID)
 	if err != nil {
 		return false, err

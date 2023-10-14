@@ -10,6 +10,7 @@ import (
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
@@ -17,14 +18,14 @@ type (
 	NomadClient struct {
 		nomadApiClient       *nomad.Client
 		reverseTunnelService portaineree.ReverseTunnelService
-		signatureService     portaineree.DigitalSignatureService
+		signatureService     portainer.DigitalSignatureService
 		lock                 *sync.Mutex
 		endpoint             *portaineree.Endpoint
 		tunnel               portaineree.TunnelDetails
 	}
 )
 
-func NewClient(endpoint *portaineree.Endpoint, reverseTunnelService portaineree.ReverseTunnelService, signatureService portaineree.DigitalSignatureService) (portaineree.NomadClient, error) {
+func NewClient(endpoint *portaineree.Endpoint, reverseTunnelService portaineree.ReverseTunnelService, signatureService portainer.DigitalSignatureService) (portaineree.NomadClient, error) {
 	nomadClientStr := NomadClient{
 		reverseTunnelService: reverseTunnelService,
 		signatureService:     signatureService,

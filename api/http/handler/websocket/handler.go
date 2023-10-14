@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -19,7 +20,7 @@ import (
 type Handler struct {
 	*mux.Router
 	DataStore                   dataservices.DataStore
-	SignatureService            portaineree.DigitalSignatureService
+	SignatureService            portainer.DigitalSignatureService
 	ReverseTunnelService        portaineree.ReverseTunnelService
 	KubernetesClientFactory     *cli.ClientFactory
 	authorizationService        *authorization.Service

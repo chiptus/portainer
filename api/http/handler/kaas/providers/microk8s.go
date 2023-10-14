@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
 	"github.com/portainer/portainer-ee/api/internal/iprange"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -145,7 +146,7 @@ func (payload *Microk8sProvisionPayload) GetCloudProvider(string) (*portaineree.
 	return &cloudProvider, nil
 }
 
-func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
+func (payload *Microk8sProvisionPayload) GetCloudProvisioningRequest(endpointID portainer.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
 
 	// nodes have been Parsed before inside Validate so skip the error check
 	var masters []string

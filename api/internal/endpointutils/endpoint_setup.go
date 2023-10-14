@@ -66,7 +66,7 @@ func initEndpoint(flags *portaineree.CLIFlags, dataStore dataservices.DataStore,
 }
 
 func createTLSSecuredEndpoint(flags *portaineree.CLIFlags, dataStore dataservices.DataStore, snapshotService portaineree.SnapshotService) error {
-	tlsConfiguration := portaineree.TLSConfiguration{
+	tlsConfiguration := portainer.TLSConfiguration{
 		TLS:           *flags.TLS,
 		TLSSkipVerify: *flags.TLSSkipVerify,
 	}
@@ -81,20 +81,20 @@ func createTLSSecuredEndpoint(flags *portaineree.CLIFlags, dataStore dataservice
 
 	endpointID := dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:                 portaineree.EndpointID(endpointID),
+		ID:                 portainer.EndpointID(endpointID),
 		Name:               "primary",
 		URL:                *flags.EndpointURL,
-		GroupID:            portaineree.EndpointGroupID(1),
+		GroupID:            portainer.EndpointGroupID(1),
 		Type:               portaineree.DockerEnvironment,
 		TLSConfig:          tlsConfiguration,
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
+		TagIDs:             []portainer.TagID{},
+		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
-		SecuritySettings: portaineree.EndpointSecuritySettings{
+		SecuritySettings: portainer.EndpointSecuritySettings{
 			AllowVolumeBrowserForRegularUsers: false,
 			EnableHostManagementFeatures:      false,
 
@@ -150,20 +150,20 @@ func createUnsecuredEndpoint(endpointURL string, dataStore dataservices.DataStor
 
 	endpointID := dataStore.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
-		ID:                 portaineree.EndpointID(endpointID),
+		ID:                 portainer.EndpointID(endpointID),
 		Name:               "primary",
 		URL:                endpointURL,
-		GroupID:            portaineree.EndpointGroupID(1),
+		GroupID:            portainer.EndpointGroupID(1),
 		Type:               portaineree.DockerEnvironment,
-		TLSConfig:          portaineree.TLSConfiguration{},
-		UserAccessPolicies: portaineree.UserAccessPolicies{},
-		TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-		TagIDs:             []portaineree.TagID{},
-		Status:             portaineree.EndpointStatusUp,
+		TLSConfig:          portainer.TLSConfiguration{},
+		UserAccessPolicies: portainer.UserAccessPolicies{},
+		TeamAccessPolicies: portainer.TeamAccessPolicies{},
+		TagIDs:             []portainer.TagID{},
+		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portaineree.KubernetesDefault(),
 
-		SecuritySettings: portaineree.EndpointSecuritySettings{
+		SecuritySettings: portainer.EndpointSecuritySettings{
 			AllowVolumeBrowserForRegularUsers: false,
 			EnableHostManagementFeatures:      false,
 

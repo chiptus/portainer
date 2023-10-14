@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -58,7 +59,7 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	stack, err := handler.DataStore.Stack().Read(portaineree.StackID(stackID))
+	stack, err := handler.DataStore.Stack().Read(portainer.StackID(stackID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -117,17 +118,17 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
 	if endpointID != int(stack.EndpointID) {
-		stack.EndpointID = portaineree.EndpointID(endpointID)
+		stack.EndpointID = portainer.EndpointID(endpointID)
 	}
 
-	targetEndpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(payload.EndpointID))
+	targetEndpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(payload.EndpointID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an endpoint with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find an endpoint with the specified identifier inside the database", err)
 	}
 
-	stack.EndpointID = portaineree.EndpointID(payload.EndpointID)
+	stack.EndpointID = portainer.EndpointID(payload.EndpointID)
 	if payload.SwarmID != "" {
 		stack.SwarmID = payload.SwarmID
 	}

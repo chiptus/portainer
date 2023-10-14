@@ -6,13 +6,14 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type templateFileFormat struct {
-	Version   string                 `json:"version"`
-	Templates []portaineree.Template `json:"templates"`
+	Version   string               `json:"version"`
+	Templates []portainer.Template `json:"templates"`
 }
 
 // @id EdgeTemplateList
@@ -23,7 +24,7 @@ type templateFileFormat struct {
 // @security jwt
 // @accept json
 // @produce json
-// @success 200 {array} portaineree.Template
+// @success 200 {array} portainer.Template
 // @failure 500
 // @router /edge_templates [get]
 func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -50,7 +51,7 @@ func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable to parse template file", err)
 	}
 
-	filteredTemplates := make([]portaineree.Template, 0)
+	filteredTemplates := make([]portainer.Template, 0)
 
 	for _, template := range templateFile.Templates {
 		if template.Type == portaineree.EdgeStackTemplate {

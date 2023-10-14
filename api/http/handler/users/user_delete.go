@@ -7,6 +7,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -44,11 +45,11 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID == portaineree.UserID(userID) {
+	if tokenData.ID == portainer.UserID(userID) {
 		return httperror.Forbidden("Cannot remove your own user account. Contact another administrator", errAdminCannotRemoveSelf)
 	}
 
-	user, err := handler.DataStore.User().Read(portaineree.UserID(userID))
+	user, err := handler.DataStore.User().Read(portainer.UserID(userID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
 	} else if err != nil {

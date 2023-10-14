@@ -14,13 +14,13 @@ import (
 
 type decoratedUpdateSchedule struct {
 	edgetypes.UpdateSchedule
-	EdgeGroupIds  []portaineree.EdgeGroupID          `json:"edgeGroupIds"`
+	EdgeGroupIds  []portainer.EdgeGroupID            `json:"edgeGroupIds"`
 	Status        edgetypes.UpdateScheduleStatusType `json:"status"`
 	StatusMessage string                             `json:"statusMessage"`
 	ScheduledTime string                             `json:"scheduledTime"`
 }
 
-func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlewares.ItemGetter[portaineree.EdgeStackID, portaineree.EdgeStack], environmentGetter middlewares.ItemGetter[portaineree.EndpointID, portaineree.Endpoint]) (*decoratedUpdateSchedule, error) {
+func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlewares.ItemGetter[portainer.EdgeStackID, portaineree.EdgeStack], environmentGetter middlewares.ItemGetter[portainer.EndpointID, portaineree.Endpoint]) (*decoratedUpdateSchedule, error) {
 	edgeStack, err := edgeStackGetter(schedule.EdgeStackID)
 	if err != nil {
 		return nil, errors.WithMessage(err, "unable to get edge stack")
@@ -39,7 +39,7 @@ func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlew
 	return decoratedItem, nil
 }
 
-func aggregateStatus(relatedEnvironmentsIDs map[portaineree.EndpointID]string, edgeStack *portaineree.EdgeStack, environmentGetter middlewares.ItemGetter[portaineree.EndpointID, portaineree.Endpoint]) (edgetypes.UpdateScheduleStatusType, string) {
+func aggregateStatus(relatedEnvironmentsIDs map[portainer.EndpointID]string, edgeStack *portaineree.EdgeStack, environmentGetter middlewares.ItemGetter[portainer.EndpointID, portaineree.Endpoint]) (edgetypes.UpdateScheduleStatusType, string) {
 	hasSent := false
 	hasPending := false
 

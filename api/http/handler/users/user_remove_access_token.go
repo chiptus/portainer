@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -44,11 +45,11 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portaineree.UserID(userID) {
+	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to get user access tokens", httperrors.ErrUnauthorized)
 	}
 
-	_, err = handler.DataStore.User().Read(portaineree.UserID(userID))
+	_, err = handler.DataStore.User().Read(portainer.UserID(userID))
 	if err != nil {
 		if handler.DataStore.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
@@ -57,15 +58,15 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 	}
 
 	// check if the key exists and the key belongs to the user
-	apiKey, err := handler.apiKeyService.GetAPIKey(portaineree.APIKeyID(apiKeyID))
+	apiKey, err := handler.apiKeyService.GetAPIKey(portainer.APIKeyID(apiKeyID))
 	if err != nil {
 		return httperror.InternalServerError("API Key not found", err)
 	}
-	if apiKey.UserID != portaineree.UserID(userID) {
+	if apiKey.UserID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to remove api-key", httperrors.ErrUnauthorized)
 	}
 
-	err = handler.apiKeyService.DeleteAPIKey(portaineree.APIKeyID(apiKeyID))
+	err = handler.apiKeyService.DeleteAPIKey(portainer.APIKeyID(apiKeyID))
 	if err != nil {
 		if errors.Is(err, apikey.ErrInvalidAPIKey) {
 			return httperror.NotFound("Unable to find an api-key with the specified identifier inside the database", err)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -17,7 +18,7 @@ type resourceControlCreatePayload struct {
 	ResourceID string `example:"617c5f22bb9b023d6daab7cba43a57576f83492867bc767d1c59416b065e5f08" validate:"required"`
 	// Type of Resource. Valid values are: 1 - container, 2 - service
 	// 3 - volume, 4 - network, 5 - secret, 6 - stack, 7 - config, 8 - custom template, 9 - azure-container-group
-	Type portaineree.ResourceControlType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8,9"`
+	Type portainer.ResourceControlType `example:"1" validate:"required" enums:"1,2,3,4,5,6,7,8,9"`
 	// Permit access to the associated resource to any user
 	Public bool `example:"true"`
 	// Permit access to resource only to admins
@@ -61,7 +62,7 @@ func (payload *resourceControlCreatePayload) Validate(r *http.Request) error {
 // @accept json
 // @produce json
 // @param body body resourceControlCreatePayload true "Resource control details"
-// @success 200 {object} portaineree.ResourceControl "Success"
+// @success 200 {object} portainer.ResourceControl "Success"
 // @failure 400 "Invalid request"
 // @failure 409 "Resource control already exists"
 // @failure 500 "Server error"
@@ -81,25 +82,25 @@ func (handler *Handler) resourceControlCreate(w http.ResponseWriter, r *http.Req
 		return httperror.Conflict("A resource control is already associated to this resource", errResourceControlAlreadyExists)
 	}
 
-	var userAccesses = make([]portaineree.UserResourceAccess, 0)
+	var userAccesses = make([]portainer.UserResourceAccess, 0)
 	for _, v := range payload.Users {
-		userAccess := portaineree.UserResourceAccess{
-			UserID:      portaineree.UserID(v),
+		userAccess := portainer.UserResourceAccess{
+			UserID:      portainer.UserID(v),
 			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		userAccesses = append(userAccesses, userAccess)
 	}
 
-	var teamAccesses = make([]portaineree.TeamResourceAccess, 0)
+	var teamAccesses = make([]portainer.TeamResourceAccess, 0)
 	for _, v := range payload.Teams {
-		teamAccess := portaineree.TeamResourceAccess{
-			TeamID:      portaineree.TeamID(v),
+		teamAccess := portainer.TeamResourceAccess{
+			TeamID:      portainer.TeamID(v),
 			AccessLevel: portaineree.ReadWriteAccessLevel,
 		}
 		teamAccesses = append(teamAccesses, teamAccess)
 	}
 
-	resourceControl := portaineree.ResourceControl{
+	resourceControl := portainer.ResourceControl{
 		ResourceID:         payload.ResourceID,
 		SubResourceIDs:     payload.SubResourceIDs,
 		Type:               payload.Type,

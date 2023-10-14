@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"slices"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -15,11 +15,11 @@ import (
 
 type updatePayload struct {
 	Name          *string
-	GroupIDs      []portaineree.EdgeGroupID
+	GroupIDs      []portainer.EdgeGroupID
 	Type          *edgetypes.UpdateScheduleType
 	Version       *string
 	ScheduledTime *string
-	RegistryID    *portaineree.RegistryID
+	RegistryID    *portainer.RegistryID
 }
 
 func (payload *updatePayload) Validate(r *http.Request) error {

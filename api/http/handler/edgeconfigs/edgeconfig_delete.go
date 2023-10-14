@@ -6,6 +6,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -30,7 +31,7 @@ func (h *Handler) edgeConfigDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid edge configuration identifier route variable", err)
 	}
 
-	var relatedEndpointIDs []portaineree.EndpointID
+	var relatedEndpointIDs []portainer.EndpointID
 
 	err = h.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		relatedEndpointIDs, err = h.transitionToState(tx, portaineree.EdgeConfigID(edgeConfigID), portaineree.EdgeConfigDeletingState)
@@ -51,8 +52,8 @@ func (h *Handler) edgeConfigDelete(w http.ResponseWriter, r *http.Request) *http
 	return response.Empty(w)
 }
 
-func (h *Handler) transitionToState(tx dataservices.DataStoreTx, edgeConfigID portaineree.EdgeConfigID, state portaineree.EdgeConfigStateType) ([]portaineree.EndpointID, error) {
-	var relatedEndpointIDs []portaineree.EndpointID
+func (h *Handler) transitionToState(tx dataservices.DataStoreTx, edgeConfigID portaineree.EdgeConfigID, state portaineree.EdgeConfigStateType) ([]portainer.EndpointID, error) {
+	var relatedEndpointIDs []portainer.EndpointID
 
 	edgeConfig, err := tx.EdgeConfig().Read(portaineree.EdgeConfigID(edgeConfigID))
 	if tx.IsErrObjectNotFound(err) {
@@ -78,7 +79,7 @@ func (h *Handler) transitionToState(tx dataservices.DataStoreTx, edgeConfigID po
 
 		tx.EdgeConfigState().Update(endpointID, edgeConfigState)
 
-		endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+		endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 		if err != nil {
 			return nil, httperror.InternalServerError("Unable to retrieve the endpoint", err)
 		}

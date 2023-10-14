@@ -3,10 +3,11 @@ package chisel
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // AddEdgeJob register an EdgeJob inside the tunnel details associated to an environment(endpoint).
-func (service *Service) AddEdgeJob(endpoint *portaineree.Endpoint, edgeJob *portaineree.EdgeJob) {
+func (service *Service) AddEdgeJob(endpoint *portaineree.Endpoint, edgeJob *portainer.EdgeJob) {
 	if endpoint.Edge.AsyncMode {
 		return
 	}
@@ -35,7 +36,7 @@ func (service *Service) AddEdgeJob(endpoint *portaineree.Endpoint, edgeJob *port
 }
 
 // RemoveEdgeJob will remove the specified Edge job from each tunnel it was registered with.
-func (service *Service) RemoveEdgeJob(edgeJobID portaineree.EdgeJobID) {
+func (service *Service) RemoveEdgeJob(edgeJobID portainer.EdgeJobID) {
 	service.mu.Lock()
 
 	for endpointID, tunnel := range service.tunnelDetailsMap {
@@ -55,7 +56,7 @@ func (service *Service) RemoveEdgeJob(edgeJobID portaineree.EdgeJobID) {
 	service.mu.Unlock()
 }
 
-func (service *Service) RemoveEdgeJobFromEndpoint(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) {
+func (service *Service) RemoveEdgeJobFromEndpoint(endpointID portainer.EndpointID, edgeJobID portainer.EdgeJobID) {
 	service.mu.Lock()
 	tunnel := service.getTunnelDetails(endpointID)
 

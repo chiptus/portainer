@@ -22,15 +22,15 @@ import (
 )
 
 type edgeLogData struct {
-	EdgeStackID   portaineree.EdgeStackID
+	EdgeStackID   portainer.EdgeStackID
 	EdgeStackName string
 	Tail          int
 }
 
 type edgeJobData struct {
-	ID                portaineree.EdgeJobID
+	ID                portainer.EdgeJobID
 	CollectLogs       bool
-	LogsStatus        portaineree.EdgeJobLogsStatus
+	LogsStatus        portainer.EdgeJobLogsStatus
 	CronExpression    string
 	ScriptFileContent string
 	Version           int
@@ -83,27 +83,27 @@ func NewService(dataStore dataservices.DataStore, fileService portaineree.FileSe
 }
 
 // Deprecated: use AddStackCommandTx instead.
-func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
+func (service *Service) AddStackCommand(endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID, scheduledTime string) error {
 	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime, 0)
 }
 
-func (service *Service) AddStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, scheduledTime string) error {
+func (service *Service) AddStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID, scheduledTime string) error {
 	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpAdd, scheduledTime, 0)
 }
 
-func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
+func (service *Service) ReplaceStackCommand(endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID) error {
 	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", 0)
 }
 
-func (service *Service) ReplaceStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID) error {
+func (service *Service) ReplaceStackCommandTx(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID) error {
 	return service.storeUpdateStackCommand(tx, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", 0)
 }
 
-func (service *Service) ReplaceStackCommandWithVersion(endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, version int) error {
+func (service *Service) ReplaceStackCommandWithVersion(endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID, version int) error {
 	return service.storeUpdateStackCommand(service.dataStore, endpoint, edgeStackID, portaineree.EdgeAsyncCommandOpReplace, "", version)
 }
 
-func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portaineree.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string, targetVersion int) error {
+func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeStackID portainer.EdgeStackID, commandOperation portaineree.EdgeAsyncCommandOperation, scheduledTime string, targetVersion int) error {
 	if !endpoint.Edge.AsyncMode {
 		return nil
 	}
@@ -223,11 +223,11 @@ func (service *Service) storeUpdateStackCommand(tx dataservices.DataStoreTx, end
 }
 
 // Deprecated: use RemoveStackCommandTx instead.
-func (service *Service) RemoveStackCommand(endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
+func (service *Service) RemoveStackCommand(endpointID portainer.EndpointID, edgeStackID portainer.EdgeStackID) error {
 	return service.RemoveStackCommandTx(service.dataStore, endpointID, edgeStackID)
 }
 
-func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeStackID portaineree.EdgeStackID) error {
+func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeStackID portainer.EdgeStackID) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
@@ -302,10 +302,10 @@ func (service *Service) RemoveStackCommandTx(tx dataservices.DataStoreTx, endpoi
 	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpointID portaineree.EndpointID, tail int) error {
+func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpointID portainer.EndpointID, tail int) error {
 	cmd := &portaineree.EdgeAsyncCommand{
 		Type:       portaineree.EdgeAsyncCommandTypeLog,
-		EndpointID: portaineree.EndpointID(endpointID),
+		EndpointID: portainer.EndpointID(endpointID),
 		Timestamp:  time.Now(),
 		Operation:  portaineree.EdgeAsyncCommandOpAdd,
 		Path:       fmt.Sprintf("/edgestack/%d", edgeStack.ID),
@@ -320,23 +320,23 @@ func (service *Service) AddLogCommand(edgeStack *portaineree.EdgeStack, endpoint
 }
 
 // Deprecated: use AddJobCommandTx instead
-func (service *Service) AddJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+func (service *Service) AddJobCommand(endpointID portainer.EndpointID, edgeJob portainer.EdgeJob, fileContent []byte) error {
 	return service.storeUpdateJobCommand(service.dataStore, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
 }
 
-func (service *Service) AddJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+func (service *Service) AddJobCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeJob portainer.EdgeJob, fileContent []byte) error {
 	return service.storeUpdateJobCommand(tx, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpAdd)
 }
 
-func (service *Service) ReplaceJobCommand(endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+func (service *Service) ReplaceJobCommand(endpointID portainer.EndpointID, edgeJob portainer.EdgeJob, fileContent []byte) error {
 	return service.storeUpdateJobCommand(service.dataStore, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpReplace)
 }
 
-func (service *Service) ReplaceJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte) error {
+func (service *Service) ReplaceJobCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeJob portainer.EdgeJob, fileContent []byte) error {
 	return service.storeUpdateJobCommand(tx, endpointID, edgeJob, fileContent, portaineree.EdgeAsyncCommandOpReplace)
 }
 
-func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJob portaineree.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
+func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeJob portainer.EdgeJob, fileContent []byte, commandOperation portaineree.EdgeAsyncCommandOperation) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
@@ -372,7 +372,7 @@ func (service *Service) storeUpdateJobCommand(tx dataservices.DataStoreTx, endpo
 }
 
 // Deprecated: use RemoveJobCommandTx instead
-func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
+func (service *Service) RemoveJobCommand(endpointID portainer.EndpointID, edgeJobID portainer.EdgeJobID) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
@@ -389,7 +389,7 @@ func (service *Service) RemoveJobCommand(endpointID portaineree.EndpointID, edge
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) RemoveJobCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID) error {
+func (service *Service) RemoveJobCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeJobID portainer.EdgeJobID) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
@@ -406,7 +406,7 @@ func (service *Service) RemoveJobCommandTx(tx dataservices.DataStoreTx, endpoint
 	return tx.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) StartContainerCommand(endpointID portaineree.EndpointID, name string, startOptions types.ContainerStartOptions) error {
+func (service *Service) StartContainerCommand(endpointID portainer.EndpointID, name string, startOptions types.ContainerStartOptions) error {
 	cmdData := containerCommandData{
 		ContainerName:          name,
 		ContainerStartOptions:  startOptions,
@@ -426,7 +426,7 @@ func (service *Service) StartContainerCommand(endpointID portaineree.EndpointID,
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) RestartContainerCommand(endpointID portaineree.EndpointID, name string) error {
+func (service *Service) RestartContainerCommand(endpointID portainer.EndpointID, name string) error {
 	cmdData := containerCommandData{
 		ContainerName:          name,
 		ContainerStartOptions:  types.ContainerStartOptions{},
@@ -446,7 +446,7 @@ func (service *Service) RestartContainerCommand(endpointID portaineree.EndpointI
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) StopContainerCommand(endpointID portaineree.EndpointID, name string) error {
+func (service *Service) StopContainerCommand(endpointID portainer.EndpointID, name string) error {
 	cmdData := containerCommandData{
 		ContainerName:          name,
 		ContainerStartOptions:  types.ContainerStartOptions{},
@@ -466,7 +466,7 @@ func (service *Service) StopContainerCommand(endpointID portaineree.EndpointID, 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) DeleteContainerCommand(endpointID portaineree.EndpointID, name string, removeOptions types.ContainerRemoveOptions) error {
+func (service *Service) DeleteContainerCommand(endpointID portainer.EndpointID, name string, removeOptions types.ContainerRemoveOptions) error {
 	cmdData := containerCommandData{
 		ContainerName:          name,
 		ContainerStartOptions:  types.ContainerStartOptions{},
@@ -486,7 +486,7 @@ func (service *Service) DeleteContainerCommand(endpointID portaineree.EndpointID
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) KillContainerCommand(endpointID portaineree.EndpointID, name string) error {
+func (service *Service) KillContainerCommand(endpointID portainer.EndpointID, name string) error {
 	cmdData := containerCommandData{
 		ContainerName:          name,
 		ContainerStartOptions:  types.ContainerStartOptions{},
@@ -506,7 +506,7 @@ func (service *Service) KillContainerCommand(endpointID portaineree.EndpointID, 
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) DeleteImageCommand(endpointID portaineree.EndpointID, name string, removeOptions types.ImageRemoveOptions) error {
+func (service *Service) DeleteImageCommand(endpointID portainer.EndpointID, name string, removeOptions types.ImageRemoveOptions) error {
 	cmdData := imageCommandData{
 		ImageName:          name,
 		ImageRemoveOptions: removeOptions,
@@ -525,7 +525,7 @@ func (service *Service) DeleteImageCommand(endpointID portaineree.EndpointID, na
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) DeleteVolumeCommand(endpointID portaineree.EndpointID, name string, forceRemove bool) error {
+func (service *Service) DeleteVolumeCommand(endpointID portainer.EndpointID, name string, forceRemove bool) error {
 	cmdData := volumeCommandData{
 		VolumeName:      name,
 		ForceRemove:     forceRemove,
@@ -544,7 +544,7 @@ func (service *Service) DeleteVolumeCommand(endpointID portaineree.EndpointID, n
 	return service.dataStore.EdgeAsyncCommand().Create(asyncCommand)
 }
 
-func (service *Service) RemoveNormalStackCommand(endpointID portaineree.EndpointID, stackID portaineree.StackID) error {
+func (service *Service) RemoveNormalStackCommand(endpointID portainer.EndpointID, stackID portainer.StackID) error {
 	endpoint, err := service.dataStore.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err
@@ -619,19 +619,19 @@ func (service *Service) PushConfigCommand(tx dataservices.DataStoreTx, endpoint 
 	return nil
 }
 
-func (service *Service) AddConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
+func (service *Service) AddConfigCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
 	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpAdd, files, nil)
 }
 
-func (service *Service) UpdateConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry, prevFiles []filesystem.DirEntry) error {
+func (service *Service) UpdateConfigCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry, prevFiles []filesystem.DirEntry) error {
 	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpReplace, files, prevFiles)
 }
 
-func (service *Service) DeleteConfigCommandTx(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
+func (service *Service) DeleteConfigCommandTx(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeConfig *portaineree.EdgeConfig, files []filesystem.DirEntry) error {
 	return service.storeUpdateConfigCommand(tx, endpointID, edgeConfig, portaineree.EdgeAsyncCommandOpRemove, files, nil)
 }
 
-func (service *Service) storeUpdateConfigCommand(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeConfig *portaineree.EdgeConfig, commandOperation portaineree.EdgeAsyncCommandOperation, files, prevFiles []filesystem.DirEntry) error {
+func (service *Service) storeUpdateConfigCommand(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeConfig *portaineree.EdgeConfig, commandOperation portaineree.EdgeAsyncCommandOperation, files, prevFiles []filesystem.DirEntry) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if err != nil || !endpoint.Edge.AsyncMode {
 		return err

@@ -23,7 +23,7 @@ import (
 type SwarmStackManager struct {
 	binaryPath           string
 	configPath           string
-	signatureService     portaineree.DigitalSignatureService
+	signatureService     portainer.DigitalSignatureService
 	fileService          portainer.FileService
 	reverseTunnelService portaineree.ReverseTunnelService
 	dataStore            dataservices.DataStore
@@ -33,7 +33,7 @@ type SwarmStackManager struct {
 // It also updates the configuration of the Docker CLI binary.
 func NewSwarmStackManager(
 	binaryPath, configPath string,
-	signatureService portaineree.DigitalSignatureService,
+	signatureService portainer.DigitalSignatureService,
 	fileService portainer.FileService,
 	reverseTunnelService portaineree.ReverseTunnelService,
 	datastore dataservices.DataStore,

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -44,7 +45,7 @@ type endpointSettingsUpdatePayload struct {
 
 	EnableGPUManagement *bool `json:"enableGPUManagement" example:"false"`
 
-	Gpus []portaineree.Pair `json:"gpus"`
+	Gpus []portainer.Pair `json:"gpus"`
 }
 
 func (payload *endpointSettingsUpdatePayload) Validate(_ *http.Request) error {
@@ -86,7 +87,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if dataservices.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -160,7 +161,7 @@ func (handler *Handler) endpointSettingsUpdate(w http.ResponseWriter, r *http.Re
 		endpoint.Gpus = payload.Gpus
 	}
 
-	err = handler.DataStore.Endpoint().UpdateEndpoint(portaineree.EndpointID(endpointID), endpoint)
+	err = handler.DataStore.Endpoint().UpdateEndpoint(portainer.EndpointID(endpointID), endpoint)
 	if err != nil {
 		return httperror.InternalServerError("Failed persisting environment in database", err)
 	}

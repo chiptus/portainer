@@ -7,6 +7,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 
@@ -189,7 +190,7 @@ func (handler *Handler) createUserAndDefaultTeamMembership(user *portaineree.Use
 	}
 
 	if oauthSettings.DefaultTeamID != 0 {
-		membership := &portaineree.TeamMembership{
+		membership := &portainer.TeamMembership{
 			UserID: user.ID,
 			TeamID: oauthSettings.DefaultTeamID,
 			Role:   portaineree.TeamMember,

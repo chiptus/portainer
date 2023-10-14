@@ -9,6 +9,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/securecookie"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 )
@@ -66,12 +67,12 @@ func (a *apiKeyService) GenerateApiKey(user portaineree.User, description string
 }
 
 // GetAPIKey returns an API key by its ID.
-func (a *apiKeyService) GetAPIKey(apiKeyID portaineree.APIKeyID) (*portaineree.APIKey, error) {
+func (a *apiKeyService) GetAPIKey(apiKeyID portainer.APIKeyID) (*portaineree.APIKey, error) {
 	return a.apiKeyRepository.Read(apiKeyID)
 }
 
 // GetAPIKeys returns all the API keys associated to a user.
-func (a *apiKeyService) GetAPIKeys(userID portaineree.UserID) ([]portaineree.APIKey, error) {
+func (a *apiKeyService) GetAPIKeys(userID portainer.UserID) ([]portaineree.APIKey, error) {
 	return a.apiKeyRepository.GetAPIKeysByUserID(userID)
 }
 
@@ -111,7 +112,7 @@ func (a *apiKeyService) UpdateAPIKey(apiKey *portaineree.APIKey) error {
 }
 
 // DeleteAPIKey deletes an API key and removes the digest/api-key entry from the cache.
-func (a *apiKeyService) DeleteAPIKey(apiKeyID portaineree.APIKeyID) error {
+func (a *apiKeyService) DeleteAPIKey(apiKeyID portainer.APIKeyID) error {
 	// get api-key digest to remove from cache
 	apiKey, err := a.apiKeyRepository.Read(apiKeyID)
 	if err != nil {
@@ -123,6 +124,6 @@ func (a *apiKeyService) DeleteAPIKey(apiKeyID portaineree.APIKeyID) error {
 	return a.apiKeyRepository.Delete(apiKeyID)
 }
 
-func (a *apiKeyService) InvalidateUserKeyCache(userId portaineree.UserID) bool {
+func (a *apiKeyService) InvalidateUserKeyCache(userId portainer.UserID) bool {
 	return a.cache.InvalidateUserKeyCache(userId)
 }

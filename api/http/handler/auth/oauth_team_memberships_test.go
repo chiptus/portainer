@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func Test_mapClaimValRegexToTeams(t *testing.T) {
@@ -26,7 +27,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
+		store.TeamService.Create(&portainer.Team{ID: 1, Name: "testing"})
 
 		mappings := []portaineree.OAuthClaimMappings{
 			{ClaimValRegex: "@", Team: 1},
@@ -43,7 +44,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
+		store.TeamService.Create(&portainer.Team{ID: 1, Name: "testing"})
 
 		mappings := []portaineree.OAuthClaimMappings{
 			{ClaimValRegex: "@", Team: 1},
@@ -51,7 +52,7 @@ func Test_mapClaimValRegexToTeams(t *testing.T) {
 		oAuthTeams := []string{"@portainer"}
 
 		got, _ := mapClaimValRegexToTeams(store.TeamService, mappings, oAuthTeams)
-		want := []portaineree.Team{{ID: 1, Name: "testing"}}
+		want := []portainer.Team{{ID: 1, Name: "testing"}}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("mapClaimValRegexToTeams failed to return team; got=%v, want=%v", got, want)
@@ -79,7 +80,7 @@ func Test_mapAllClaimValuesToTeams(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, false, true)
-	store.TeamService.Create(&portaineree.Team{ID: 1, Name: "team-x"})
+	store.TeamService.Create(&portainer.Team{ID: 1, Name: "team-x"})
 
 	t.Run("returns no portainer teams if no oauth teams are present", func(t *testing.T) {
 		oAuthTeams := []string{}
@@ -106,7 +107,7 @@ func Test_mapAllClaimValuesToTeams(t *testing.T) {
 		user := portaineree.User{ID: 1, Role: 1}
 
 		got, _ := mapAllClaimValuesToTeams(store.TeamService, user, oAuthTeams)
-		want := []portaineree.Team{{ID: 1, Name: "team-x"}}
+		want := []portainer.Team{{ID: 1, Name: "team-x"}}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("mapAllClaimValuesToTeams failed to return team; got=%v, want=%v", got, want)
@@ -121,7 +122,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 
 		_, store := datastore.MustNewTestStore(t, false, true)
 		user := portaineree.User{ID: 1, Role: 1}
-		team := portaineree.Team{ID: 1, Name: "team-1"}
+		team := portainer.Team{ID: 1, Name: "team-1"}
 
 		err := createOrUpdateMembership(store.TeamMembershipService, user, team)
 		if err != nil {
@@ -129,7 +130,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 		}
 
 		got, _ := store.TeamMembershipService.ReadAll()
-		want := []portaineree.TeamMembership{{ID: 1, UserID: 1, TeamID: 1, Role: 1}}
+		want := []portainer.TeamMembership{{ID: 1, UserID: 1, TeamID: 1, Role: 1}}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("createOrUpdateMembership should succeed in creating new team membership; got=%v, want=%v", got, want)
@@ -141,8 +142,8 @@ func Test_createOrUpdateMembership(t *testing.T) {
 
 		_, store := datastore.MustNewTestStore(t, false, true)
 		user := portaineree.User{ID: 1, Role: 3}
-		team := portaineree.Team{ID: 1, Name: "team-1"}
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{ID: 1, UserID: user.ID, TeamID: team.ID, Role: 1})
+		team := portainer.Team{ID: 1, Name: "team-1"}
+		store.TeamMembershipService.Create(&portainer.TeamMembership{ID: 1, UserID: user.ID, TeamID: team.ID, Role: 1})
 
 		err := createOrUpdateMembership(store.TeamMembershipService, user, team)
 		if err != nil {
@@ -150,7 +151,7 @@ func Test_createOrUpdateMembership(t *testing.T) {
 		}
 
 		got, _ := store.TeamMembershipService.Read(1)
-		want := &portaineree.TeamMembership{ID: 1, UserID: 1, TeamID: 1, Role: 3}
+		want := &portainer.TeamMembership{ID: 1, UserID: 1, TeamID: 1, Role: 3}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("createOrUpdateMembership should succeed in creating new team membership; got=%v, want=%v", got, want)
@@ -165,7 +166,7 @@ func Test_removeMemberships(t *testing.T) {
 
 		_, store := datastore.MustNewTestStore(t, false, true)
 		user := portaineree.User{ID: 1, Role: 1}
-		teams := []portaineree.Team{{ID: 1, Name: "team-remove"}}
+		teams := []portainer.Team{{ID: 1, Name: "team-remove"}}
 
 		before, _ := store.TeamMembershipService.ReadAll()
 
@@ -183,8 +184,8 @@ func Test_removeMemberships(t *testing.T) {
 
 		_, store := datastore.MustNewTestStore(t, false, true)
 		user := portaineree.User{ID: 1, Role: 1}
-		teams := []portaineree.Team{{ID: 1, Name: "team-remove"}}
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{ID: 1, UserID: user.ID, TeamID: teams[0].ID, Role: 1})
+		teams := []portainer.Team{{ID: 1, Name: "team-remove"}}
+		store.TeamMembershipService.Create(&portainer.TeamMembership{ID: 1, UserID: user.ID, TeamID: teams[0].ID, Role: 1})
 
 		before, _ := store.TeamMembershipService.Read(1)
 
@@ -202,9 +203,9 @@ func Test_removeMemberships(t *testing.T) {
 
 		_, store := datastore.MustNewTestStore(t, false, true)
 		user := portaineree.User{ID: 1, Role: 1}
-		teams := []portaineree.Team{{ID: 1, Name: "team-xyz"}}
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{ID: 2, UserID: user.ID, TeamID: 100, Role: 1})
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{ID: 3, UserID: user.ID, TeamID: 50, Role: 1})
+		teams := []portainer.Team{{ID: 1, Name: "team-xyz"}}
+		store.TeamMembershipService.Create(&portainer.TeamMembership{ID: 2, UserID: user.ID, TeamID: 100, Role: 1})
+		store.TeamMembershipService.Create(&portainer.TeamMembership{ID: 3, UserID: user.ID, TeamID: 50, Role: 1})
 
 		removeMemberships(store.TeamMembershipService, user, teams)
 
@@ -225,7 +226,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
+		store.Team().Create(&portainer.Team{ID: 1, Name: "testing"})
 
 		oAuthSettings := portaineree.OAuthSettings{
 			TeamMemberships: portaineree.TeamMemberships{
@@ -255,7 +256,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.TeamService.Create(&portaineree.Team{ID: 1, Name: "testing"})
+		store.TeamService.Create(&portainer.Team{ID: 1, Name: "testing"})
 
 		oAuthSettings := portaineree.OAuthSettings{
 			TeamMemberships: portaineree.TeamMemberships{
@@ -283,8 +284,8 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{
+		store.Team().Create(&portainer.Team{ID: 1, Name: "testing"})
+		store.TeamMembershipService.Create(&portainer.TeamMembership{
 			ID: 1, UserID: 1, TeamID: 1, Role: 1,
 		})
 
@@ -299,7 +300,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		oAuthTeams := []string{"@portainer"}
 
 		got, _ := store.TeamMembershipService.TeamMembershipsByUserID(1)
-		want := []portaineree.TeamMembership{{UserID: 1, TeamID: 1, Role: 1}}
+		want := []portainer.TeamMembership{{UserID: 1, TeamID: 1, Role: 1}}
 		if !(len(got) == 1 && got[0].Role == want[0].Role) {
 			t.Errorf("updateOAuthTeamMemberships should have initial role of 1, got=%v, want=%v", got, want)
 		}
@@ -307,7 +308,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		updateOAuthTeamMemberships(store, oAuthSettings, user, oAuthTeams)
 
 		got, _ = store.TeamMembershipService.TeamMembershipsByUserID(1)
-		want = []portaineree.TeamMembership{{ID: 1, UserID: 1, TeamID: 1, Role: 2}}
+		want = []portainer.TeamMembership{{ID: 1, UserID: 1, TeamID: 1, Role: 2}}
 		if !(len(got) == 1 && got[0].Role == want[0].Role) {
 			t.Errorf("updateOAuthTeamMemberships should have updated existing team membership role, got=%v, want=%v", got, want)
 		}
@@ -317,7 +318,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{
+		store.TeamMembershipService.Create(&portainer.TeamMembership{
 			ID: 1, UserID: 1, TeamID: 1, Role: 1,
 		})
 
@@ -346,7 +347,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.Team().Create(&portaineree.Team{ID: 1, Name: "testing"})
+		store.Team().Create(&portainer.Team{ID: 1, Name: "testing"})
 
 		oAuthSettings := portaineree.OAuthSettings{
 			DefaultTeamID: 1,
@@ -374,7 +375,7 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{
+		store.TeamMembershipService.Create(&portainer.TeamMembership{
 			ID: 1, UserID: 1, TeamID: 1, Role: 1,
 		})
 
@@ -404,9 +405,9 @@ func Test_updateOAuthTeamMemberships(t *testing.T) {
 		t.Parallel()
 
 		_, store := datastore.MustNewTestStore(t, false, true)
-		store.Team().Create(&portaineree.Team{ID: 1, Name: "test"})
-		store.Team().Create(&portaineree.Team{ID: 2, Name: "@portainer"})
-		store.TeamMembershipService.Create(&portaineree.TeamMembership{
+		store.Team().Create(&portainer.Team{ID: 1, Name: "test"})
+		store.Team().Create(&portainer.Team{ID: 2, Name: "@portainer"})
+		store.TeamMembershipService.Create(&portainer.TeamMembership{
 			UserID: 1, TeamID: 1, Role: 1,
 		})
 

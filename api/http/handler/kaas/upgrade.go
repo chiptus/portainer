@@ -8,6 +8,7 @@ import (
 	"github.com/portainer/portainer-ee/api/cloud"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
@@ -47,7 +48,7 @@ func (handler *Handler) upgrade(w http.ResponseWriter, r *http.Request) *httperr
 		return httperror.InternalServerError("Unable to retrieve security context", err)
 	}
 
-	authorized := canWriteK8sClusterNode(user, portaineree.EndpointID(endpoint.ID))
+	authorized := canWriteK8sClusterNode(user, portainer.EndpointID(endpoint.ID))
 	if !authorized {
 		return httperror.Forbidden("Permission denied to upgrade the cluster", nil)
 	}

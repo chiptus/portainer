@@ -18,7 +18,7 @@ type (
 	// ProxyFactory is a factory to create reverse proxies
 	ProxyFactory struct {
 		dataStore                   dataservices.DataStore
-		signatureService            portaineree.DigitalSignatureService
+		signatureService            portainer.DigitalSignatureService
 		reverseTunnelService        portaineree.ReverseTunnelService
 		dockerClientFactory         *client.ClientFactory
 		kubernetesClientFactory     *cli.ClientFactory
@@ -32,7 +32,7 @@ type (
 // NewProxyFactory returns a pointer to a new instance of a ProxyFactory
 func NewProxyFactory(
 	dataStore dataservices.DataStore,
-	signatureService portaineree.DigitalSignatureService,
+	signatureService portainer.DigitalSignatureService,
 	tunnelService portaineree.ReverseTunnelService,
 	clientFactory *client.ClientFactory,
 	kubernetesClientFactory *cli.ClientFactory,

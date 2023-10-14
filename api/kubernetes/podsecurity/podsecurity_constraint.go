@@ -10,13 +10,14 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
 type PodSecurityConstraint struct {
-	userID              portaineree.UserID
+	userID              portainer.UserID
 	endpoint            *portaineree.Endpoint
 	name                string
 	constraint          string
@@ -27,7 +28,7 @@ type PodSecurityConstraint struct {
 	constraintFolder    string
 }
 
-func (cons *PodSecurityConstraint) Init(userID portaineree.UserID, endpoint *portaineree.Endpoint, name string, req *PodSecurityRule, existingRule *PodSecurityRule, constraintFolder string) {
+func (cons *PodSecurityConstraint) Init(userID portainer.UserID, endpoint *portaineree.Endpoint, name string, req *PodSecurityRule, existingRule *PodSecurityRule, constraintFolder string) {
 	cons.userID = userID
 	cons.endpoint = endpoint
 	cons.name = name

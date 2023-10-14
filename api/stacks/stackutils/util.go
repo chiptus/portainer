@@ -5,13 +5,14 @@ import (
 	"regexp"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 )
 
-func UserIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portaineree.EndpointID) (bool, error) {
+func UserIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portainer.EndpointID) (bool, error) {
 	isAdmin := user.Role == portaineree.AdministratorRole
 
-	_, endpointResourceAccess := user.EndpointAuthorizations[portaineree.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
+	_, endpointResourceAccess := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
 	return isAdmin || endpointResourceAccess, nil
 }
@@ -37,7 +38,7 @@ func GetStackFilePaths(stack *portaineree.Stack, absolute bool) []string {
 }
 
 // ResourceControlID returns the stack resource control id
-func ResourceControlID(endpointID portaineree.EndpointID, name string) string {
+func ResourceControlID(endpointID portainer.EndpointID, name string) string {
 	return fmt.Sprintf("%d_%s", endpointID, name)
 }
 

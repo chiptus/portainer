@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/handler/edgeupdateschedules"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -50,7 +51,7 @@ const (
 // @param edgeCheckInPassedSeconds query number false "if bigger then zero, show only edge agents that checked-in in the last provided seconds (relevant only for edge agents)"
 // @param excludeSnapshots query bool false "if true, the snapshot data won't be retrieved"
 // @param name query string false "will return only environments(endpoints) with this name"
-// @param edgeStackId query portaineree.EdgeStackID false "will return the environements of the specified edge stack"
+// @param edgeStackId query portainer.EdgeStackID false "will return the environements of the specified edge stack"
 // @param edgeStackStatus query string false "only applied when edgeStackId exists. Filter the returned environments based on their deployment status in the stack (not the environment status!)" Enum("Pending", "Ok", "Error", "Acknowledged", "Remove", "RemoteUpdateSuccess", "ImagesPulled")
 // @success 200 {array} portaineree.Endpoint "Endpoints"
 // @failure 500 "Server error"
@@ -160,7 +161,7 @@ func paginateEndpoints(endpoints []portaineree.Endpoint, start, limit int) []por
 	return endpoints[start:end]
 }
 
-func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, sortField string, isSortDesc bool) {
+func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []portainer.EndpointGroup, sortField string, isSortDesc bool) {
 
 	switch sortField {
 	case "Name":
@@ -171,7 +172,7 @@ func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []por
 		}
 
 	case "Group":
-		endpointGroupNames := make(map[portaineree.EndpointGroupID]string, 0)
+		endpointGroupNames := make(map[portainer.EndpointGroupID]string, 0)
 		for _, group := range endpointGroups {
 			endpointGroupNames[group.ID] = group.Name
 		}
@@ -200,8 +201,8 @@ func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []por
 	}
 }
 
-func getEndpointGroup(groupID portaineree.EndpointGroupID, groups []portaineree.EndpointGroup) portaineree.EndpointGroup {
-	var endpointGroup portaineree.EndpointGroup
+func getEndpointGroup(groupID portainer.EndpointGroupID, groups []portainer.EndpointGroup) portainer.EndpointGroup {
+	var endpointGroup portainer.EndpointGroup
 	for _, group := range groups {
 		if group.ID == groupID {
 			endpointGroup = group

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -51,7 +51,7 @@ func (handler *Handler) ifRequestedTemplateExists(payload *filePayload) *httperr
 	defer resp.Body.Close()
 
 	var templates struct {
-		Templates []portaineree.Template
+		Templates []portainer.Template
 	}
 	err = json.NewDecoder(resp.Body).Decode(&templates)
 	if err != nil {

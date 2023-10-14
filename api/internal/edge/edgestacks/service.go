@@ -34,7 +34,7 @@ func NewService(dataStore dataservices.DataStore, edgeAsyncService *edgeasync.Se
 }
 
 type BuildEdgeStackArgs struct {
-	Registries                     []portaineree.RegistryID
+	Registries                     []portainer.RegistryID
 	ScheduledTime                  string
 	UseManifestNamespaces          bool
 	PrePullImage                   bool
@@ -54,8 +54,8 @@ type BuildEdgeStackArgs struct {
 func (service *Service) BuildEdgeStack(
 	tx dataservices.DataStoreTx,
 	name string,
-	deploymentType portaineree.EdgeStackDeploymentType,
-	edgeGroups []portaineree.EdgeGroupID,
+	deploymentType portainer.EdgeStackDeploymentType,
+	edgeGroups []portainer.EdgeGroupID,
 	args BuildEdgeStackArgs,
 ) (*portaineree.EdgeStack, error) {
 	err := validateUniqueName(tx.EdgeStack().EdgeStacks, name)
@@ -70,12 +70,12 @@ func (service *Service) BuildEdgeStack(
 
 	stackID := tx.EdgeStack().GetNextIdentifier()
 	return &portaineree.EdgeStack{
-		ID:                             portaineree.EdgeStackID(stackID),
+		ID:                             portainer.EdgeStackID(stackID),
 		Name:                           name,
 		DeploymentType:                 deploymentType,
 		CreationDate:                   time.Now().Unix(),
 		EdgeGroups:                     edgeGroups,
-		Status:                         make(map[portaineree.EndpointID]portainer.EdgeStackStatus, 0),
+		Status:                         make(map[portainer.EndpointID]portainer.EdgeStackStatus, 0),
 		Version:                        1,
 		Registries:                     args.Registries,
 		ScheduledTime:                  args.ScheduledTime,
@@ -185,7 +185,7 @@ func (service *Service) PersistEdgeStack(
 }
 
 // updateEndpointRelations adds a relation between the Edge Stack to the related environments(endpoints)
-func (service *Service) updateEndpointRelations(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID) error {
+func (service *Service) updateEndpointRelations(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID) error {
 	for _, endpointID := range relatedEndpointIds {
 		relation, err := tx.EndpointRelation().EndpointRelation(endpointID)
 		if err != nil {
@@ -203,7 +203,7 @@ func (service *Service) updateEndpointRelations(tx dataservices.DataStoreTx, edg
 	return nil
 }
 
-func (service *Service) createEdgeCommands(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, relatedEndpointIds []portaineree.EndpointID, scheduledTime string) error {
+func (service *Service) createEdgeCommands(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID, scheduledTime string) error {
 	for _, endpointID := range relatedEndpointIds {
 		endpoint, err := tx.Endpoint().Endpoint(endpointID)
 		if err != nil {
@@ -220,7 +220,7 @@ func (service *Service) createEdgeCommands(tx dataservices.DataStoreTx, edgeStac
 }
 
 // DeleteEdgeStack deletes the edge stack from the database and its relations
-func (service *Service) DeleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID portaineree.EdgeStackID, relatedEdgeGroupsIds []portaineree.EdgeGroupID) error {
+func (service *Service) DeleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID, relatedEdgeGroupsIds []portainer.EdgeGroupID) error {
 	relationConfig, err := edge.FetchEndpointRelationsConfig(tx)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to retrieve environments relations config from database")
@@ -257,7 +257,7 @@ func (service *Service) DeleteEdgeStack(tx dataservices.DataStoreTx, edgeStackID
 		}
 	}
 
-	err = tx.EdgeStack().DeleteEdgeStack(portaineree.EdgeStackID(edgeStackID))
+	err = tx.EdgeStack().DeleteEdgeStack(portainer.EdgeStackID(edgeStackID))
 	if err != nil {
 		return errors.WithMessage(err, "Unable to remove the edge stack from the database")
 	}

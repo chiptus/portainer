@@ -5,6 +5,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func TestValidateLDAPSettings(t *testing.T) {
@@ -45,7 +46,7 @@ func TestValidateLDAPSettings(t *testing.T) {
 				URLs: []string{
 					"aukdc15.pgc.co:389",
 				},
-				TLSConfig: portaineree.TLSConfiguration{
+				TLSConfig: portainer.TLSConfiguration{
 					TLS:           false,
 					TLSSkipVerify: false,
 				},

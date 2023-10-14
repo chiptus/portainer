@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 func noTokFunc() (string, error) {
@@ -57,7 +58,7 @@ func TestTokenCache(t *testing.T) {
 	tc2 := mgr.GetOrCreateTokenCache(2)
 	tc3 := mgr.GetOrCreateTokenCache(3)
 
-	uid := portaineree.UserID(2)
+	uid := portainer.UserID(2)
 	tokenString1 := "token-string-1"
 	tokenString2 := "token-string-2"
 
@@ -109,7 +110,7 @@ func TestAuthEventHandlerInterface(t *testing.T) {
 
 	var authEventHandler portaineree.AuthEventHandler = mgr
 
-	uid := portaineree.UserID(2)
+	uid := portainer.UserID(2)
 	tokenString1 := "token-string-1"
 	tokenString2 := "token-string-2"
 

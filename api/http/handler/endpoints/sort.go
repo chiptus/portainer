@@ -5,6 +5,7 @@ import (
 
 	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type EndpointsByName []portaineree.Endpoint
@@ -22,7 +23,7 @@ func (e EndpointsByName) Less(i, j int) bool {
 }
 
 type EndpointsByGroup struct {
-	endpointGroupNames map[portaineree.EndpointGroupID]string
+	endpointGroupNames map[portainer.EndpointGroupID]string
 	endpoints          []portaineree.Endpoint
 }
 

@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -56,7 +57,7 @@ func (handler *Handler) endpointEdgeJobsLogs(w http.ResponseWriter, r *http.Requ
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.getEdgeJobLogs(tx, endpoint.ID, portaineree.EdgeJobID(edgeJobID), payload)
+		return handler.getEdgeJobLogs(tx, endpoint.ID, portainer.EdgeJobID(edgeJobID), payload)
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -70,7 +71,7 @@ func (handler *Handler) endpointEdgeJobsLogs(w http.ResponseWriter, r *http.Requ
 	return response.JSON(w, nil)
 }
 
-func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID portaineree.EndpointID, edgeJobID portaineree.EdgeJobID, payload logsPayload) error {
+func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID portainer.EndpointID, edgeJobID portainer.EdgeJobID, payload logsPayload) error {
 	endpoint, err := tx.Endpoint().Endpoint(endpointID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
@@ -78,7 +79,7 @@ func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID p
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
+	edgeJob, err := tx.EdgeJob().Read(portainer.EdgeJobID(edgeJobID))
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an edge job with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -90,7 +91,7 @@ func (handler *Handler) getEdgeJobLogs(tx dataservices.DataStoreTx, endpointID p
 		return httperror.InternalServerError("Unable to save task log to the filesystem", err)
 	}
 
-	meta := portaineree.EdgeJobEndpointMeta{CollectLogs: false, LogsStatus: portaineree.EdgeJobLogsStatusCollected}
+	meta := portainer.EdgeJobEndpointMeta{CollectLogs: false, LogsStatus: portaineree.EdgeJobLogsStatusCollected}
 	if _, ok := edgeJob.GroupLogsCollection[endpoint.ID]; ok {
 		edgeJob.GroupLogsCollection[endpoint.ID] = meta
 	} else {

@@ -1,15 +1,15 @@
 package microk8s
 
 import (
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type (
 	MicroK8sInfo struct {
-		KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
-		AvailableAddons    Addons             `json:"availableAddons"`
-		RequiredAddons     []string           `json:"requiredAddons"`
+		KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
+		AvailableAddons    Addons           `json:"availableAddons"`
+		RequiredAddons     []string         `json:"requiredAddons"`
 	}
 
 	MicroK8sInstalledAddons []string
@@ -38,9 +38,9 @@ type (
 			Status      string `json:"status"`
 			Arguments   string `json:"arguments"` // Read from the endpoint CloudProvider
 		} `json:"addons"`
-		CurrentVersion     string             `json:"currentVersion"`
-		KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
-		RequiredAddons     []string           `json:"requiredAddons"`
+		CurrentVersion     string           `json:"currentVersion"`
+		KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
+		RequiredAddons     []string         `json:"requiredAddons"`
 	}
 
 	Microk8sNodeStatusResponse struct {
@@ -48,7 +48,7 @@ type (
 	}
 
 	Microk8sProvisioningClusterRequest struct {
-		EnvironmentID     portaineree.EndpointID `json:"environmentID"`
+		EnvironmentID     portainer.EndpointID `json:"environmentID"`
 		Credentials       *models.CloudCredential
 		MasterNodes       []string
 		WorkerNodes       []string
@@ -58,7 +58,7 @@ type (
 	}
 )
 
-var MicroK8sVersions = []portaineree.Pair{
+var MicroK8sVersions = []portainer.Pair{
 	{
 		Name:  "1.28/stable",
 		Value: "1.28/stable",

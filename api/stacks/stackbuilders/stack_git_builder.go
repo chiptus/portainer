@@ -27,7 +27,7 @@ type GitMethodStackBuildProcess interface {
 	// Get reponse from http request. Use if it is needed
 	GetResponse() string
 	// Set git repository configuration
-	SetGitRepository(payload *StackPayload, userID portaineree.UserID) GitMethodStackBuildProcess
+	SetGitRepository(payload *StackPayload, userID portainer.UserID) GitMethodStackBuildProcess
 	// Set auto update setting
 	SetAutoUpdate(payload *StackPayload) GitMethodStackBuildProcess
 }
@@ -41,7 +41,7 @@ type GitMethodStackBuilder struct {
 
 func (b *GitMethodStackBuilder) SetGeneralInfo(payload *StackPayload, endpoint *portaineree.Endpoint) GitMethodStackBuildProcess {
 	stackID := b.dataStore.Stack().GetNextIdentifier()
-	b.stack.ID = portaineree.StackID(stackID)
+	b.stack.ID = portainer.StackID(stackID)
 	b.stack.EndpointID = endpoint.ID
 	b.stack.AdditionalFiles = payload.AdditionalFiles
 	b.stack.Status = portaineree.StackStatusActive
@@ -57,7 +57,7 @@ func (b *GitMethodStackBuilder) SetUniqueInfo(payload *StackPayload) GitMethodSt
 	return b
 }
 
-func (b *GitMethodStackBuilder) SetGitRepository(payload *StackPayload, userID portaineree.UserID) GitMethodStackBuildProcess {
+func (b *GitMethodStackBuilder) SetGitRepository(payload *StackPayload, userID portainer.UserID) GitMethodStackBuildProcess {
 	if b.hasError() {
 		return b
 	}
@@ -148,7 +148,7 @@ func (b *GitMethodStackBuilder) GetResponse() string {
 	return ""
 }
 
-func (b *GitMethodStackBuilder) extractGitAuthenticationFromPayload(payload *RepositoryConfigPayload, requestUserID portaineree.UserID) (*gittypes.GitAuthentication, error) {
+func (b *GitMethodStackBuilder) extractGitAuthenticationFromPayload(payload *RepositoryConfigPayload, requestUserID portainer.UserID) (*gittypes.GitAuthentication, error) {
 	if payload.Authentication {
 		repositoryUsername := ""
 		repositoryPassword := ""

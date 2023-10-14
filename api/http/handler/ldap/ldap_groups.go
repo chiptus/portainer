@@ -30,7 +30,7 @@ func (payload *groupsPayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept json
 // @param body body groupsPayload true "details"
-// @success 200 {array} portaineree.LDAPUser "Success"
+// @success 200 {array} portainer.LDAPUser "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /ldap/groups [post]

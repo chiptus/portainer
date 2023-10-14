@@ -153,8 +153,8 @@ func (m *Migrator) CurrentDBVersion() string {
 	return m.currentDBVersion.SchemaVersion
 }
 
-func (m *Migrator) CurrentDBEdition() portaineree.SoftwareEdition {
-	return portaineree.SoftwareEdition(m.currentDBVersion.Edition)
+func (m *Migrator) CurrentDBEdition() portainer.SoftwareEdition {
+	return portainer.SoftwareEdition(m.currentDBVersion.Edition)
 }
 
 func (m *Migrator) CurrentSemanticDBVersion() *semver.Version {

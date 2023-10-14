@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	"github.com/portainer/portainer-ee/api/internal/unique"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/pkg/errors"
 )
@@ -43,7 +44,7 @@ func (handler *Handler) updateEdgeRelations(tx dataservices.DataStoreTx, endpoin
 
 	existingEdgeStacks := relation.EdgeStacks
 
-	currentEdgeStackSet := set.Set[portaineree.EdgeStackID]{}
+	currentEdgeStackSet := set.Set[portainer.EdgeStackID]{}
 	currentEndpointEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
 	for _, edgeStackID := range currentEndpointEdgeStacks {
 		currentEdgeStackSet[edgeStackID] = true
@@ -99,7 +100,7 @@ func UpdateEdgeConfigs(tx dataservices.DataStoreTx, edgeAsyncService *edgeasync.
 		return err
 	}
 
-	edgeGroupsToEdgeConfigs := make(map[portaineree.EdgeGroupID][]portaineree.EdgeConfigID)
+	edgeGroupsToEdgeConfigs := make(map[portainer.EdgeGroupID][]portaineree.EdgeConfigID)
 	for _, edgeConfig := range edgeConfigs {
 		for _, edgeGroupID := range edgeConfig.EdgeGroupIDs {
 			edgeGroupsToEdgeConfigs[edgeGroupID] = append(edgeGroupsToEdgeConfigs[edgeGroupID], edgeConfig.ID)

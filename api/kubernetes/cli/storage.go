@@ -3,12 +3,12 @@ package cli
 import (
 	"context"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (kcl *KubeClient) GetStorage() ([]portaineree.KubernetesStorageClassConfig, error) {
-	var storages []portaineree.KubernetesStorageClassConfig
+func (kcl *KubeClient) GetStorage() ([]portainer.KubernetesStorageClassConfig, error) {
+	var storages []portainer.KubernetesStorageClassConfig
 
 	storageClient := kcl.cli.StorageV1().StorageClasses()
 	storageList, err := storageClient.List(context.Background(), metav1.ListOptions{})
@@ -17,7 +17,7 @@ func (kcl *KubeClient) GetStorage() ([]portaineree.KubernetesStorageClassConfig,
 	}
 
 	for _, s := range storageList.Items {
-		var storage portaineree.KubernetesStorageClassConfig
+		var storage portainer.KubernetesStorageClassConfig
 
 		v, ok := s.Annotations["storageclass.kubernetes.io/is-default-class"]
 		if !ok || v != "true" {

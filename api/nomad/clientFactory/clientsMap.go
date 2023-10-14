@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // GetClient checks if an existing client is already registered for the environment(endpoint) and returns it if one is found.
@@ -39,6 +40,6 @@ func (factory *ClientFactory) GetClient(endpoint *portaineree.Endpoint) (portain
 }
 
 // RemoveClient Remove the cached Nomad client so a new one can be created
-func (factory *ClientFactory) RemoveClient(endpointID portaineree.EndpointID) {
+func (factory *ClientFactory) RemoveClient(endpointID portainer.EndpointID) {
 	factory.clientsMap.Remove(strconv.Itoa(int(endpointID)))
 }

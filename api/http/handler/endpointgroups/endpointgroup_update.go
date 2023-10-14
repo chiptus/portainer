@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/tag"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -21,9 +22,9 @@ type endpointGroupUpdatePayload struct {
 	// Environment(Endpoint) group description
 	Description string `example:"description"`
 	// List of tag identifiers associated to the environment(endpoint) group
-	TagIDs             []portaineree.TagID `example:"3,4"`
-	UserAccessPolicies portaineree.UserAccessPolicies
-	TeamAccessPolicies portaineree.TeamAccessPolicies
+	TagIDs             []portainer.TagID `example:"3,4"`
+	UserAccessPolicies portainer.UserAccessPolicies
+	TeamAccessPolicies portainer.TeamAccessPolicies
 }
 
 func (payload *endpointGroupUpdatePayload) Validate(r *http.Request) error {
@@ -41,7 +42,7 @@ func (payload *endpointGroupUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "EndpointGroup identifier"
 // @param body body endpointGroupUpdatePayload true "EndpointGroup details"
-// @success 200 {object} portaineree.EndpointGroup "Success"
+// @success 200 {object} portainer.EndpointGroup "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "EndpointGroup not found"
 // @failure 500 "Server error"
@@ -58,9 +59,9 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	var endpointGroup *portaineree.EndpointGroup
+	var endpointGroup *portainer.EndpointGroup
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		endpointGroup, err = handler.updateEndpointGroup(tx, portaineree.EndpointGroupID(endpointGroupID), payload)
+		endpointGroup, err = handler.updateEndpointGroup(tx, portainer.EndpointGroupID(endpointGroupID), payload)
 		return err
 	})
 	if err != nil {
@@ -75,8 +76,8 @@ func (handler *Handler) endpointGroupUpdate(w http.ResponseWriter, r *http.Reque
 	return response.JSON(w, endpointGroup)
 }
 
-func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID, payload endpointGroupUpdatePayload) (*portaineree.EndpointGroup, error) {
-	endpointGroup, err := tx.EndpointGroup().Read(portaineree.EndpointGroupID(endpointGroupID))
+func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpointGroupID portainer.EndpointGroupID, payload endpointGroupUpdatePayload) (*portainer.EndpointGroup, error) {
+	endpointGroup, err := tx.EndpointGroup().Read(portainer.EndpointGroupID(endpointGroupID))
 	if tx.IsErrObjectNotFound(err) {
 		return nil, httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -103,7 +104,7 @@ func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpoin
 			removeTags := tag.Difference(endpointGroupTagSet, payloadTagSet)
 
 			for tagID := range removeTags {
-				tag, err := tx.Tag().Read(portaineree.TagID(tagID))
+				tag, err := tx.Tag().Read(portainer.TagID(tagID))
 				if tx.IsErrObjectNotFound(err) {
 					return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
 				}
@@ -118,7 +119,7 @@ func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpoin
 
 			endpointGroup.TagIDs = payload.TagIDs
 			for _, tagID := range payload.TagIDs {
-				tag, err := tx.Tag().Read(portaineree.TagID(tagID))
+				tag, err := tx.Tag().Read(portainer.TagID(tagID))
 				if tx.IsErrObjectNotFound(err) {
 					return nil, httperror.InternalServerError("Unable to find a tag inside the database", err)
 				}
@@ -156,8 +157,8 @@ func (handler *Handler) updateEndpointGroup(tx dataservices.DataStoreTx, endpoin
 					err = handler.AuthorizationService.CleanNAPWithOverridePolicies(tx, &endpoint, endpointGroup)
 					if err != nil {
 						// Update flag with endpoint and continue
-						go func(endpointID portaineree.EndpointID, endpointGroupID portaineree.EndpointGroupID) {
-							err := handler.PendingActionsService.Create(portaineree.PendingActions{
+						go func(endpointID portainer.EndpointID, endpointGroupID portainer.EndpointGroupID) {
+							err := handler.PendingActionsService.Create(portainer.PendingActions{
 								EndpointID: endpointID,
 								Action:     "CleanNAPWithOverridePolicies",
 								ActionData: endpointGroupID,

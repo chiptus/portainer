@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"sort"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -46,15 +46,15 @@ type EnvironmentVersionDetails struct {
 
 func previousVersions(
 	schedules []edgetypes.UpdateSchedule,
-	activeScheduleGetter func(environmentID portaineree.EndpointID) *edgetypes.EndpointUpdateScheduleRelation,
+	activeScheduleGetter func(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation,
 	skipScheduleID edgetypes.UpdateScheduleID,
-) map[portaineree.EndpointID]string {
+) map[portainer.EndpointID]string {
 
 	sort.SliceStable(schedules, func(i, j int) bool {
 		return schedules[i].Created > schedules[j].Created
 	})
 
-	environmentMap := map[portaineree.EndpointID]*EnvironmentVersionDetails{}
+	environmentMap := map[portainer.EndpointID]*EnvironmentVersionDetails{}
 	// to all schedules[:schedule index -1].Created > schedule.Created
 	for _, schedule := range schedules {
 		if schedule.ID == skipScheduleID {
@@ -89,7 +89,7 @@ func previousVersions(
 		}
 	}
 
-	versionMap := map[portaineree.EndpointID]string{}
+	versionMap := map[portainer.EndpointID]string{}
 	for environmentId, props := range environmentMap {
 		if !props.skip {
 			versionMap[environmentId] = props.version

@@ -9,7 +9,7 @@ import (
 const BucketName = "snapshots"
 
 type Service struct {
-	dataservices.BaseDataService[portaineree.Snapshot, portaineree.EndpointID]
+	dataservices.BaseDataService[portaineree.Snapshot, portainer.EndpointID]
 }
 
 func NewService(connection portainer.Connection) (*Service, error) {
@@ -19,7 +19,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.Snapshot, portaineree.EndpointID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.Snapshot, portainer.EndpointID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -28,7 +28,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.Snapshot, portaineree.EndpointID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.Snapshot, portainer.EndpointID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,

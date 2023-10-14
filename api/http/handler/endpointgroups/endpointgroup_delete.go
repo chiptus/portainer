@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +35,7 @@ func (handler *Handler) endpointGroupDelete(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return handler.deleteEndpointGroup(tx, portaineree.EndpointGroupID(endpointGroupID))
+		return handler.deleteEndpointGroup(tx, portainer.EndpointGroupID(endpointGroupID))
 	})
 	if err != nil {
 		var httpErr *httperror.HandlerError
@@ -49,7 +49,7 @@ func (handler *Handler) endpointGroupDelete(w http.ResponseWriter, r *http.Reque
 	return response.Empty(w)
 }
 
-func (handler *Handler) deleteEndpointGroup(tx dataservices.DataStoreTx, endpointGroupID portaineree.EndpointGroupID) error {
+func (handler *Handler) deleteEndpointGroup(tx dataservices.DataStoreTx, endpointGroupID portainer.EndpointGroupID) error {
 	endpointGroup, err := tx.EndpointGroup().Read(endpointGroupID)
 	if tx.IsErrObjectNotFound(err) {
 		return httperror.NotFound("Unable to find an environment group with the specified identifier inside the database", err)

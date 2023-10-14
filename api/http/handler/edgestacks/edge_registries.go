@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/distribution/distribution/reference"
 	"github.com/pkg/errors"
@@ -31,9 +32,9 @@ func (handler *Handler) assignPrivateRegistriesToStack(tx dataservices.DataStore
 	// For each image - try to match registry on URL, but also if URL matches
 	// check for username in the path too and if found, ensure registry
 	// is the one chosen
-	stack.Registries = []portaineree.RegistryID{}
+	stack.Registries = []portainer.RegistryID{}
 	for _, details := range imageDetails {
-		var bestmatch portaineree.RegistryID
+		var bestmatch portainer.RegistryID
 		for _, registry := range registries {
 			if details.domain == registry.URL {
 				bestmatch = registry.ID

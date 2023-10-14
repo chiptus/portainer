@@ -2,13 +2,13 @@ package endpoints
 
 import (
 	"github.com/pkg/errors"
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // updateEnvironmentTags updates the tags associated to an environment
-func updateEnvironmentTags(tx dataservices.DataStoreTx, newTags []portaineree.TagID, oldTags []portaineree.TagID, environmentID portaineree.EndpointID) (bool, error) {
+func updateEnvironmentTags(tx dataservices.DataStoreTx, newTags []portainer.TagID, oldTags []portainer.TagID, environmentID portainer.EndpointID) (bool, error) {
 	payloadTagSet := set.ToSet(newTags)
 	environmentTagSet := set.ToSet(oldTags)
 	union := set.Union(payloadTagSet, environmentTagSet)
@@ -18,7 +18,7 @@ func updateEnvironmentTags(tx dataservices.DataStoreTx, newTags []portaineree.Ta
 		return false, nil
 	}
 
-	updateSet := func(tagIDs set.Set[portaineree.TagID], updateItem func(*portaineree.Tag)) error {
+	updateSet := func(tagIDs set.Set[portainer.TagID], updateItem func(*portainer.Tag)) error {
 		for tagID := range tagIDs {
 			tag, err := tx.Tag().Read(tagID)
 			if err != nil {
@@ -37,7 +37,7 @@ func updateEnvironmentTags(tx dataservices.DataStoreTx, newTags []portaineree.Ta
 	}
 
 	removeTags := environmentTagSet.Difference(payloadTagSet)
-	err := updateSet(removeTags, func(tag *portaineree.Tag) {
+	err := updateSet(removeTags, func(tag *portainer.Tag) {
 		delete(tag.Endpoints, environmentID)
 	})
 	if err != nil {
@@ -45,7 +45,7 @@ func updateEnvironmentTags(tx dataservices.DataStoreTx, newTags []portaineree.Ta
 	}
 
 	addTags := payloadTagSet.Difference(environmentTagSet)
-	err = updateSet(addTags, func(tag *portaineree.Tag) {
+	err = updateSet(addTags, func(tag *portainer.Tag) {
 		tag.Endpoints[environmentID] = true
 	})
 	if err != nil {

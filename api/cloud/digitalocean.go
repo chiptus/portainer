@@ -12,13 +12,14 @@ import (
 	"github.com/fvbommel/sortorder"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 	log "github.com/rs/zerolog/log"
 )
 
 type DigitalOceanInfo struct {
-	Regions            []portaineree.Pair `json:"regions"`
-	NodeSizes          []portaineree.Pair `json:"nodeSizes"`
-	KubernetesVersions []portaineree.Pair `json:"kubernetesVersions"`
+	Regions            []portainer.Pair `json:"regions"`
+	NodeSizes          []portainer.Pair `json:"nodeSizes"`
+	KubernetesVersions []portainer.Pair `json:"kubernetesVersions"`
 }
 
 func (service *CloudInfoService) DigitalOceanGetInfo(credential *models.CloudCredential, force bool) (interface{}, error) {
@@ -76,9 +77,9 @@ func (service *CloudInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalO
 		return nil, err
 	}
 
-	rs := make([]portaineree.Pair, 0)
+	rs := make([]portainer.Pair, 0)
 	for _, region := range opts.Regions {
-		r := portaineree.Pair{
+		r := portainer.Pair{
 			Name:  region.Name,
 			Value: region.Slug,
 		}
@@ -97,7 +98,7 @@ func (service *CloudInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalO
 		return nil, err
 	}
 
-	ns := make([]portaineree.Pair, 0)
+	ns := make([]portainer.Pair, 0)
 	for _, size := range nodeSizes {
 		// Skip 1GB nodes as they are not actually valid for Digital Ocean.
 		if size.Memory < 2048 {
@@ -111,7 +112,7 @@ func (service *CloudInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalO
 			cpuSuffix = "CPU"
 		}
 		cpus := strconv.Itoa(size.Vcpus) + cpuSuffix
-		s := portaineree.Pair{
+		s := portainer.Pair{
 			Name: fmt.Sprintf(
 				"%v: (%v - %vGB RAM - %vGB SSD)",
 				size.Description,
@@ -125,9 +126,9 @@ func (service *CloudInfoService) DigitalOceanFetchInfo(apiKey string) (*DigitalO
 		ns = append(ns, s)
 	}
 
-	versionPairs := make([]portaineree.Pair, 0)
+	versionPairs := make([]portainer.Pair, 0)
 	for _, v := range kvs {
-		pair := portaineree.Pair{
+		pair := portainer.Pair{
 			Name:  v,
 			Value: v,
 		}

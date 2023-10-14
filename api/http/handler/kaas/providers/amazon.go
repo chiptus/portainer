@@ -7,6 +7,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // this default is the same as what eksctl uses.  But the amazon console chooses 20GB by default.
@@ -66,7 +67,7 @@ func (payload *AmazonProvisionPayload) GetEndpointName() string {
 	return payload.Name
 }
 
-func (payload *AmazonProvisionPayload) GetCloudProvisioningRequest(endpointID portaineree.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
+func (payload *AmazonProvisionPayload) GetCloudProvisioningRequest(endpointID portainer.EndpointID, _ string) *portaineree.CloudProvisioningRequest {
 	request := &portaineree.CloudProvisioningRequest{
 		EndpointID:        endpointID,
 		Provider:          portaineree.CloudProviderAmazon,

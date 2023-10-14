@@ -3,8 +3,8 @@ package teams
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/security"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -20,7 +20,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portaineree.Team "Success"
+// @success 200 {array} portainer.Team "Success"
 // @failure 500 "Server error"
 // @router /teams [get]
 func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -36,7 +36,7 @@ func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httper
 
 	onlyLedTeams, _ := request.RetrieveBooleanQueryParameter(r, "onlyLedTeams", true)
 
-	var userTeams []portaineree.Team
+	var userTeams []portainer.Team
 	if onlyLedTeams {
 		userTeams = security.FilterLeaderTeams(teams, securityContext)
 	} else {
@@ -49,7 +49,7 @@ func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httper
 	}
 
 	// filter out teams who do not have access to the specific endpoint
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve endpoint from the database", err)
 	}
@@ -59,7 +59,7 @@ func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httper
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
 	}
 
-	allowedTeams := make(map[portaineree.TeamID]struct{})
+	allowedTeams := make(map[portainer.TeamID]struct{})
 	for teamID := range endpointGroup.TeamAccessPolicies {
 		allowedTeams[teamID] = struct{}{}
 	}
@@ -67,7 +67,7 @@ func (handler *Handler) teamList(w http.ResponseWriter, r *http.Request) *httper
 		allowedTeams[teamID] = struct{}{}
 	}
 
-	listableTeams := make([]portaineree.Team, 0)
+	listableTeams := make([]portainer.Team, 0)
 	for _, team := range userTeams {
 		if _, ok := allowedTeams[team.ID]; ok {
 			listableTeams = append(listableTeams, team)

@@ -25,6 +25,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
 
 	"github.com/stretchr/testify/require"
@@ -52,11 +53,11 @@ func generateEdgeConfigFile() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func createEdgeGroup(t *testing.T, store *datastore.Store, id int, endpoints []portaineree.EndpointID) {
+func createEdgeGroup(t *testing.T, store *datastore.Store, id int, endpoints []portainer.EndpointID) {
 	t.Helper()
 
 	err := store.EdgeGroup().Create(&portaineree.EdgeGroup{
-		ID:        portaineree.EdgeGroupID(id),
+		ID:        portainer.EdgeGroupID(id),
 		Name:      fmt.Sprintf("edge-group-%d", id),
 		Endpoints: endpoints,
 	})
@@ -93,7 +94,7 @@ func TestStdFlow(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -105,7 +106,7 @@ func TestStdFlow(t *testing.T) {
 
 	configID := portaineree.EdgeConfigID(1)
 
-	endpointID := portaineree.EndpointID(1)
+	endpointID := portainer.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointID,
@@ -117,7 +118,7 @@ func TestStdFlow(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	endpointIDtoRemove := portaineree.EndpointID(2)
+	endpointIDtoRemove := portainer.EndpointID(2)
 	edgeIDtoRemove := "edge-id-2"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointIDtoRemove,
@@ -129,7 +130,7 @@ func TestStdFlow(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	endpointIDtoAddRm := portaineree.EndpointID(3)
+	endpointIDtoAddRm := portainer.EndpointID(3)
 	edgeIDtoAddRm := "edge-id-3"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointIDtoAddRm,
@@ -141,33 +142,33 @@ func TestStdFlow(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointIDtoRemove,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointIDtoAddRm,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+	err = store.EndpointGroup().Create(&portainer.EndpointGroup{
 		ID:   1,
 		Name: "endpoint-group-1",
 	})
 	require.NoError(t, err)
 
-	createEdgeGroup(t, store, 1, []portaineree.EndpointID{endpointID})
-	createEdgeGroup(t, store, 2, []portaineree.EndpointID{})
-	createEdgeGroup(t, store, 3, []portaineree.EndpointID{endpointIDtoAddRm})
+	createEdgeGroup(t, store, 1, []portainer.EndpointID{endpointID})
+	createEdgeGroup(t, store, 2, []portainer.EndpointID{})
+	createEdgeGroup(t, store, 3, []portainer.EndpointID{endpointIDtoAddRm})
 
 	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
 
@@ -177,8 +178,8 @@ func TestStdFlow(t *testing.T) {
 	type edgeGroupUpdatePayload struct {
 		Name         string
 		Dynamic      bool
-		TagIDs       []portaineree.TagID
-		Endpoints    []portaineree.EndpointID
+		TagIDs       []portainer.TagID
+		Endpoints    []portainer.EndpointID
 		PartialMatch *bool
 	}
 
@@ -207,7 +208,7 @@ func TestStdFlow(t *testing.T) {
 		BaseDir:      "/tmp",
 		Type:         "general",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1, 2},
 	})
 	require.NoError(t, err)
 
@@ -301,8 +302,8 @@ func TestStdFlow(t *testing.T) {
 
 	err = json.NewEncoder(edgeGroupPayload).Encode(edgeGroupUpdatePayload{
 		Name:      "edge-group-2",
-		TagIDs:    []portaineree.TagID{},
-		Endpoints: []portaineree.EndpointID{endpointIDtoRemove},
+		TagIDs:    []portainer.TagID{},
+		Endpoints: []portainer.EndpointID{endpointIDtoRemove},
 	})
 	require.NoError(t, err)
 
@@ -358,8 +359,8 @@ func TestStdFlow(t *testing.T) {
 
 	err = json.NewEncoder(edgeGroupPayload).Encode(edgeGroupUpdatePayload{
 		Name:      "edge-group-2",
-		TagIDs:    []portaineree.TagID{},
-		Endpoints: []portaineree.EndpointID{},
+		TagIDs:    []portainer.TagID{},
+		Endpoints: []portainer.EndpointID{},
 	})
 	require.NoError(t, err)
 
@@ -421,7 +422,7 @@ func TestStdFlow(t *testing.T) {
 	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2, 3},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1, 2, 3},
 	})
 	require.NoError(t, err)
 
@@ -521,7 +522,7 @@ func TestStdFlow(t *testing.T) {
 	err = json.NewEncoder(configPart).Encode(edgeConfigCreatePayload{
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1, 2},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1, 2},
 	})
 	require.NoError(t, err)
 
@@ -656,7 +657,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -668,7 +669,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	configID := portaineree.EdgeConfigID(1)
 
-	endpointID := portaineree.EndpointID(1)
+	endpointID := portainer.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointID,
@@ -680,29 +681,29 @@ func TestEnvTagsAddRm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+	err = store.EndpointGroup().Create(&portainer.EndpointGroup{
 		ID:   1,
 		Name: "endpoint-group-1",
 	})
 	require.NoError(t, err)
 
-	err = store.Tag().Create(&portaineree.Tag{
+	err = store.Tag().Create(&portainer.Tag{
 		ID:        1,
 		Name:      "tag-1",
-		Endpoints: make(map[portaineree.EndpointID]bool),
+		Endpoints: make(map[portainer.EndpointID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.Tag().Create(&portaineree.Tag{
+	err = store.Tag().Create(&portainer.Tag{
 		ID:        2,
 		Name:      "unrelated-tag",
-		Endpoints: make(map[portaineree.EndpointID]bool),
+		Endpoints: make(map[portainer.EndpointID]bool),
 	})
 	require.NoError(t, err)
 
@@ -710,7 +711,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 		ID:      1,
 		Name:    "edge-group-1",
 		Dynamic: true,
-		TagIDs:  []portaineree.TagID{1},
+		TagIDs:  []portainer.TagID{1},
 	})
 	require.NoError(t, err)
 
@@ -741,7 +742,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 		BaseDir:      "/tmp",
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
 
@@ -772,12 +773,12 @@ func TestEnvTagsAddRm(t *testing.T) {
 	// Add the tag to the environment
 
 	type endpointUpdatePayload struct {
-		TagIDs []portaineree.TagID
+		TagIDs []portainer.TagID
 	}
 
 	body.Reset()
 	err = json.NewEncoder(body).Encode(endpointUpdatePayload{
-		TagIDs: []portaineree.TagID{1},
+		TagIDs: []portainer.TagID{1},
 	})
 	require.NoError(t, err)
 
@@ -790,7 +791,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	endpoint, err := store.Endpoint().Endpoint(endpointID)
 	require.NoError(t, err)
-	require.ElementsMatch(t, []portaineree.TagID{1}, endpoint.TagIDs)
+	require.ElementsMatch(t, []portainer.TagID{1}, endpoint.TagIDs)
 
 	config, err = store.EdgeConfig().Read(configID)
 	require.NoError(t, err)
@@ -832,7 +833,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	body.Reset()
 	err = json.NewEncoder(body).Encode(endpointUpdatePayload{
-		TagIDs: []portaineree.TagID{1, 2},
+		TagIDs: []portainer.TagID{1, 2},
 	})
 	require.NoError(t, err)
 
@@ -845,7 +846,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	endpoint, err = store.Endpoint().Endpoint(endpointID)
 	require.NoError(t, err)
-	require.ElementsMatch(t, []portaineree.TagID{1, 2}, endpoint.TagIDs)
+	require.ElementsMatch(t, []portainer.TagID{1, 2}, endpoint.TagIDs)
 
 	config, err = store.EdgeConfig().Read(configID)
 	require.NoError(t, err)
@@ -869,7 +870,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	body.Reset()
 	err = json.NewEncoder(body).Encode(endpointUpdatePayload{
-		TagIDs: []portaineree.TagID{},
+		TagIDs: []portainer.TagID{},
 	})
 	require.NoError(t, err)
 
@@ -882,7 +883,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	endpoint, err = store.Endpoint().Endpoint(endpointID)
 	require.NoError(t, err)
-	require.ElementsMatch(t, []portaineree.TagID{}, endpoint.TagIDs)
+	require.ElementsMatch(t, []portainer.TagID{}, endpoint.TagIDs)
 
 	config, err = store.EdgeConfig().Read(configID)
 	require.NoError(t, err)
@@ -938,7 +939,7 @@ func TestEnvGroups(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -950,7 +951,7 @@ func TestEnvGroups(t *testing.T) {
 
 	configID := portaineree.EdgeConfigID(1)
 
-	endpointID := portaineree.EndpointID(1)
+	endpointID := portainer.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointID,
@@ -962,23 +963,23 @@ func TestEnvGroups(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+	err = store.EndpointGroup().Create(&portainer.EndpointGroup{
 		ID:   1,
 		Name: "endpoint-group-1",
 	})
 	require.NoError(t, err)
 
-	err = store.Tag().Create(&portaineree.Tag{
+	err = store.Tag().Create(&portainer.Tag{
 		ID:             1,
 		Name:           "tag-1",
-		Endpoints:      make(map[portaineree.EndpointID]bool),
-		EndpointGroups: map[portaineree.EndpointGroupID]bool{},
+		Endpoints:      make(map[portainer.EndpointID]bool),
+		EndpointGroups: map[portainer.EndpointGroupID]bool{},
 	})
 	require.NoError(t, err)
 
@@ -986,7 +987,7 @@ func TestEnvGroups(t *testing.T) {
 		ID:      1,
 		Name:    "edge-group-1",
 		Dynamic: true,
-		TagIDs:  []portaineree.TagID{1},
+		TagIDs:  []portainer.TagID{1},
 	})
 	require.NoError(t, err)
 
@@ -1016,7 +1017,7 @@ func TestEnvGroups(t *testing.T) {
 		BaseDir:      "/tmp",
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
 
@@ -1047,12 +1048,12 @@ func TestEnvGroups(t *testing.T) {
 	// Add the tag to the group
 
 	type endpointGroupUpdatePayload struct {
-		TagIDs []portaineree.TagID
+		TagIDs []portainer.TagID
 	}
 
 	body.Reset()
 	err = json.NewEncoder(body).Encode(endpointGroupUpdatePayload{
-		TagIDs: []portaineree.TagID{1},
+		TagIDs: []portainer.TagID{1},
 	})
 	require.NoError(t, err)
 
@@ -1065,7 +1066,7 @@ func TestEnvGroups(t *testing.T) {
 
 	group, err := store.EndpointGroup().Read(1)
 	require.NoError(t, err)
-	require.ElementsMatch(t, []portaineree.TagID{1}, group.TagIDs)
+	require.ElementsMatch(t, []portainer.TagID{1}, group.TagIDs)
 
 	config, err = store.EdgeConfig().Read(configID)
 	require.NoError(t, err)
@@ -1107,7 +1108,7 @@ func TestEnvGroups(t *testing.T) {
 
 	body.Reset()
 	err = json.NewEncoder(body).Encode(endpointGroupUpdatePayload{
-		TagIDs: []portaineree.TagID{},
+		TagIDs: []portainer.TagID{},
 	})
 	require.NoError(t, err)
 
@@ -1120,7 +1121,7 @@ func TestEnvGroups(t *testing.T) {
 
 	endpoint, err := store.Endpoint().Endpoint(endpointID)
 	require.NoError(t, err)
-	require.ElementsMatch(t, []portaineree.TagID{}, endpoint.TagIDs)
+	require.ElementsMatch(t, []portainer.TagID{}, endpoint.TagIDs)
 
 	config, err = store.EdgeConfig().Read(configID)
 	require.NoError(t, err)
@@ -1176,7 +1177,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -1188,13 +1189,13 @@ func TestDeleteEmptyConfig(t *testing.T) {
 
 	configID := portaineree.EdgeConfigID(1)
 
-	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+	err = store.EndpointGroup().Create(&portainer.EndpointGroup{
 		ID:   1,
 		Name: "endpoint-group-1",
 	})
 	require.NoError(t, err)
 
-	createEdgeGroup(t, store, 1, []portaineree.EndpointID{})
+	createEdgeGroup(t, store, 1, []portainer.EndpointID{})
 
 	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
 
@@ -1213,7 +1214,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 		BaseDir:      "/tmp",
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
 
@@ -1268,7 +1269,7 @@ func TestEndpointDelete(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portaineree.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -1280,7 +1281,7 @@ func TestEndpointDelete(t *testing.T) {
 
 	configID := portaineree.EdgeConfigID(1)
 
-	endpointID := portaineree.EndpointID(1)
+	endpointID := portainer.EndpointID(1)
 	edgeID := "edge-id-1"
 	err = store.Endpoint().Create(&portaineree.Endpoint{
 		ID:          endpointID,
@@ -1292,19 +1293,19 @@ func TestEndpointDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointRelation().Create(&portaineree.EndpointRelation{
+	err = store.EndpointRelation().Create(&portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: make(map[portaineree.EdgeStackID]bool),
+		EdgeStacks: make(map[portainer.EdgeStackID]bool),
 	})
 	require.NoError(t, err)
 
-	err = store.EndpointGroup().Create(&portaineree.EndpointGroup{
+	err = store.EndpointGroup().Create(&portainer.EndpointGroup{
 		ID:   1,
 		Name: "endpoint-group-1",
 	})
 	require.NoError(t, err)
 
-	createEdgeGroup(t, store, 1, []portaineree.EndpointID{endpointID})
+	createEdgeGroup(t, store, 1, []portainer.EndpointID{endpointID})
 
 	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)
 
@@ -1335,7 +1336,7 @@ func TestEndpointDelete(t *testing.T) {
 		BaseDir:      "/tmp",
 		Type:         "foldername",
 		Category:     "configuration",
-		EdgeGroupIDs: []portaineree.EdgeGroupID{1},
+		EdgeGroupIDs: []portainer.EdgeGroupID{1},
 	})
 	require.NoError(t, err)
 

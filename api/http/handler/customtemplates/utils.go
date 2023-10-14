@@ -3,10 +3,10 @@ package customtemplates
 import (
 	"errors"
 
-	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
-func validateVariablesDefinitions(variables []portaineree.CustomTemplateVariableDefinition) error {
+func validateVariablesDefinitions(variables []portainer.CustomTemplateVariableDefinition) error {
 	for _, variable := range variables {
 		if variable.Name == "" {
 			return errors.New("variable name is required")

@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -77,7 +77,7 @@ func retrieveUUIDRouteVariableValue(r *http.Request, name string) (uuid.UUID, er
 func parseQuery(query url.Values) (*deployments.RedeployOptions, error) {
 	options := &deployments.RedeployOptions{}
 
-	options.AdditionalEnvVars = make([]portaineree.Pair, 0)
+	options.AdditionalEnvVars = make([]portainer.Pair, 0)
 	for key, value := range query {
 		val := value[len(value)-1]
 
@@ -100,7 +100,7 @@ func parseQuery(query url.Values) (*deployments.RedeployOptions, error) {
 			}
 
 		default:
-			options.AdditionalEnvVars = append(options.AdditionalEnvVars, portaineree.Pair{Name: key, Value: val})
+			options.AdditionalEnvVars = append(options.AdditionalEnvVars, portainer.Pair{Name: key, Value: val})
 		}
 
 	}

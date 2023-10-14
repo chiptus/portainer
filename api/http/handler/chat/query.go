@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"strings"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	str "github.com/portainer/portainer-ee/api/internal/string"
 	"github.com/portainer/portainer-ee/api/openai"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -123,7 +123,7 @@ func (handler *Handler) chatQuery(w http.ResponseWriter, r *http.Request) *httpe
 	promptParameters := openai.PromptParameters{
 		PromptType:    openai.PromptType(payload.Context),
 		UserMessage:   payload.Message,
-		EnvironmentID: portaineree.EndpointID(payload.EnvironmentID),
+		EnvironmentID: portainer.EndpointID(payload.EnvironmentID),
 		User:          *user,
 	}
 

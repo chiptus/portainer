@@ -8,6 +8,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/httpclient"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/pkg/libhelm"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -61,7 +62,7 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	userID := portaineree.UserID(userIDEndpoint)
+	userID := portainer.UserID(userIDEndpoint)
 	if tokenData.ID != userID {
 		return httperror.Forbidden("Couldn't create Helm repositories for another user", httperrors.ErrUnauthorized)
 	}
@@ -127,7 +128,7 @@ func (handler *Handler) userGetHelmRepos(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	userID := portaineree.UserID(userIDEndpoint)
+	userID := portainer.UserID(userIDEndpoint)
 	if tokenData.ID != userID {
 		return httperror.Forbidden("Couldn't get Helm repositories for another user", httperrors.ErrUnauthorized)
 	}
@@ -175,7 +176,7 @@ func (handler *Handler) userDeleteHelmRepo(w http.ResponseWriter, r *http.Reques
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	userID := portaineree.UserID(userIDEndpoint)
+	userID := portainer.UserID(userIDEndpoint)
 	if tokenData.ID != userID {
 		return httperror.Forbidden("Couldn't delete Helm repositories for another user", httperrors.ErrUnauthorized)
 	}
@@ -191,8 +192,8 @@ func (handler *Handler) userDeleteHelmRepo(w http.ResponseWriter, r *http.Reques
 	}
 
 	for _, repo := range userRepos {
-		if repo.ID == portaineree.HelmUserRepositoryID(repositoryID) && repo.UserID == userID {
-			err = handler.DataStore.HelmUserRepository().Delete(portaineree.HelmUserRepositoryID(repositoryID))
+		if repo.ID == portainer.HelmUserRepositoryID(repositoryID) && repo.UserID == userID {
+			err = handler.DataStore.HelmUserRepository().Delete(portainer.HelmUserRepositoryID(repositoryID))
 			if err != nil {
 				return httperror.InternalServerError("Unable to delete user Helm repository", err)
 			}

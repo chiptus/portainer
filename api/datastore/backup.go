@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
 )
@@ -66,7 +67,7 @@ func (store *Store) commonBackupDir() string {
 	return path.Join(store.connection.GetStorePath(), backupDefaults.backupDir, backupDefaults.commonDir)
 }
 
-func (store *Store) editionBackupDir(edition portaineree.SoftwareEdition) string {
+func (store *Store) editionBackupDir(edition portainer.SoftwareEdition) string {
 	return path.Join(store.path, backupDefaults.backupDir, edition.GetEditionLabel())
 }
 
@@ -83,7 +84,7 @@ func (store *Store) copyDBFile(from string, to string) error {
 
 // BackupOptions provide a helper to inject backup options
 type BackupOptions struct {
-	Edition        portaineree.SoftwareEdition
+	Edition        portainer.SoftwareEdition
 	Version        string
 	BackupDir      string
 	BackupFileName string
@@ -103,7 +104,7 @@ func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
 		if err != nil {
 			options.Edition = portaineree.PortainerEE
 		} else {
-			options.Edition = portaineree.SoftwareEdition(v.Edition)
+			options.Edition = portainer.SoftwareEdition(v.Edition)
 		}
 	}
 
@@ -119,7 +120,7 @@ func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
 	return options
 }
 
-func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]string, error) {
+func (store *Store) listEditionBackups(edition portainer.SoftwareEdition) ([]string, error) {
 	var fileNames = []string{}
 
 	files, err := os.ReadDir(store.editionBackupDir(edition))
@@ -138,12 +139,12 @@ func (store *Store) listEditionBackups(edition portaineree.SoftwareEdition) ([]s
 }
 
 func (store *Store) LatestEditionBackup() (string, error) {
-	var edition portaineree.SoftwareEdition
+	var edition portainer.SoftwareEdition
 	v, err := store.VersionService.Version()
 	if err != nil {
 		edition = portaineree.PortainerEE
 	} else {
-		edition = portaineree.SoftwareEdition(v.Edition)
+		edition = portainer.SoftwareEdition(v.Edition)
 	}
 
 	files, err := store.listEditionBackups(edition)
@@ -197,7 +198,7 @@ func (store *Store) Backup(version *models.Version) (string, error) {
 
 	return store.backupWithOptions(&BackupOptions{
 		Version: version.SchemaVersion,
-		Edition: portaineree.SoftwareEdition(version.Edition),
+		Edition: portainer.SoftwareEdition(version.Edition),
 	})
 }
 

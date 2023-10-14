@@ -2,6 +2,7 @@ package datastore
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Init creates the default data set.
@@ -25,22 +26,22 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 		defaultSettings := &portaineree.Settings{
 			EnableTelemetry:      false,
 			AuthenticationMethod: portaineree.AuthenticationInternal,
-			InternalAuthSettings: portaineree.InternalAuthSettings{
+			InternalAuthSettings: portainer.InternalAuthSettings{
 				RequiredPasswordLength: 12,
 			},
-			BlackListedLabels: make([]portaineree.Pair, 0),
+			BlackListedLabels: make([]portainer.Pair, 0),
 			LDAPSettings: portaineree.LDAPSettings{
 				AnonymousMode:   true,
 				AutoCreateUsers: true,
-				TLSConfig:       portaineree.TLSConfiguration{},
+				TLSConfig:       portainer.TLSConfiguration{},
 				URLs:            []string{},
-				SearchSettings: []portaineree.LDAPSearchSettings{
+				SearchSettings: []portainer.LDAPSearchSettings{
 					{},
 				},
-				GroupSearchSettings: []portaineree.LDAPGroupSearchSettings{
+				GroupSearchSettings: []portainer.LDAPGroupSearchSettings{
 					{},
 				},
-				AdminGroupSearchSettings: []portaineree.LDAPGroupSearchSettings{
+				AdminGroupSearchSettings: []portainer.LDAPGroupSearchSettings{
 					{},
 				},
 			},
@@ -93,13 +94,13 @@ func (store *Store) checkOrCreateDefaultData() error {
 	}
 
 	if len(groups) == 0 {
-		unassignedGroup := &portaineree.EndpointGroup{
+		unassignedGroup := &portainer.EndpointGroup{
 			Name:               "Unassigned",
 			Description:        "Unassigned environments",
-			Labels:             []portaineree.Pair{},
-			UserAccessPolicies: portaineree.UserAccessPolicies{},
-			TeamAccessPolicies: portaineree.TeamAccessPolicies{},
-			TagIDs:             []portaineree.TagID{},
+			Labels:             []portainer.Pair{},
+			UserAccessPolicies: portainer.UserAccessPolicies{},
+			TeamAccessPolicies: portainer.TeamAccessPolicies{},
+			TagIDs:             []portainer.TagID{},
 		}
 
 		err = store.EndpointGroupService.Create(unassignedGroup)

@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/gofrs/uuid"
 )
@@ -27,13 +28,13 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 	handler.demoService = demo.NewService()
 	handler.ProxyManager = proxy.NewManager(handler.DataStore, nil, nil, nil, nil, nil, nil, nil, nil)
 
-	tagID := portaineree.TagID(1)
+	tagID := portainer.TagID(1)
 
-	err := handler.DataStore.Tag().Create(&portaineree.Tag{
+	err := handler.DataStore.Tag().Create(&portainer.Tag{
 		ID:             tagID,
 		Name:           "concurrent-test-tag",
-		Endpoints:      make(map[portaineree.EndpointID]bool),
-		EndpointGroups: make(map[portaineree.EndpointGroupID]bool),
+		Endpoints:      make(map[portainer.EndpointID]bool),
+		EndpointGroups: make(map[portainer.EndpointGroupID]bool),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +46,7 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 			URL:                  "https://portainer.io:9443",
 			EndpointCreationType: edgeAgentEnvironment,
 			GroupID:              1,
-			TagIDs:               []portaineree.TagID{tagID},
+			TagIDs:               []portainer.TagID{tagID},
 		}
 
 		endpoint, hErr := handler.createEndpoint(handler.DataStore, p)
@@ -76,7 +77,7 @@ func TestConcurrentEndpointDelete(t *testing.T) {
 	wg.Add(len(endpointIDs))
 
 	for k := range endpointIDs {
-		go func(id portaineree.EndpointID) {
+		go func(id portainer.EndpointID) {
 			url := "https://portainer.io:9443/endpoints/" + strconv.Itoa(int(id))
 
 			req, err := http.NewRequest(http.MethodDelete, url, nil)
@@ -127,10 +128,10 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 
 	// Create all the environments and add them to the same edge group
 
-	var endpointIDs []portaineree.EndpointID
+	var endpointIDs []portainer.EndpointID
 
 	for i := 0; i < endpointsCount; i++ {
-		endpointID := portaineree.EndpointID(i) + 1
+		endpointID := portainer.EndpointID(i) + 1
 
 		err := store.Endpoint().Create(&portaineree.Endpoint{
 			ID:   endpointID,
@@ -159,7 +160,7 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 	wg.Add(len(endpointIDs))
 
 	for _, endpointID := range endpointIDs {
-		go func(ID portaineree.EndpointID) {
+		go func(ID portainer.EndpointID) {
 			defer wg.Done()
 
 			req, err := http.NewRequest(http.MethodDelete, "/endpoints/"+strconv.Itoa(int(ID)), nil)

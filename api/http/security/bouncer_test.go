@@ -12,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/jwt"
+	portainer "github.com/portainer/portainer/api"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,15 +23,15 @@ var testHandler200 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 })
 
 func tokenLookupSucceed(dataStore dataservices.DataStore, jwtService portaineree.JWTService) tokenLookup {
-	return func(r *http.Request) *portaineree.TokenData {
-		uid := portaineree.UserID(1)
+	return func(r *http.Request) *portainer.TokenData {
+		uid := portainer.UserID(1)
 		dataStore.User().Create(&portaineree.User{ID: uid})
-		jwtService.GenerateToken(&portaineree.TokenData{ID: uid})
-		return &portaineree.TokenData{ID: 1}
+		jwtService.GenerateToken(&portainer.TokenData{ID: uid})
+		return &portainer.TokenData{ID: 1}
 	}
 }
 
-func tokenLookupFail(r *http.Request) *portaineree.TokenData {
+func tokenLookupFail(r *http.Request) *portainer.TokenData {
 	return nil
 }
 
@@ -295,7 +296,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 	})
 
@@ -309,7 +310,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 	})
 
@@ -323,7 +324,7 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		token := bouncer.apiKeyLookup(req)
 
-		expectedToken := &portaineree.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
 
 		_, apiKeyUpdated, err := apiKeyService.GetDigestUserAndKey(apiKey.Digest)

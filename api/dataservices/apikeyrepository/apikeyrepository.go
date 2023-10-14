@@ -18,7 +18,7 @@ const BucketName = "api_key"
 
 // Service represents a service for managing api-key data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.APIKey, portaineree.APIKeyID]
+	dataservices.BaseDataService[portaineree.APIKey, portainer.APIKeyID]
 }
 
 // NewService creates a new instance of a service.
@@ -29,7 +29,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.APIKey, portaineree.APIKeyID]{
+		BaseDataService: dataservices.BaseDataService[portaineree.APIKey, portainer.APIKeyID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -37,7 +37,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 // GetAPIKeysByUserID returns a slice containing all the APIKeys a user has access to.
-func (service *Service) GetAPIKeysByUserID(userID portaineree.UserID) ([]portaineree.APIKey, error) {
+func (service *Service) GetAPIKeysByUserID(userID portainer.UserID) ([]portaineree.APIKey, error) {
 	var result = make([]portaineree.APIKey, 0)
 
 	err := service.Connection.GetAll(
@@ -98,7 +98,7 @@ func (service *Service) Create(record *portaineree.APIKey) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			record.ID = portaineree.APIKeyID(id)
+			record.ID = portainer.APIKeyID(id)
 
 			return int(record.ID), record
 		},

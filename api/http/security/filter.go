@@ -2,11 +2,12 @@ package security
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // FilterUserTeams filters teams based on user role.
 // non-administrator users only have access to team they are member of.
-func FilterUserTeams(teams []portaineree.Team, context *RestrictedRequestContext) []portaineree.Team {
+func FilterUserTeams(teams []portainer.Team, context *RestrictedRequestContext) []portainer.Team {
 	if context.IsAdmin {
 		return teams
 	}
@@ -28,14 +29,14 @@ func FilterUserTeams(teams []portaineree.Team, context *RestrictedRequestContext
 
 // FilterLeaderTeams filters teams based on user role.
 // Team leaders only have access to team they lead.
-func FilterLeaderTeams(teams []portaineree.Team, context *RestrictedRequestContext) []portaineree.Team {
+func FilterLeaderTeams(teams []portainer.Team, context *RestrictedRequestContext) []portainer.Team {
 	n := 0
 
 	if !context.IsTeamLeader {
 		return teams[:n]
 	}
 
-	leaderSet := map[portaineree.TeamID]bool{}
+	leaderSet := map[portainer.TeamID]bool{}
 	for _, membership := range context.UserMemberships {
 		if membership.Role == portaineree.TeamLeader && membership.UserID == context.UserID {
 			leaderSet[membership.TeamID] = true
@@ -72,7 +73,7 @@ func FilterUsers(users []portaineree.User, context *RestrictedRequestContext) []
 
 // FilterRegistries filters registries based on user role and team memberships.
 // Non administrator users only have access to authorized registries.
-func FilterRegistries(registries []portaineree.Registry, user *portaineree.User, teamMemberships []portaineree.TeamMembership, endpointID portaineree.EndpointID) []portaineree.Registry {
+func FilterRegistries(registries []portaineree.Registry, user *portaineree.User, teamMemberships []portainer.TeamMembership, endpointID portainer.EndpointID) []portaineree.Registry {
 	if user.Role == portaineree.AdministratorRole {
 		return registries
 	}
@@ -90,7 +91,7 @@ func FilterRegistries(registries []portaineree.Registry, user *portaineree.User,
 
 // FilterEndpoints filters environments(endpoints) based on user role and team memberships.
 // Non administrator only have access to authorized environments(endpoints) (can be inherited via endpoint groups).
-func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portaineree.EndpointGroup, context *RestrictedRequestContext) []portaineree.Endpoint {
+func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portainer.EndpointGroup, context *RestrictedRequestContext) []portaineree.Endpoint {
 	if context.IsAdmin {
 		return endpoints
 	}
@@ -111,7 +112,7 @@ func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portaineree.Endp
 
 // FilterEndpointGroups filters environment(endpoint) groups based on user role and team memberships.
 // Non administrator users only have access to authorized environment(endpoint) groups.
-func FilterEndpointGroups(endpointGroups []portaineree.EndpointGroup, context *RestrictedRequestContext) []portaineree.EndpointGroup {
+func FilterEndpointGroups(endpointGroups []portainer.EndpointGroup, context *RestrictedRequestContext) []portainer.EndpointGroup {
 	if context.IsAdmin {
 		return endpointGroups
 	}
@@ -127,7 +128,7 @@ func FilterEndpointGroups(endpointGroups []portaineree.EndpointGroup, context *R
 	return endpointGroups[:n]
 }
 
-func getAssociatedGroup(endpoint *portaineree.Endpoint, groups []portaineree.EndpointGroup) *portaineree.EndpointGroup {
+func getAssociatedGroup(endpoint *portaineree.Endpoint, groups []portainer.EndpointGroup) *portainer.EndpointGroup {
 	for _, group := range groups {
 		if group.ID == endpoint.GroupID {
 			return &group

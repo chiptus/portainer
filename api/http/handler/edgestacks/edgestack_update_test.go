@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // Update
@@ -21,7 +22,7 @@ func TestUpdateAndInspect(t *testing.T) {
 	edgeStack := createEdgeStack(t, handler.DataStore, endpoint.ID)
 
 	// Update edge stack: create new Endpoint, EndpointRelation and EdgeGroup
-	endpointID := portaineree.EndpointID(6)
+	endpointID := portainer.EndpointID(6)
 	newEndpoint := createEndpointWithId(t, handler.DataStore, endpointID)
 
 	err := handler.DataStore.Endpoint().Create(&newEndpoint)
@@ -29,9 +30,9 @@ func TestUpdateAndInspect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	endpointRelation := portaineree.EndpointRelation{
+	endpointRelation := portainer.EndpointRelation{
 		EndpointID: endpointID,
-		EdgeStacks: map[portaineree.EdgeStackID]bool{
+		EdgeStacks: map[portainer.EdgeStackID]bool{
 			edgeStack.ID: true,
 		},
 	}
@@ -46,7 +47,7 @@ func TestUpdateAndInspect(t *testing.T) {
 		Name:         "EdgeGroup 2",
 		Dynamic:      false,
 		TagIDs:       nil,
-		Endpoints:    []portaineree.EndpointID{newEndpoint.ID},
+		Endpoints:    []portainer.EndpointID{newEndpoint.ID},
 		PartialMatch: false,
 	}
 
@@ -126,7 +127,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 		Name:         "EdgeGroup 2",
 		Dynamic:      false,
 		TagIDs:       nil,
-		Endpoints:    []portaineree.EndpointID{8889},
+		Endpoints:    []portainer.EndpointID{8889},
 		PartialMatch: false,
 	}
 
@@ -142,7 +143,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
 				UpdateVersion:    true,
-				EdgeGroups:       []portaineree.EdgeGroupID{9999},
+				EdgeGroups:       []portainer.EdgeGroupID{9999},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
 			http.StatusInternalServerError,
@@ -152,7 +153,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
 				UpdateVersion:    true,
-				EdgeGroups:       []portaineree.EdgeGroupID{2},
+				EdgeGroups:       []portainer.EdgeGroupID{2},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
 			http.StatusInternalServerError,
@@ -162,7 +163,7 @@ func TestUpdateWithInvalidEdgeGroups(t *testing.T) {
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
 				UpdateVersion:    true,
-				EdgeGroups:       []portaineree.EdgeGroupID{1},
+				EdgeGroups:       []portainer.EdgeGroupID{1},
 				DeploymentType:   portaineree.EdgeStackDeploymentKubernetes,
 			},
 			http.StatusBadRequest,
@@ -219,7 +220,7 @@ func TestUpdateWithInvalidPayload(t *testing.T) {
 			updateEdgeStackPayload{
 				StackFileContent: "error-test",
 				UpdateVersion:    true,
-				EdgeGroups:       []portaineree.EdgeGroupID{},
+				EdgeGroups:       []portainer.EdgeGroupID{},
 				DeploymentType:   edgeStack.DeploymentType,
 			},
 			http.StatusBadRequest,

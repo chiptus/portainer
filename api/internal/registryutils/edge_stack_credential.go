@@ -8,6 +8,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/edge"
 
 	log "github.com/rs/zerolog/log"
@@ -48,7 +49,7 @@ func GetRegistryCredential(registry *portaineree.Registry) *edge.RegistryCredent
 		var password string
 
 		if registry.Type == portaineree.EcrRegistry {
-			config := portaineree.RegistryManagementConfiguration{
+			config := portainer.RegistryManagementConfiguration{
 				Type: portaineree.EcrRegistry,
 				Ecr:  registry.Ecr,
 			}

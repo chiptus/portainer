@@ -5,21 +5,22 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/tag"
+	portainer "github.com/portainer/portainer/api"
 )
 
 // EdgeGroupRelatedEndpoints returns a list of environments(endpoints) related to this Edge group
-func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup) []portaineree.EndpointID {
+func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []portaineree.Endpoint, endpointGroups []portainer.EndpointGroup) []portainer.EndpointID {
 	if !edgeGroup.Dynamic {
 		return edgeGroup.Endpoints
 	}
 
-	endpointIDs := []portaineree.EndpointID{}
+	endpointIDs := []portainer.EndpointID{}
 	for _, endpoint := range endpoints {
 		if !endpointutils.IsEdgeEndpoint(&endpoint) {
 			continue
 		}
 
-		var endpointGroup portaineree.EndpointGroup
+		var endpointGroup portainer.EndpointGroup
 		for _, group := range endpointGroups {
 			if endpoint.GroupID == group.ID {
 				endpointGroup = group
@@ -36,8 +37,8 @@ func EdgeGroupRelatedEndpoints(edgeGroup *portaineree.EdgeGroup, endpoints []por
 	return endpointIDs
 }
 
-func EdgeGroupSet(edgeGroupIDs []portaineree.EdgeGroupID) map[portaineree.EdgeGroupID]bool {
-	set := map[portaineree.EdgeGroupID]bool{}
+func EdgeGroupSet(edgeGroupIDs []portainer.EdgeGroupID) map[portainer.EdgeGroupID]bool {
+	set := map[portainer.EdgeGroupID]bool{}
 
 	for _, edgeGroupID := range edgeGroupIDs {
 		set[edgeGroupID] = true
@@ -46,7 +47,7 @@ func EdgeGroupSet(edgeGroupIDs []portaineree.EdgeGroupID) map[portaineree.EdgeGr
 	return set
 }
 
-func GetEndpointsFromEdgeGroups(edgeGroupIDs []portaineree.EdgeGroupID, datastore dataservices.DataStoreTx) ([]portaineree.EndpointID, error) {
+func GetEndpointsFromEdgeGroups(edgeGroupIDs []portainer.EdgeGroupID, datastore dataservices.DataStoreTx) ([]portainer.EndpointID, error) {
 	endpoints, err := datastore.Endpoint().Endpoints()
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func GetEndpointsFromEdgeGroups(edgeGroupIDs []portaineree.EdgeGroupID, datastor
 		return nil, err
 	}
 
-	var response []portaineree.EndpointID
+	var response []portainer.EndpointID
 	for _, edgeGroupID := range edgeGroupIDs {
 		edgeGroup, err := datastore.EdgeGroup().Read(edgeGroupID)
 		if err != nil {
@@ -71,7 +72,7 @@ func GetEndpointsFromEdgeGroups(edgeGroupIDs []portaineree.EdgeGroupID, datastor
 }
 
 // edgeGroupRelatedToEndpoint returns true if edgeGroup is associated with environment(endpoint)
-func edgeGroupRelatedToEndpoint(edgeGroup *portaineree.EdgeGroup, endpoint *portaineree.Endpoint, endpointGroup *portaineree.EndpointGroup) bool {
+func edgeGroupRelatedToEndpoint(edgeGroup *portaineree.EdgeGroup, endpoint *portaineree.Endpoint, endpointGroup *portainer.EndpointGroup) bool {
 	if !edgeGroup.Dynamic {
 		for _, endpointID := range edgeGroup.Endpoints {
 			if endpoint.ID == endpointID {

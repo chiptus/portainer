@@ -3,6 +3,7 @@ package apikey
 import (
 	lru "github.com/hashicorp/golang-lru"
 	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
 )
 
 const defaultAPIKeyCacheSize = 1024
@@ -57,7 +58,7 @@ func (c *apiKeyCache) Delete(digest []byte) {
 }
 
 // InvalidateUserKeyCache loops through all the api-keys associated to a user and removes them from the cache
-func (c *apiKeyCache) InvalidateUserKeyCache(userId portaineree.UserID) bool {
+func (c *apiKeyCache) InvalidateUserKeyCache(userId portainer.UserID) bool {
 	present := false
 	for _, k := range c.cache.Keys() {
 		user, _, _ := c.Get([]byte(k.(string)))

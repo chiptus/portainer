@@ -13,8 +13,8 @@ import (
 var ErrEdgeGroupNotFound = errors.New("Edge group was not found")
 
 // EdgeStackRelatedEndpoints returns a list of environments(endpoints) related to this Edge stack
-func EdgeStackRelatedEndpoints(edgeGroupIDs []portaineree.EdgeGroupID, endpoints []portaineree.Endpoint, endpointGroups []portaineree.EndpointGroup, edgeGroups []portaineree.EdgeGroup) ([]portaineree.EndpointID, error) {
-	edgeStackEndpoints := []portaineree.EndpointID{}
+func EdgeStackRelatedEndpoints(edgeGroupIDs []portainer.EdgeGroupID, endpoints []portaineree.Endpoint, endpointGroups []portainer.EndpointGroup, edgeGroups []portaineree.EdgeGroup) ([]portainer.EndpointID, error) {
+	edgeStackEndpoints := []portainer.EndpointID{}
 
 	for _, edgeGroupID := range edgeGroupIDs {
 		var edgeGroup *portaineree.EdgeGroup
@@ -39,7 +39,7 @@ func EdgeStackRelatedEndpoints(edgeGroupIDs []portaineree.EdgeGroupID, endpoints
 
 type EndpointRelationsConfig struct {
 	Endpoints      []portaineree.Endpoint
-	EndpointGroups []portaineree.EndpointGroup
+	EndpointGroups []portainer.EndpointGroup
 	EdgeGroups     []portaineree.EdgeGroup
 }
 

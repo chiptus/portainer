@@ -8,6 +8,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -39,21 +40,21 @@ func (handler *Handler) edgeJobTasksCollect(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeJob, err := tx.EdgeJob().Read(portaineree.EdgeJobID(edgeJobID))
+		edgeJob, err := tx.EdgeJob().Read(portainer.EdgeJobID(edgeJobID))
 		if tx.IsErrObjectNotFound(err) {
 			return httperror.NotFound("Unable to find an Edge job with the specified identifier inside the database", err)
 		} else if err != nil {
 			return httperror.InternalServerError("Unable to find an Edge job with the specified identifier inside the database", err)
 		}
 
-		endpointID := portaineree.EndpointID(taskID)
+		endpointID := portainer.EndpointID(taskID)
 		endpointsFromGroups, err := edge.GetEndpointsFromEdgeGroups(edgeJob.EdgeGroups, tx)
 		if err != nil {
 			return httperror.InternalServerError("Unable to get Endpoints from EdgeGroups", err)
 		}
 
 		if slices.Contains(endpointsFromGroups, endpointID) {
-			edgeJob.GroupLogsCollection[endpointID] = portaineree.EdgeJobEndpointMeta{
+			edgeJob.GroupLogsCollection[endpointID] = portainer.EdgeJobEndpointMeta{
 				CollectLogs: true,
 				LogsStatus:  portaineree.EdgeJobLogsStatusPending,
 			}

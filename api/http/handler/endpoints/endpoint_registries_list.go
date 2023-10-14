@@ -7,6 +7,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -35,7 +36,7 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 
 	var registries []portaineree.Registry
 	err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-		registries, err = handler.listRegistries(tx, r, portaineree.EndpointID(endpointID))
+		registries, err = handler.listRegistries(tx, r, portainer.EndpointID(endpointID))
 		return err
 	})
 	if err != nil {
@@ -50,7 +51,7 @@ func (handler *Handler) endpointRegistriesList(w http.ResponseWriter, r *http.Re
 	return response.JSON(w, registries)
 }
 
-func (handler *Handler) listRegistries(tx dataservices.DataStoreTx, r *http.Request, endpointID portaineree.EndpointID) ([]portaineree.Registry, error) {
+func (handler *Handler) listRegistries(tx dataservices.DataStoreTx, r *http.Request, endpointID portainer.EndpointID) ([]portaineree.Registry, error) {
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return nil, httperror.InternalServerError("Unable to retrieve info from request context", err)
@@ -61,7 +62,7 @@ func (handler *Handler) listRegistries(tx dataservices.DataStoreTx, r *http.Requ
 		return nil, httperror.InternalServerError("Unable to retrieve user from the database", err)
 	}
 
-	endpoint, err := tx.Endpoint().Endpoint(portaineree.EndpointID(endpointID))
+	endpoint, err := tx.Endpoint().Endpoint(portainer.EndpointID(endpointID))
 	if tx.IsErrObjectNotFound(err) {
 		return nil, httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 	} else if err != nil {
@@ -90,7 +91,7 @@ func (handler *Handler) listRegistries(tx dataservices.DataStoreTx, r *http.Requ
 	return registries, err
 }
 
-func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
+func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portainer.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
 	if !endpointutils.IsKubernetesEndpoint(endpoint) {
 		return security.FilterRegistries(registries, user, memberships, endpoint.ID), nil
 	}
@@ -98,7 +99,7 @@ func (handler *Handler) filterRegistriesByAccess(r *http.Request, registries []p
 	return handler.filterKubernetesEndpointRegistries(r, registries, endpoint, user, memberships)
 }
 
-func (handler *Handler) filterKubernetesEndpointRegistries(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portaineree.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
+func (handler *Handler) filterKubernetesEndpointRegistries(r *http.Request, registries []portaineree.Registry, endpoint *portaineree.Endpoint, user *portaineree.User, memberships []portainer.TeamMembership) ([]portaineree.Registry, *httperror.HandlerError) {
 	namespaceParam, _ := request.RetrieveQueryParameter(r, "namespace", true)
 	isAdminOrEndpointAdmin, err := security.IsAdminOrEndpointAdmin(r, handler.DataStore, endpoint.ID)
 	if err != nil {
@@ -124,7 +125,7 @@ func (handler *Handler) filterKubernetesEndpointRegistries(r *http.Request, regi
 	return handler.filterKubernetesRegistriesByUserRole(r, registries, endpoint, user)
 }
 
-func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, namespace string, userId portaineree.UserID, memberships []portaineree.TeamMembership, isAdminOrEndpointAdmin bool) (bool, error) {
+func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, namespace string, userId portainer.UserID, memberships []portainer.TeamMembership, isAdminOrEndpointAdmin bool) (bool, error) {
 	if isAdminOrEndpointAdmin || namespace == "" {
 		return true, nil
 	}
@@ -151,7 +152,7 @@ func (handler *Handler) isNamespaceAuthorized(endpoint *portaineree.Endpoint, na
 	return security.AuthorizedAccess(userId, memberships, namespacePolicy.UserAccessPolicies, namespacePolicy.TeamAccessPolicies), nil
 }
 
-func filterRegistriesByNamespaces(registries []portaineree.Registry, endpointId portaineree.EndpointID, namespaces []string) []portaineree.Registry {
+func filterRegistriesByNamespaces(registries []portaineree.Registry, endpointId portainer.EndpointID, namespaces []string) []portaineree.Registry {
 	filteredRegistries := []portaineree.Registry{}
 
 	for _, registry := range registries {
@@ -163,7 +164,7 @@ func filterRegistriesByNamespaces(registries []portaineree.Registry, endpointId 
 	return filteredRegistries
 }
 
-func registryAccessPoliciesContainsNamespace(registryAccess portaineree.RegistryAccessPolicies, namespaces []string) bool {
+func registryAccessPoliciesContainsNamespace(registryAccess portainer.RegistryAccessPolicies, namespaces []string) bool {
 	for _, authorizedNamespace := range registryAccess.Namespaces {
 		for _, namespace := range namespaces {
 			if namespace == authorizedNamespace {
@@ -171,6 +172,7 @@ func registryAccessPoliciesContainsNamespace(registryAccess portaineree.Registry
 			}
 		}
 	}
+
 	return false
 }
 
@@ -197,6 +199,7 @@ func (handler *Handler) userNamespaces(endpoint *portaineree.Endpoint, user *por
 	if err != nil {
 		return nil, err
 	}
+
 	namespaceAuthorizations, err := handler.AuthorizationService.GetNamespaceAuthorizations(handler.DataStore, int(user.ID), *endpoint, kcl)
 	if err != nil {
 		return nil, err
@@ -206,12 +209,14 @@ func (handler *Handler) userNamespaces(endpoint *portaineree.Endpoint, user *por
 	for userNamespace := range namespaceAuthorizations {
 		userNamespaces = append(userNamespaces, userNamespace)
 	}
+
 	return userNamespaces, nil
 }
 
 func hideRegistryFields(registry *portaineree.Registry, hideAccesses bool) {
 	registry.Password = ""
 	registry.ManagementConfiguration = nil
+
 	if hideAccesses {
 		registry.RegistryAccesses = nil
 	}

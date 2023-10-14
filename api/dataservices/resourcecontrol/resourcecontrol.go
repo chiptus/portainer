@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 
@@ -16,7 +15,7 @@ const BucketName = "resource_control"
 
 // Service represents a service for managing environment(endpoint) data.
 type Service struct {
-	dataservices.BaseDataService[portaineree.ResourceControl, portaineree.ResourceControlID]
+	dataservices.BaseDataService[portainer.ResourceControl, portainer.ResourceControlID]
 }
 
 // NewService creates a new instance of a service.
@@ -27,7 +26,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}
 
 	return &Service{
-		BaseDataService: dataservices.BaseDataService[portaineree.ResourceControl, portaineree.ResourceControlID]{
+		BaseDataService: dataservices.BaseDataService[portainer.ResourceControl, portainer.ResourceControlID]{
 			Bucket:     BucketName,
 			Connection: connection,
 		},
@@ -36,7 +35,7 @@ func NewService(connection portainer.Connection) (*Service, error) {
 
 func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portaineree.ResourceControl, portaineree.ResourceControlID]{
+		BaseDataServiceTx: dataservices.BaseDataServiceTx[portainer.ResourceControl, portainer.ResourceControlID]{
 			Bucket:     BucketName,
 			Connection: service.Connection,
 			Tx:         tx,
@@ -47,14 +46,14 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 // ResourceControlByResourceIDAndType returns a ResourceControl object by checking if the resourceID is equal
 // to the main ResourceID or in SubResourceIDs. It also performs a check on the resource type. Return nil
 // if no ResourceControl was found.
-func (service *Service) ResourceControlByResourceIDAndType(resourceID string, resourceType portaineree.ResourceControlType) (*portaineree.ResourceControl, error) {
-	var resourceControl *portaineree.ResourceControl
+func (service *Service) ResourceControlByResourceIDAndType(resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error) {
+	var resourceControl *portainer.ResourceControl
 	stop := fmt.Errorf("ok")
 	err := service.Connection.GetAll(
 		BucketName,
-		&portaineree.ResourceControl{},
+		&portainer.ResourceControl{},
 		func(obj interface{}) (interface{}, error) {
-			rc, ok := obj.(*portaineree.ResourceControl)
+			rc, ok := obj.(*portainer.ResourceControl)
 			if !ok {
 				log.Debug().Str("obj", fmt.Sprintf("%#v", obj)).Msg("failed to convert to ResourceControl object")
 				return nil, fmt.Errorf("failed to convert to ResourceControl object: %s", obj)
@@ -72,7 +71,7 @@ func (service *Service) ResourceControlByResourceIDAndType(resourceID string, re
 				}
 			}
 
-			return &portaineree.ResourceControl{}, nil
+			return &portainer.ResourceControl{}, nil
 		})
 	if errors.Is(err, stop) {
 		return resourceControl, nil
@@ -82,11 +81,11 @@ func (service *Service) ResourceControlByResourceIDAndType(resourceID string, re
 }
 
 // CreateResourceControl creates a new ResourceControl object
-func (service *Service) Create(resourceControl *portaineree.ResourceControl) error {
+func (service *Service) Create(resourceControl *portainer.ResourceControl) error {
 	return service.Connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
-			resourceControl.ID = portaineree.ResourceControlID(id)
+			resourceControl.ID = portainer.ResourceControlID(id)
 			return int(resourceControl.ID), resourceControl
 		},
 	)
