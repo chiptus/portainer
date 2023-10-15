@@ -190,6 +190,8 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	}
 
 	if stack.GitConfig.ConfigHash != newHash {
+		folderToBeRemoved := stackutils.GetStackVersionFoldersToRemove(true, stack.ProjectPath, stack.GitConfig, stack.PreviousDeploymentInfo, true)
+
 		stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
 			ConfigHash:  stack.GitConfig.ConfigHash,
 			FileVersion: stack.StackFileVersion,
@@ -215,6 +217,11 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 
 			return httperror.InternalServerError("Unable to clone git repository directory", err)
 		}
+
+		// only keep the latest version of the stack folder
+		stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
+			log.Info().Err(err).Msg("failed to remove the old stack version folder")
+		})
 	}
 
 	log.Debug().Bool("pull_image_flag", payload.PullImage).Msg("")

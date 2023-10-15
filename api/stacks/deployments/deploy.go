@@ -145,6 +145,7 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 	}
 
 	var gitCommitChangedOrForceUpdate bool
+	folderToBeRemoved := []string{}
 	if !stack.FromAppTemplate {
 
 		gitConfig, err := git.GetGitConfigWithPassword(stack.GitConfig, datastore)
@@ -164,6 +165,8 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 
 		if updated {
 			if stack.GitConfig.ConfigHash != newHash {
+				folderToBeRemoved = stackutils.GetStackVersionFoldersToRemove(true, stack.ProjectPath, stack.GitConfig, stack.PreviousDeploymentInfo, true)
+
 				// Only when the config hash changed, we need to update the PreviousDeploymentInfo
 				stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
 					ConfigHash:  stack.GitConfig.ConfigHash,
@@ -176,6 +179,15 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 			gitCommitChangedOrForceUpdate = updated
 		}
 	}
+
+	defer func(updated bool) {
+		if updated {
+			// only keep the latest version of the stack folder
+			stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
+				log.Info().Err(err).Msg("failed to remove the old stack version folder")
+			})
+		}
+	}(gitCommitChangedOrForceUpdate)
 
 	forcePullImage := func() bool {
 		if options != nil && options.PullDockerImage != nil {

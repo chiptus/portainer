@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,8 +15,6 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/filesystem"
-	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
@@ -30,33 +27,6 @@ func ensureIntegrationTest(t *testing.T) {
 	if _, ok := os.LookupEnv("INTEGRATION_TEST"); !ok {
 		t.Skip("skip an integration test")
 	}
-}
-
-func testCreateUser(store *datastore.Store) (*portaineree.User, error) {
-	user := &portaineree.User{ID: 1, Username: "testUser", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
-	err := store.User().Create(user)
-	return user, err
-}
-
-func testCreateEndpoint(store *datastore.Store) (*portaineree.Endpoint, error) {
-	endpoint := &portaineree.Endpoint{
-		ID:   1,
-		Name: "testEndpoint",
-		SecuritySettings: portainer.EndpointSecuritySettings{
-			AllowBindMountsForRegularUsers:            true,
-			AllowPrivilegedModeForRegularUsers:        true,
-			AllowVolumeBrowserForRegularUsers:         true,
-			AllowHostNamespaceForRegularUsers:         true,
-			AllowDeviceMappingForRegularUsers:         true,
-			AllowStackManagementForRegularUsers:       true,
-			AllowContainerCapabilitiesForRegularUsers: true,
-			AllowSysctlSettingForRegularUsers:         true,
-			EnableHostManagementFeatures:              true,
-		},
-	}
-
-	err := store.Endpoint().Create(endpoint)
-	return endpoint, err
 }
 
 func testGetYAMLContentDeployedByAppTemplate(env string) string {
@@ -229,19 +199,9 @@ func testCloneGitRepo(store *datastore.Store, gitService portainer.GitService, f
 	return err
 }
 
-func testCreatUpdateStackRequest(stackID int, payload []byte) *http.Request {
+func mockCreateUpdateStackRequest(stackID portainer.StackID, payload []byte) *http.Request {
 	target := fmt.Sprintf("/stacks/%d", stackID)
-
-	req := httptest.NewRequest(http.MethodPut,
-		target,
-		bytes.NewBuffer(payload))
-
-	ctx := security.StoreRestrictedRequestContext(req, &security.RestrictedRequestContext{
-		IsAdmin: true,
-		UserID:  portainer.UserID(1),
-	})
-
-	return req.WithContext(ctx)
+	return mockCreateStackRequestWithSecurityContext(http.MethodPut, target, bytes.NewBuffer(payload))
 }
 
 func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
@@ -250,10 +210,10 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 
 	_, store := datastore.MustNewTestStore(t, true, true)
 
-	_, err := testCreateUser(store)
+	_, err := mockCreateUser(store)
 	is.NoError(err, "error creating user")
 
-	endpoint, err := testCreateEndpoint(store)
+	endpoint, err := mockCreateEndpoint(store)
 	is.NoError(err, "error creating endpoint")
 
 	gitService := git.NewService(context.TODO())
@@ -296,7 +256,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err, "failed to marshal payload")
 
-		req := testCreatUpdateStackRequest(int(stackDeployedFromAppTemplate.ID), payload)
+		req := mockCreateUpdateStackRequest(stackDeployedFromAppTemplate.ID, payload)
 
 		httpErr := h.updateSwarmOrComposeStack(req, stackDeployedFromAppTemplate, endpoint)
 		is.Nil(httpErr, "error should be nil")
@@ -319,7 +279,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err, "failed to marshal payload")
 
-		req := testCreatUpdateStackRequest(int(stackDeployedByGitRepo.ID), payload)
+		req := mockCreateUpdateStackRequest(stackDeployedByGitRepo.ID, payload)
 
 		httpErr := h.updateSwarmOrComposeStack(req, stackDeployedByGitRepo, endpoint)
 		is.Nil(httpErr, "error should be nil")
@@ -342,7 +302,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err, "failed to marshal payload")
 
-		req := testCreatUpdateStackRequest(int(stackDeployedByGitRepo.ID), payload)
+		req := mockCreateUpdateStackRequest(stackDeployedByGitRepo.ID, payload)
 
 		// detach stack from git
 		err = testDetachGitRepoFromStack(store, stackDeployedByGitRepo)
@@ -369,7 +329,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err, "failed to marshal payload")
 
-		req := testCreatUpdateStackRequest(int(stackDeployedByFileContent.ID), payload)
+		req := mockCreateUpdateStackRequest(stackDeployedByFileContent.ID, payload)
 
 		httpErr := h.updateSwarmOrComposeStack(req, stackDeployedByFileContent, endpoint)
 		is.Nil(httpErr, "error should be nil")
@@ -396,7 +356,7 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 		payload, err := json.Marshal(data)
 		is.NoError(err, "failed to marshal payload")
 
-		req := testCreatUpdateStackRequest(int(stackDeployedByFileContent.ID), payload)
+		req := mockCreateUpdateStackRequest(stackDeployedByFileContent.ID, payload)
 
 		httpErr := h.updateSwarmOrComposeStack(req, stackDeployedByFileContent, endpoint)
 		is.Nil(httpErr, "error should be nil")

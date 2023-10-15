@@ -9,6 +9,7 @@ import (
 	"github.com/portainer/portainer-ee/api/git"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git/update"
@@ -20,6 +21,7 @@ import (
 
 // autoUpdate checks if the git repository or env vars have changed and updates the stack if needed
 func (handler *Handler) autoUpdate(edgeStackId portainer.EdgeStackID, envVars []portainer.Pair) error {
+	folderToBeRemoved := []string{}
 	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		edgeStack, err := tx.EdgeStack().EdgeStack(edgeStackId)
 		if err != nil {
@@ -30,7 +32,6 @@ func (handler *Handler) autoUpdate(edgeStackId portainer.EdgeStackID, envVars []
 		oldHash := ""
 		// if the stack is not using git, we force redeploy
 		if edgeStack.GitConfig != nil {
-
 			gitConfig, err := git.GetGitConfigWithPassword(edgeStack.GitConfig, tx)
 			if err != nil {
 				return err
@@ -51,6 +52,8 @@ func (handler *Handler) autoUpdate(edgeStackId portainer.EdgeStackID, envVars []
 			edgeStack.GitConfig.ConfigHash = newHash
 
 			gitUpdated = updated
+
+			folderToBeRemoved = stackutils.GetStackVersionFoldersToRemove(oldHash != newHash, edgeStack.ProjectPath, gitConfig, edgeStack.PreviousDeploymentInfo, false)
 		}
 
 		envVarsUpdated, newEnvVars := upsertEnvVars(edgeStack.EnvVars, envVars)
@@ -158,6 +161,10 @@ func (handler *Handler) autoUpdate(edgeStackId portainer.EdgeStackID, envVars []
 		body, _ := json.Marshal(edgeStack)
 		handler.userActivityService.LogUserActivity("", "Portainer", "[Internal] Edge stack auto update", body)
 	}
+
+	stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
+		log.Info().Err(err).Msg("failed to remove the old edge stack version folder")
+	})
 
 	return nil
 }

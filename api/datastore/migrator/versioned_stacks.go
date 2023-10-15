@@ -2,9 +2,14 @@ package migrator
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strconv"
 
-	"github.com/portainer/portainer-ee/api"
+	portaineree "github.com/portainer/portainer-ee/api"
+	portainer "github.com/portainer/portainer/api"
+	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -19,6 +24,11 @@ func (migrator *Migrator) rebuildEdgeStackFileSystemWithVersion() error {
 
 	for _, edgeStack := range edgeStacks {
 		if edgeStack.StackFileVersion > 0 {
+			err := RemoveGitStackVersionFolders(edgeStack.ProjectPath, edgeStack.GitConfig, edgeStack.PreviousDeploymentInfo, migrator.fileService.FormProjectPathByVersion)
+			if err != nil {
+				log.Info().Err(err).Msg("failed to remove old edge stack version folders")
+			}
+
 			continue
 		}
 
@@ -95,6 +105,12 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersion() error {
 
 	for _, stack := range stacks {
 		if stack.StackFileVersion > 0 {
+			// we only keep the latest version folder for stack
+			err := RemoveGitStackVersionFolders(stack.ProjectPath, stack.GitConfig, nil, migrator.fileService.FormProjectPathByVersion)
+			if err != nil {
+				log.Info().Err(err).Msg("failed to remove old stack version folders")
+			}
+
 			continue
 		}
 
@@ -135,6 +151,63 @@ func (migrator *Migrator) rebuildStackFileSystemWithVersion() error {
 			return fmt.Errorf("failed to update stack %d file version: %w", stack.ID, err)
 		}
 
+	}
+	return nil
+}
+
+func RemoveGitStackVersionFolders(projectPath string, gitConfig *gittypes.RepoConfig, prevInfo *portainer.StackDeploymentInfo, formPath func(string, int, string) string) error {
+	// If the stack version folder is already migrated, we can remove
+	// stack version folders that are no longer referenced.
+	if gitConfig != nil {
+		keptPaths := []string{
+			formPath(projectPath, 0, gitConfig.ConfigHash),
+		}
+
+		if prevInfo != nil {
+			keptPaths = append(keptPaths, formPath(projectPath, 0, prevInfo.ConfigHash))
+		}
+
+		err := removeUnreferencedGitStackVersionFolders(projectPath, keptPaths)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func removeUnreferencedGitStackVersionFolders(root string, keptPaths []string) error {
+	foldersToBeRemoved := []string{}
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !d.IsDir() {
+			return nil
+		}
+
+		if path == root {
+			return nil
+		}
+
+		for _, keptPath := range keptPaths {
+			if path == keptPath {
+				return filepath.SkipDir
+			}
+		}
+
+		foldersToBeRemoved = append(foldersToBeRemoved, path)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, path := range foldersToBeRemoved {
+		err = os.RemoveAll(path)
+		if err != nil {
+			log.Info().Err(err).Msg("failed to remove old stack version folders that are no longer referenced")
+		}
 	}
 	return nil
 }

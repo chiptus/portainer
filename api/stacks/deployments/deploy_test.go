@@ -2,6 +2,7 @@ package deployments
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -9,8 +10,9 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
-
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/filesystem"
+
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -531,5 +533,91 @@ func Test_updateAllowed(t *testing.T) {
 		allowed, err := updateAllowed(endpoint, NewMockClock("02:47"))
 		is.NoError(err)
 		is.Equal(false, allowed, "updateAllowed should be false")
+	})
+}
+
+type mockGitService struct {
+	id string
+}
+
+func newMockGitService(id string) portainer.GitService {
+	return &mockGitService{
+		id: id,
+	}
+}
+
+func (g *mockGitService) CloneRepository(destination, repositoryURL, referenceName, username, password string, tlsSkipVerify bool) error {
+	return os.Mkdir(destination, 0644)
+}
+
+func (g *mockGitService) LatestCommitID(repositoryURL, referenceName, username, password string, tlsSkipVerify bool) (string, error) {
+	return g.id, nil
+}
+
+func (g *mockGitService) ListRefs(repositoryURL, username, password string, hardRefresh bool, tlsSkipVerify bool) ([]string, error) {
+	return nil, nil
+}
+
+func (g *mockGitService) ListFiles(repositoryURL, referenceName, username, password string, dirOnly, hardRefresh bool, includedExts []string, tlsSkipVerify bool) ([]string, error) {
+	return nil, nil
+}
+
+func Test_redeployWhenChanged_RepoChanged_VersionFolderRemoved(t *testing.T) {
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	tmpDir := t.TempDir()
+
+	err := store.Endpoint().Create(&portaineree.Endpoint{ID: 1})
+	assert.NoError(t, err, "error creating environment")
+
+	username := "user"
+	err = store.User().Create(&portaineree.User{Username: username, Role: portaineree.AdministratorRole})
+	assert.NoError(t, err, "error creating a user")
+
+	stack := portaineree.Stack{
+		ID:          1,
+		EndpointID:  1,
+		ProjectPath: tmpDir,
+		UpdatedBy:   username,
+		GitConfig: &gittypes.RepoConfig{
+			URL:           "url",
+			ReferenceName: "ref",
+			ConfigHash:    "oldHash",
+		},
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			ForceUpdate: false,
+		},
+	}
+	err = store.Stack().Create(&stack)
+	assert.NoError(t, err, "failed to create a test stack")
+
+	oldVersionFolder := filesystem.JoinPaths(stack.ProjectPath, stack.GitConfig.ConfigHash)
+	err = os.MkdirAll(oldVersionFolder, 0644)
+	assert.NoError(t, err, "failed to create a test stack version folder")
+
+	noopDeployer := &noopDeployer{}
+
+	t.Run("can remove old version folder", func(t *testing.T) {
+		stack.Type = portaineree.DockerComposeStack
+		store.Stack().Update(stack.ID, &stack)
+
+		err = RedeployWhenChanged(1, noopDeployer, store, newMockGitService("newHash"), nil, nil)
+		assert.NoError(t, err)
+		assert.NoDirExists(t, oldVersionFolder, "old version folder should be removed")
+		newVersionFolder := filesystem.JoinPaths(stack.ProjectPath, "newHash")
+		assert.DirExists(t, newVersionFolder, "new version folder should be created")
+		stack.GitConfig.ConfigHash = "newHash"
+	})
+
+	t.Run("can remove old version folder after another deployment", func(t *testing.T) {
+		stack.Type = portaineree.DockerSwarmStack
+		store.Stack().Update(stack.ID, &stack)
+
+		err = RedeployWhenChanged(1, noopDeployer, store, newMockGitService("secondHash"), nil, nil)
+		assert.NoError(t, err)
+		oldVersionFolder := filesystem.JoinPaths(stack.ProjectPath, "newHash")
+		assert.NoDirExists(t, oldVersionFolder, "old version folder should be removed")
+		newVersionFolder := filesystem.JoinPaths(stack.ProjectPath, "secondHash")
+		assert.DirExists(t, newVersionFolder, "new version folder should be created")
 	})
 }

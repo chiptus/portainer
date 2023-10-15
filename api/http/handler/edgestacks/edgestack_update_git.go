@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/edge/staggers"
 	"github.com/portainer/portainer-ee/api/internal/set"
+	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -95,7 +96,6 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 	}
 
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-
 		relationConfig, err := edge.FetchEndpointRelationsConfig(tx)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve environments relations config from database", err)
@@ -149,7 +149,10 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 
 		username, password := extractGitCredentials(auth)
 
+		folderToBeRemoved := []string{}
 		if payload.UpdateVersion {
+			folderToBeRemoved = stackutils.GetStackVersionFoldersToRemove(oldCommitHash != gitConfig.ConfigHash, edgeStack.ProjectPath, gitConfig, edgeStack.PreviousDeploymentInfo, false)
+
 			projectPath := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, gitConfig.ConfigHash)
 			err = handler.GitService.CloneRepository(projectPath, gitConfig.URL, payload.RefName, username, password, gitConfig.TLSSkipVerify)
 			if err != nil {
@@ -234,6 +237,11 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 					}
 				}
 			}
+
+			// remove the old version folder after the new stack is deployed
+			stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
+				log.Info().Err(err).Msg("failed to remove the old edge stack version folder")
+			})
 		}
 
 		return nil
@@ -291,7 +299,7 @@ func (handler *Handler) updateGitSettings(originalGitConfig *gittypes.RepoConfig
 
 	if updateHash {
 		// When the updateHash is true, it means that the stack is being redeployed
-		// In case case, we need to update the latest commit id used for determining
+		// In this case, we need to update the latest commit id used for determining
 		// if the stack file version should be updated later
 		originalGitConfig.ConfigHash = newHash
 	}

@@ -2,11 +2,13 @@ package stackutils
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
+	gittypes "github.com/portainer/portainer/api/git/types"
 )
 
 func UserIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portainer.EndpointID) (bool, error) {
@@ -66,4 +68,26 @@ func GetStackProjectPathByVersion(stack *portaineree.Stack) string {
 		return filesystem.JoinPaths(stack.ProjectPath, fmt.Sprintf("v%d", stack.StackFileVersion))
 	}
 	return stack.ProjectPath
+}
+
+func GetStackVersionFoldersToRemove(hashChanged bool, projectPath string, gitConfig *gittypes.RepoConfig, prevInfo *portainer.StackDeploymentInfo, keepLatestCommit bool) []string {
+	foldersToBeRemoved := []string{}
+	if gitConfig != nil && hashChanged {
+		if keepLatestCommit {
+			foldersToBeRemoved = append(foldersToBeRemoved, filesystem.JoinPaths(projectPath, gitConfig.ConfigHash))
+		}
+		if prevInfo != nil {
+			foldersToBeRemoved = append(foldersToBeRemoved, filesystem.JoinPaths(projectPath, prevInfo.ConfigHash))
+		}
+	}
+	return foldersToBeRemoved
+}
+
+func RemoveStackVersionFolders(foldersToBeRemoved []string, logInfo func()) {
+	for _, folder := range foldersToBeRemoved {
+		err := os.RemoveAll(folder)
+		if err != nil {
+			logInfo()
+		}
+	}
 }
