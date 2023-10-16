@@ -6,6 +6,7 @@ import KubernetesConfigurationHelper from 'Kubernetes/helpers/configurationHelpe
 import { KubernetesApplicationTypes } from 'Kubernetes/models/application/models';
 import { KubernetesPortainerApplicationStackNameLabel } from 'Kubernetes/models/application/models';
 import { confirmDelete } from '@@/modals/confirm';
+import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
 
 class KubernetesApplicationsController {
   /* @ngInject */
@@ -198,6 +199,8 @@ class KubernetesApplicationsController {
       namespaceName: '',
       isSystemResources: undefined,
     };
+
+    this.deploymentOptions = await getDeploymentOptions();
 
     this.user = this.Authentication.getUserDetails();
     this.state.namespaces = await this.KubernetesNamespaceService.get();

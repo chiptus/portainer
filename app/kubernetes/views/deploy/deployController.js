@@ -87,6 +87,7 @@ class KubernetesDeployController {
     this.onChangeMethod = this.onChangeMethod.bind(this);
     this.onChangeDeployType = this.onChangeDeployType.bind(this);
     this.onChangeTemplateVariables = this.onChangeTemplateVariables.bind(this);
+    this.setStackName = this.setStackName.bind(this);
 
     const manifestData = this.$state.params.yaml || '';
     if (manifestData) {
@@ -103,6 +104,10 @@ class KubernetesDeployController {
     this.onChangeFormValues({ Variables: value });
 
     this.renderTemplate();
+  }
+
+  setStackName(name) {
+    this.formValues.StackName = name;
   }
 
   renderTemplate() {
@@ -189,7 +194,7 @@ class KubernetesDeployController {
 
     const isNamespaceInvalid = _.isEmpty(this.formValues.Namespace);
 
-    return !this.formValues.StackName || isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
+    return isWebEditorInvalid || isURLFormInvalid || this.state.actionInProgress || isNamespaceInvalid;
   }
 
   onChangeFormValues(newValues) {

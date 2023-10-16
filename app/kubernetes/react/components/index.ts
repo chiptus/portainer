@@ -27,6 +27,7 @@ import { ApplicationContainersDatatable } from '@/react/kubernetes/applications/
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { ApplicationsStacksDatatable } from '@/react/kubernetes/applications/ListView/ApplicationsStacksDatatable';
+import { StackName } from '@/react/kubernetes/DeployView/StackName/StackName';
 
 export const ngModule = angular
   .module('portainer.kubernetes.react.components', [])
@@ -103,6 +104,14 @@ export const ngModule = angular
       'onChange',
       'isEdit',
       'persistedFoldersUseExistingVolumes',
+    ])
+  )
+  .component(
+    'kubeStackName',
+    r2a(withUIRouter(withReactQuery(withCurrentUser(StackName))), [
+      'setStackName',
+      'isAdmin',
+      'stackName',
     ])
   )
   .component(

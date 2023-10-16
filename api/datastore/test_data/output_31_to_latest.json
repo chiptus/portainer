@@ -890,6 +890,7 @@
     "GlobalDeploymentOptions": {
       "hideAddWithForm": false,
       "hideFileUpload": false,
+      "hideStacksFunctionality": false,
       "hideWebEditor": false,
       "minApplicationNoteLength": 0,
       "perEnvOverride": false,

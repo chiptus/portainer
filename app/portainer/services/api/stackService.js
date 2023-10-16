@@ -263,12 +263,13 @@ angular.module('portainer.app').factory('StackService', [
       ).$promise;
     };
 
-    service.updateKubeStack = function (stack, { stackFile, gitConfig, webhookId }) {
+    service.updateKubeStack = function (stack, { stackFile, gitConfig, webhookId, stackName }) {
       let payload = {};
 
       if (stackFile) {
         payload = {
           StackFileContent: stackFile,
+          StackName: stackName,
         };
       } else {
         payload = {

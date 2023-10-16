@@ -179,6 +179,7 @@ class KubernetesCreateApplicationController {
     this.isServicesAnnotationsValid = this.isServicesAnnotationsValid.bind(this);
     this.handleUpdateNotes = this.handleUpdateNotes.bind(this);
     this.isNoteValid = this.isNoteValid.bind(this);
+    this.isUpdateApplicationViaWebEditorDisabled = this.isUpdateApplicationViaWebEditorDisabled.bind(this);
   }
   /* #endregion */
 
@@ -222,7 +223,10 @@ class KubernetesCreateApplicationController {
         }
 
         this.state.updateWebEditorInProgress = true;
-        await this.StackService.updateKubeStack({ EndpointId: this.endpoint.Id, Id: this.application.StackId }, { stackFile: this.stackFileContent });
+        await this.StackService.updateKubeStack(
+          { EndpointId: this.endpoint.Id, Id: this.application.StackId },
+          { stackFile: this.stackFileContent, stackName: this.formValues.StackName }
+        );
         this.state.isEditorDirty = false;
         await this.$state.reload(this.$state.current);
       } catch (err) {
@@ -1099,7 +1103,7 @@ class KubernetesCreateApplicationController {
       this.formValues.ApplicationOwner = this.Authentication.getUserDetails().username;
       // combine the secrets and configmap form values when submitting the form
       _.remove(this.formValues.Configurations, (item) => item.SelectedConfiguration === undefined);
-      await this.KubernetesApplicationService.create(this.formValues, this.originalServicePorts);
+      await this.KubernetesApplicationService.create(this.formValues, this.originalServicePorts, this.deploymentOptions.hideStacksFunctionality);
       this.Notifications.success('Request to deploy application successfully submitted', this.formValues.Name);
       this.$state.go('kubernetes.applications');
     } catch (err) {
@@ -1281,6 +1285,16 @@ class KubernetesCreateApplicationController {
     return true;
   }
 
+  isUpdateApplicationViaWebEditorDisabled() {
+    return (
+      this.savedFormValues.StackName === this.formValues.StackName &&
+      !this.state.isEditorDirty &&
+      this.state.updateWebEditorInProgress &&
+      this.isAnnotationsValid() &&
+      this.isNoteValid()
+    );
+  }
+
   /* #region  ON INIT */
   $onInit() {
     return this.$async(async () => {
@@ -1360,6 +1374,7 @@ class KubernetesCreateApplicationController {
             this.nodesLabels,
             this.ingresses
           );
+          this.formValues.Services = this.formValues.Services || [];
           this.originalServicePorts = structuredClone(this.formValues.Services.flatMap((service) => service.Ports));
           this.originalIngressPaths = structuredClone(this.originalServicePorts.flatMap((port) => port.ingressPaths).filter((ingressPath) => ingressPath.Host));
 

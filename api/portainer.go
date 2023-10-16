@@ -867,6 +867,8 @@ type (
 		// Make note field mandatory if enabled
 		RequireNoteOnApplications bool `json:"requireNoteOnApplications" example:"false"`
 		MinApplicationNoteLength  int  `json:"minApplicationNoteLength" example:"10"`
+
+		HideStacksFunctionality bool `json:"hideStacksFunctionality" example:"false"`
 	}
 
 	Edge struct {

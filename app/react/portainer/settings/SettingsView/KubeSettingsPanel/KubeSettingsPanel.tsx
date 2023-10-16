@@ -36,6 +36,7 @@ export function KubeSettingsPanel() {
       hideFileUpload: false,
       hideWebEditor: false,
       perEnvOverride: false,
+      hideStacksFunctionality: false,
     },
   };
 

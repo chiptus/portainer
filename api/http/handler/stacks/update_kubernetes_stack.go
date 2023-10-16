@@ -27,6 +27,7 @@ type kubernetesFileStackUpdatePayload struct {
 	StackFileContent string
 	// RollbackTo specifies the stack file version to rollback to (only support to rollback to the last version currently)
 	RollbackTo *int
+	StackName  string
 }
 
 type kubernetesGitStackUpdatePayload struct {
@@ -115,6 +116,14 @@ func (handler *Handler) updateKubernetesStack(r *http.Request, stack *portainere
 
 	if err := filesystem.WriteToFile(filesystem.JoinPaths(tempFileDir, stack.EntryPoint), []byte(payload.StackFileContent)); err != nil {
 		return httperror.InternalServerError("Failed to persist deployment file in a temp directory", err)
+	}
+
+	if payload.StackName != stack.Name {
+		stack.Name = payload.StackName
+		err := handler.DataStore.Stack().Update(stack.ID, stack)
+		if err != nil {
+			return httperror.InternalServerError("Failed to update stack name", err)
+		}
 	}
 
 	// Refresh ECR registry secret if needed

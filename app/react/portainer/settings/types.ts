@@ -159,6 +159,8 @@ export interface GlobalDeploymentOptions {
   /** Make note on application add/edit screen required */
   requireNoteOnApplications: boolean;
   minApplicationNoteLength: number;
+
+  hideStacksFunctionality: boolean;
 }
 
 export interface PublicSettingsResponse {
