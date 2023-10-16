@@ -7,11 +7,11 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/cli"
-	"github.com/portainer/portainer-ee/api/database/models"
 	dserrors "github.com/portainer/portainer-ee/api/dataservices/errors"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/database/models"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"

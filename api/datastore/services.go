@@ -12,18 +12,15 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/apikeyrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
-	"github.com/portainer/portainer-ee/api/dataservices/customtemplate"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeasynccommand"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeconfig"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeconfigstate"
 	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
-	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestacklog"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
-	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer-ee/api/dataservices/enforcement"
 	"github.com/portainer/portainer-ee/api/dataservices/extension"
@@ -31,10 +28,8 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/gitcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/helmuserrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/license"
-	"github.com/portainer/portainer-ee/api/dataservices/pendingactions"
 	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 	"github.com/portainer/portainer-ee/api/dataservices/registry"
-	"github.com/portainer/portainer-ee/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer-ee/api/dataservices/role"
 	"github.com/portainer/portainer-ee/api/dataservices/s3backup"
 	"github.com/portainer/portainer-ee/api/dataservices/schedule"
@@ -42,15 +37,20 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/snapshot"
 	"github.com/portainer/portainer-ee/api/dataservices/ssl"
 	"github.com/portainer/portainer-ee/api/dataservices/stack"
-	"github.com/portainer/portainer-ee/api/dataservices/tag"
-	"github.com/portainer/portainer-ee/api/dataservices/team"
 	"github.com/portainer/portainer-ee/api/dataservices/teammembership"
 	"github.com/portainer/portainer-ee/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer-ee/api/dataservices/user"
-	"github.com/portainer/portainer-ee/api/dataservices/version"
-	"github.com/portainer/portainer-ee/api/dataservices/webhook"
-
 	portainer "github.com/portainer/portainer/api"
+	cemodels "github.com/portainer/portainer/api/database/models"
+	"github.com/portainer/portainer/api/dataservices/customtemplate"
+	"github.com/portainer/portainer/api/dataservices/edgejob"
+	"github.com/portainer/portainer/api/dataservices/endpointgroup"
+	"github.com/portainer/portainer/api/dataservices/pendingactions"
+	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
+	"github.com/portainer/portainer/api/dataservices/tag"
+	"github.com/portainer/portainer/api/dataservices/team"
+	"github.com/portainer/portainer/api/dataservices/version"
+	"github.com/portainer/portainer/api/dataservices/webhook"
 
 	"github.com/rs/zerolog/log"
 )
@@ -552,7 +552,7 @@ type storeExport struct {
 	Team               []portainer.Team                 `json:"teams,omitempty"`
 	TunnelServer       portainer.TunnelServerInfo       `json:"tunnel_server,omitempty"`
 	User               []portaineree.User               `json:"users,omitempty"`
-	Version            models.Version                   `json:"version,omitempty"`
+	Version            cemodels.Version                 `json:"version,omitempty"`
 	Webhook            []portainer.Webhook              `json:"webhooks,omitempty"`
 	Metadata           map[string]interface{}           `json:"metadata,omitempty"`
 	CloudCredential    []models.CloudCredential         `json:"cloudcredential,omitempty"`

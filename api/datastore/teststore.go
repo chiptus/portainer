@@ -5,8 +5,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database"
-	"github.com/portainer/portainer-ee/api/database/models"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/rs/zerolog/log"

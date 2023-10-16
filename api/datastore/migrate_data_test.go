@@ -14,8 +14,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
-	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
+	"github.com/portainer/portainer/api/database/models"
 	"github.com/rs/zerolog/log"
 )
 

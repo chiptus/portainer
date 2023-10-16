@@ -1,37 +1,38 @@
 package migrator
 
 import (
-	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
-	"github.com/portainer/portainer-ee/api/dataservices/edgejob"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
 	"github.com/portainer/portainer-ee/api/dataservices/endpoint"
-	"github.com/portainer/portainer-ee/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer-ee/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer-ee/api/dataservices/extension"
 	"github.com/portainer/portainer-ee/api/dataservices/fdoprofile"
 	"github.com/portainer/portainer-ee/api/dataservices/podsecurity"
 	"github.com/portainer/portainer-ee/api/dataservices/registry"
-	"github.com/portainer/portainer-ee/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer-ee/api/dataservices/role"
 	"github.com/portainer/portainer-ee/api/dataservices/schedule"
 	"github.com/portainer/portainer-ee/api/dataservices/settings"
 	"github.com/portainer/portainer-ee/api/dataservices/snapshot"
 	"github.com/portainer/portainer-ee/api/dataservices/stack"
-	"github.com/portainer/portainer-ee/api/dataservices/tag"
 	"github.com/portainer/portainer-ee/api/dataservices/teammembership"
 	"github.com/portainer/portainer-ee/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer-ee/api/dataservices/user"
-	"github.com/portainer/portainer-ee/api/dataservices/version"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/database/models"
+	"github.com/portainer/portainer/api/dataservices/edgejob"
+	"github.com/portainer/portainer/api/dataservices/endpointgroup"
+	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
+	"github.com/portainer/portainer/api/dataservices/tag"
+	"github.com/portainer/portainer/api/dataservices/version"
+
+	"github.com/Masterminds/semver"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -42,7 +43,6 @@ type (
 		currentDBVersion *models.Version
 		migrations       []Migrations
 
-		cloudProvisionService   *cloudprovisioning.Service
 		endpointGroupService    *endpointgroup.Service
 		endpointService         *endpoint.Service
 		endpointRelationService *endpointrelation.Service

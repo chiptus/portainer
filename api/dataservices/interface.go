@@ -10,6 +10,7 @@ import (
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
 	portainer "github.com/portainer/portainer/api"
+	cemodels "github.com/portainer/portainer/api/database/models"
 )
 
 type (
@@ -328,8 +329,8 @@ type (
 		InstanceID() (string, error)
 		UpdateInstanceID(ID string) error
 		Edition() (portainer.SoftwareEdition, error)
-		Version() (*models.Version, error)
-		UpdateVersion(*models.Version) error
+		Version() (*cemodels.Version, error)
+		UpdateVersion(*cemodels.Version) error
 	}
 
 	// WebhookService represents a service for managing webhook data.

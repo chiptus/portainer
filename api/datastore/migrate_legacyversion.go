@@ -2,8 +2,8 @@ package datastore
 
 import (
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer/api/database/models"
 )
 
 const (
