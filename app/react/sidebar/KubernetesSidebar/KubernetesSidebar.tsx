@@ -121,6 +121,12 @@ export function KubernetesSidebar({ environmentId }: Props) {
         <SidebarParent
           label="More Resources"
           to="kubernetes.moreResources.serviceAccounts"
+          pathOptions={{
+            includePaths: [
+              'kubernetes.moreResources.clusterRoles',
+              'kubernetes.moreResources.roles',
+            ],
+          }}
           icon={LayoutList}
           params={{ endpointId: environmentId }}
           data-cy="k8sSidebar-moreResources"

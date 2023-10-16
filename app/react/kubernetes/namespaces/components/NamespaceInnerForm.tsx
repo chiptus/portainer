@@ -121,6 +121,7 @@ export function NamespaceInnerForm({
           onChange={(storageQuota: StorageQuotaFormValues[]) =>
             setFieldValue('storageQuota', storageQuota)
           }
+          errors={errors.storageQuota}
         />
       )}
       <NamespaceSummary

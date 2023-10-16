@@ -1,7 +1,7 @@
 export type StorageQuotaFormValues = {
   className: string;
   enabled: boolean;
-  size?: number;
+  size?: string;
   sizeUnit: 'M' | 'G' | 'T';
 };
 

@@ -64,15 +64,21 @@ func (kcl *KubeClient) GetNamespace(name string) (portaineree.K8sNamespaceInfo, 
 
 // CreateNamespace creates a new ingress in a given namespace in a k8s endpoint.
 func (kcl *KubeClient) CreateNamespace(info models.K8sNamespaceDetails) error {
+	portainerLabels := map[string]string{
+		"io.portainer.kubernetes.resourcepool.name":  info.Name,
+		"io.portainer.kubernetes.resourcepool.owner": info.Owner,
+	}
 
 	var ns v1.Namespace
 	ns.Name = info.Name
 	ns.Annotations = info.Annotations
+	ns.Labels = portainerLabels
 
 	resourceQuota := &v1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "portainer-rq-" + info.Name,
 			Namespace: info.Name,
+			Labels:    portainerLabels,
 		},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: v1.ResourceList{},

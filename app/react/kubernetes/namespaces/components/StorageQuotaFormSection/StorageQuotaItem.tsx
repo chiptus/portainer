@@ -76,7 +76,7 @@ export function StorageQuotaItem({
               onChange={(event) =>
                 onChange({
                   ...storageQuota,
-                  size: event.target.valueAsNumber,
+                  size: event.target.value,
                 })
               }
               value={storageQuota.size ?? ''}

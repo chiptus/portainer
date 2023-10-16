@@ -12,7 +12,11 @@ interface Props {
   values: StorageQuotaFormValues[];
   onChange: (value: StorageQuotaFormValues[]) => void;
   storageClasses: StorageClass[];
-  errors?: string | FormikErrors<StorageQuotaFormValues[]>;
+  errors?:
+    | string
+    | string[]
+    | FormikErrors<StorageQuotaFormValues>[]
+    | undefined;
 }
 
 export function StorageQuotaFormSection({

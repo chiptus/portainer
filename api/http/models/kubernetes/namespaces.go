@@ -13,6 +13,7 @@ type K8sNamespaceDetails struct {
 	ResourceQuota     *K8sResourceQuota          `json:"ResourceQuota"`
 	LoadBalancerQuota *K8sLoadBalancerQuota      `json:"LoadBalancerQuota"`
 	StorageQuotas     map[string]K8sStorageQuota `json:"StorageQuotas"`
+	Owner             string                     `json:"Owner"`
 }
 
 type K8sResourceQuota struct {
