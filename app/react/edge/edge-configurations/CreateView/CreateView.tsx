@@ -4,7 +4,6 @@ import { useRouter } from '@uirouter/react';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
 import { useCategory } from '@/react/edge/edge-configurations/CreateView/useCategory';
-import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
 import {
   HttpsWarning,
   isHttps,
@@ -30,7 +29,7 @@ const initialValues: FormValues = {
   name: '',
   groupIds: [],
   type: FormValuesEdgeConfigurationType.General,
-  category: EdgeConfigurationCategoryString.Configuration,
+  category: EdgeConfigurationCategory.Configuration,
   directory: '',
   file: { name: '' },
 };
@@ -44,8 +43,7 @@ function CreateView() {
   initialValues.category = category;
 
   const showHttpsWarning =
-    !isHttps() &&
-    category === EdgeConfigurationCategory.EdgeConfigCategorySecret;
+    !isHttps() && category === EdgeConfigurationCategory.Secret;
 
   return (
     <>

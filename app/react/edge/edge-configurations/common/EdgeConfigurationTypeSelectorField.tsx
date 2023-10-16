@@ -1,6 +1,8 @@
 import { FileCode2, Lock } from 'lucide-react';
 import { useField } from 'formik';
 
+import { EdgeConfigurationCategory } from '@/react/edge/edge-configurations/types';
+
 import { BoxSelector } from '@@/BoxSelector';
 import { BoxSelectorOption } from '@@/BoxSelector/types';
 import { TextTip } from '@@/Tip/TextTip';
@@ -11,7 +13,7 @@ import { DeviceSpecificConfigurationFields } from './DeviceSpecificConfiguration
 export function EdgeConfigurationTypeSelectorField({
   category,
 }: {
-  category: string;
+  category: EdgeConfigurationCategory;
 }) {
   const deploymentOptions: BoxSelectorOption<FormValuesEdgeConfigurationType>[] =
     [

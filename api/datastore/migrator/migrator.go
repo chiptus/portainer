@@ -5,6 +5,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
+	"github.com/portainer/portainer-ee/api/dataservices/edgeconfig"
 	"github.com/portainer/portainer-ee/api/dataservices/edgegroup"
 	"github.com/portainer/portainer-ee/api/dataservices/edgestack"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeupdateschedule"
@@ -69,6 +70,7 @@ type (
 		edgeUpdateService       *edgeupdateschedule.Service
 		edgeGroupService        *edgegroup.Service
 		TunnelServerService     *tunnelserver.Service
+		EdgeConfigService       *edgeconfig.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
@@ -102,6 +104,7 @@ type (
 		EdgeUpdateService        *edgeupdateschedule.Service
 		EdgeGroupService         *edgegroup.Service
 		TunnelServerService      *tunnelserver.Service
+		EdgeConfigService        *edgeconfig.Service
 	}
 
 	Migrations struct {
@@ -143,6 +146,7 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		edgeUpdateService:       parameters.EdgeUpdateService,
 		edgeGroupService:        parameters.EdgeGroupService,
 		TunnelServerService:     parameters.TunnelServerService,
+		EdgeConfigService:       parameters.EdgeConfigService,
 	}
 
 	migrator.initMigrations()
@@ -274,6 +278,9 @@ func (m *Migrator) initMigrations() {
 		m.updateEdgeStackStatusForDB100,
 		m.fixPotentialUpdateScheduleDBCorruptionForDB100,
 		m.migrateCloudProviderAddonsForDB100,
+	)
+	m.addMigrations("2.20",
+		m.setDefaultCategoryForEdgeConfigForDB110,
 	)
 
 	// Add new migrations above...

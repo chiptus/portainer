@@ -3,6 +3,7 @@ import { Plus, Puzzle, Trash2 } from 'lucide-react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
+import { capitalize } from '@/react/common/string-utils';
 // import { withSortQuery } from '@/react/common/api/sort.types';
 
 import { confirmDelete } from '@@/modals/confirm';
@@ -14,7 +15,7 @@ import { useTableState } from '@@/datatables/useTableState';
 import { Tab, WidgetTabs, useCurrentTabIndex } from '@@/Widget/WidgetTabs';
 
 import { useList } from '../queries/list/list';
-import { EdgeConfiguration } from '../types';
+import { EdgeConfiguration, EdgeConfigurationCategory } from '../types';
 import { useRemoveMutation } from '../queries/useRemoveMutation';
 
 import { columns } from './columns';
@@ -40,7 +41,10 @@ const tabs: Tab[] = [
   },
 ];
 
-const categories = ['configuration', 'secret'];
+const categories = [
+  EdgeConfigurationCategory.Configuration,
+  EdgeConfigurationCategory.Secret,
+];
 
 export function ListView() {
   // const [page, setPage] = useState(initialPage);
@@ -101,7 +105,7 @@ function TableActions({
   category,
 }: {
   selectedRows: EdgeConfiguration[];
-  category: string;
+  category: EdgeConfigurationCategory;
 }) {
   const removeMutation = useRemoveMutation();
   return (
@@ -131,10 +135,10 @@ function TableActions({
 
     removeMutation.mutate(selectedRows, {
       onSuccess: () => {
-        const upCategory =
-          category.slice(0, 1).toUpperCase() + category.slice(1);
-
-        notifySuccess('Success', `${upCategory}s successfully removed`);
+        notifySuccess(
+          'Success',
+          `${capitalize(category)}s successfully removed`
+        );
       },
     });
   }

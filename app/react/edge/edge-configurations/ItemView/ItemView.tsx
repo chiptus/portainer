@@ -3,7 +3,6 @@ import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
 import { withLimitToBE } from '@/react/hooks/useLimitToBE';
-import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
 import {
   HttpsWarning,
   isHttps,
@@ -65,14 +64,13 @@ function ItemView() {
   const { name, edgeGroupIDs, type, category, baseDir } = edgeConfigQuery.data;
 
   const showHttpsWarning =
-    !isHttps() &&
-    category === EdgeConfigurationCategory.EdgeConfigCategorySecret;
+    !isHttps() && category === EdgeConfigurationCategory.Secret;
 
   const initialValues: FormValues = {
     name,
     groupIds: edgeGroupIDs,
     ...buildFormValuesType(type),
-    category: EdgeConfigurationCategoryString.Configuration,
+    category: EdgeConfigurationCategory.Configuration,
     directory: baseDir,
     file: { name: '' },
   };

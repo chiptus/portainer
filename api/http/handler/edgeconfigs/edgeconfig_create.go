@@ -48,6 +48,10 @@ func (p *edgeConfigCreatePayload) Validate(r *http.Request) error {
 		return errors.New("invalid type")
 	}
 
+	if p.Category == "" {
+		p.Category = portaineree.EdgeConfigCategoryConfig
+	}
+
 	if p.Category != portaineree.EdgeConfigCategoryConfig && p.Category != portaineree.EdgeConfigCategorySecret {
 		return errors.New("invalid category")
 	}

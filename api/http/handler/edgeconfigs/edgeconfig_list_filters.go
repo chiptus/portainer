@@ -104,6 +104,10 @@ func extractListModifiersQueryParams(r *http.Request) QueryParams {
 	limit, _ := request.RetrieveNumericQueryParameter(r, "limit", true)
 	configCategory, _ := request.RetrieveQueryParameter(r, "category", true)
 
+	if configCategory == "" {
+		configCategory = string(portaineree.EdgeConfigCategoryConfig)
+	}
+
 	return QueryParams{
 		ConfigCategoryQueryParams{
 			configCategory: portaineree.EdgeConfigCategory(configCategory),

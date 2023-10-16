@@ -100,6 +100,7 @@ func (h *Handler) edgeConfigUpdate(w http.ResponseWriter, r *http.Request) *http
 
 		edgeConfig.Prev = &portaineree.EdgeConfig{
 			Type:         edgeConfig.Type,
+			Category:     edgeConfig.Category,
 			EdgeGroupIDs: edgeConfig.EdgeGroupIDs,
 		}
 

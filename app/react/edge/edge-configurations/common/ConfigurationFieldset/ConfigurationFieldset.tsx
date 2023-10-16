@@ -2,6 +2,7 @@ import { useField } from 'formik';
 import { Trash2 } from 'lucide-react';
 
 import { capitalize } from '@/react/common/string-utils';
+import { EdgeConfigurationCategory } from '@/react/edge/edge-configurations/types';
 
 import { FormSection } from '@@/form-components/FormSection';
 import { Button } from '@@/buttons';
@@ -13,7 +14,11 @@ import { InputField } from '../InputField';
 
 // import { LoadFromFileButton } from './LoadFromFileButton';
 
-export function ConfigurationFieldset({ category }: { category: string }) {
+export function ConfigurationFieldset({
+  category,
+}: {
+  category: EdgeConfigurationCategory;
+}) {
   const [{ value: file }, { error: fileError }, { setValue: setFile }] =
     useField<FormValues['file']>('file');
 

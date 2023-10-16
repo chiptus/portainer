@@ -9,8 +9,8 @@ export enum EdgeConfigurationType {
 }
 
 export enum EdgeConfigurationCategory {
-  EdgeConfigCategoryConfiguration = 'configuration',
-  EdgeConfigCategorySecret = 'secret',
+  Configuration = 'configuration',
+  Secret = 'secret',
 }
 
 type EdgeConfigurationProgress = {

@@ -1,4 +1,5 @@
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
+import { EdgeConfigurationCategory } from '@/react/edge/edge-configurations/types';
 
 export enum EdgeConfigurationTypeString {
   General = 'general',
@@ -6,17 +7,12 @@ export enum EdgeConfigurationTypeString {
   DeviceSpecificFolder = 'foldername',
 }
 
-export enum EdgeConfigurationCategoryString {
-  Configuration = 'configuration',
-  Secret = 'secret',
-}
-
 type EdgeConfigurationPayloadField = {
   name: string;
   baseDir?: string;
   edgeGroupIDs: EdgeGroup['Id'][];
   type: EdgeConfigurationTypeString;
-  category: EdgeConfigurationCategoryString;
+  category: EdgeConfigurationCategory;
 };
 
 type WebEditor = {

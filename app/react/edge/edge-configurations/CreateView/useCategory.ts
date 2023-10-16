@@ -1,10 +1,10 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { EdgeConfigurationCategoryString } from '@/react/edge/edge-configurations/queries/create/types';
+import { EdgeConfigurationCategory } from '@/react/edge/edge-configurations/types';
 
 export function useCategory() {
   const {
-    params: { category = EdgeConfigurationCategoryString.Configuration },
+    params: { category = EdgeConfigurationCategory.Configuration },
   } = useCurrentStateAndParams();
 
   return [category];

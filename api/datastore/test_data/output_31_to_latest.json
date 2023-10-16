@@ -2201,7 +2201,7 @@
     }
   ],
   "version": {
-    "VERSION": "{\"SchemaVersion\":\"2.20.0\",\"MigratorCount\":0,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
+    "VERSION": "{\"SchemaVersion\":\"2.20.0\",\"MigratorCount\":1,\"Edition\":3,\"InstanceID\":\"9abe1e4e-9e83-48a4-b3f5-91495f1e9c90\"}"
   },
   "webhooks": null
 }
