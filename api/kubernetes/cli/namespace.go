@@ -95,7 +95,16 @@ func (kcl *KubeClient) CreateNamespace(info models.K8sNamespaceDetails) error {
 		return err
 	}
 
-	if (info.ResourceQuota != nil && info.ResourceQuota.Enabled) || (info.LoadBalancerQuota != nil && info.LoadBalancerQuota.Enabled) {
+	isSomeStorageClassEnabled := func() bool {
+		for _, storageClass := range info.StorageQuotas {
+			if storageClass.Enabled {
+				return true
+			}
+		}
+		return false
+	}()
+
+	if (info.ResourceQuota != nil && info.ResourceQuota.Enabled) || (info.LoadBalancerQuota != nil && info.LoadBalancerQuota.Enabled) || isSomeStorageClassEnabled {
 		log.Info().Msgf("Creating resource quota for namespace %s", info.Name)
 		log.Debug().Msgf("Creating resource quota with details: %+v", info.ResourceQuota)
 

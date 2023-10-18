@@ -46,18 +46,11 @@
                 <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.isEditable" class="col-sm-12 form-section-title">Resource quota</div>
                 <!-- quotas-switch -->
                 <div authorization="K8sResourcePoolDetailsW" ng-if="ctrl.isEditable" class="form-group">
-                  <div class="col-sm-12 small text-muted" ng-if="ctrl.state.resourceOverCommitEnabled">
+                  <div class="col-sm-12 small text-muted">
                     <span class="vertical-center">
                       <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-                      A namespace is a logical abstraction of a Kubernetes cluster, to provide for more flexible management of resources. Best practice is to set a quota assignment
-                      as this ensures greatest security/stability; alternatively, you can disable assigning a quota for unrestricted access (not recommended).
-                    </span>
-                  </div>
-                  <div class="col-sm-12 small text-muted" ng-if="!ctrl.state.resourceOverCommitEnabled">
-                    <span class="vertical-center">
-                      <pr-icon icon="'info'" mode="'primary'"></pr-icon>
-                      A namespace is a logical abstraction of a Kubernetes cluster, to provide for more flexible management of resources. Resource over-commit is disabled, please
-                      assign a capped limit of resources to this namespace.
+                      A resource quota sets boundaries on the compute resources a namespace can use. It&apos;s good practice to set a quota for a namespace to manage resources
+                      effectively. Alternatively, you can disable assigning a quota for unrestricted access (not recommended).
                     </span>
                   </div>
                   <div class="col-sm-12 pt-3">
@@ -283,12 +276,6 @@
                     <div class="form-group">
                       <label class="col-sm-3 col-lg-2 control-label !pt-0 text-left" for="registries-selector"> Select registries </label>
                       <div class="col-sm-8 col-lg-9">
-                        <span class="small text-muted" ng-if="!ctrl.registries.length && ctrl.isAdmin">
-                          No registries available. Head over to the <a ui-sref="portainer.registries">registry view</a> to define a container registry.
-                        </span>
-                        <span class="small text-muted" ng-if="!ctrl.registries.length && !ctrl.isAdmin">
-                          No registries available. Contact your administrator to create a container registry.
-                        </span>
                         <create-namespace-registries-selector
                           input-id="'registries-selector'"
                           value="ctrl.formValues.Registries"
