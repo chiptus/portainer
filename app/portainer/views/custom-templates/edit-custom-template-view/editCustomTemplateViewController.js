@@ -212,7 +212,7 @@ class EditCustomTemplateViewController {
     this.state.isTemplateValid = isValid;
 
     if (isValid) {
-      this.onVariablesChange(variables.length > 0 ? intersectVariables(this.formValues.Variables, variables) : variables);
+      this.onVariablesChange(intersectVariables(this.formValues.Variables, variables));
     }
   }
 
