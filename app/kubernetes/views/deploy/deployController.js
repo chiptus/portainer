@@ -72,6 +72,7 @@ class KubernetesDeployController {
       Variables: {},
       AutoUpdate: parseAutoUpdateResponse(),
       TLSSkipVerify: false,
+      Name: '', // For helm chart
     };
 
     this.ManifestDeployTypes = KubernetesDeployManifestTypes;
