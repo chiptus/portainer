@@ -46,7 +46,7 @@ export function RolesView() {
 
   return (
     <>
-      <PageHeader title="Role List" breadcrumbs="Roles" reload />
+      <PageHeader title="Role list" breadcrumbs="Roles" reload />
       <>
         <WidgetTabs tabs={tabs} currentTabIndex={currentTabIndex} />
         <div className="content">{tabs[currentTabIndex].widget}</div>

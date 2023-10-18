@@ -6,7 +6,7 @@ export function ServiceAccountsView() {
   return (
     <>
       <PageHeader
-        title="Service Account List"
+        title="Service Account list"
         breadcrumbs="Service Accounts"
         reload
       />

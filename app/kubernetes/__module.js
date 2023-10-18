@@ -590,6 +590,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
           component: 'serviceAccountsView',
         },
       },
+      data: {
+        docs: '/user/kubernetes/more-resources/service-accounts',
+      },
     };
 
     const clusterRoles = {
@@ -600,6 +603,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
           component: 'clusterRolesView',
         },
       },
+      data: {
+        docs: '/user/kubernetes/more-resources/cluster-roles',
+      },
     };
 
     const roles = {
@@ -609,6 +615,9 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
         'content@': {
           component: 'k8sRolesView',
         },
+      },
+      data: {
+        docs: '/user/kubernetes/more-resources/roles',
       },
     };
 

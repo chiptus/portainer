@@ -141,11 +141,11 @@ function TableActions({ selectedItems }: TableActionsProps) {
 
       <Link
         to="kubernetes.deploy"
+        className="ml-1"
         params={{
           referrer: 'kubernetes.moreResources.clusterRoles',
           tab: 'clusterRoles',
         }}
-        className="ml-1"
       >
         <Button className="btn-wrapper" color="primary" icon={Plus}>
           Create from manifest
