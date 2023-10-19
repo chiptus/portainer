@@ -25,7 +25,7 @@ export const ngModule = angular
       'value',
       'gitModel',
       'onChange',
-      'readonly',
+      'isEditing',
     ])
   );
 

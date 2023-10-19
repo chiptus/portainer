@@ -6,8 +6,9 @@ export function relativePathValidation(): SchemaOf<RelativePathModel> {
   return object({
     SupportRelativePath: boolean().default(false),
     FilesystemPath: string()
-      .when(['SupportRelativePath'], {
-        is: true,
+      .when(['SupportRelativePath', 'SupportPerDeviceConfigs'], {
+        is: (SupportRelativePath: boolean, SupportPerDeviceConfigs: boolean) =>
+          SupportRelativePath || SupportPerDeviceConfigs,
         then: string().required('Local filesystem path is required'),
       })
       .default(''),

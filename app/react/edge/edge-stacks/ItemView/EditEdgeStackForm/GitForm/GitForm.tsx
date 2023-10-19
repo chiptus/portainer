@@ -326,7 +326,7 @@ function InnerForm({
           errors={errors.authentication}
         />
 
-        {isBE && <RelativePathFieldset value={values.relativePath} readonly />}
+        {isBE && <RelativePathFieldset value={values.relativePath} isEditing />}
 
         {values.deploymentType === DeploymentType.Compose && (
           <EnvironmentVariablesPanel

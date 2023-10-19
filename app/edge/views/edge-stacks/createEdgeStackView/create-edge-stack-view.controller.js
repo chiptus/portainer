@@ -413,7 +413,7 @@ export default class CreateEdgeStackViewController {
         PrePullImage,
         RetryDeploy,
         AutoUpdate: autoUpdate,
-        SupportRelativePath,
+        SupportRelativePath: SupportRelativePath || SupportPerDeviceConfigs,
         FilesystemPath,
         SupportPerDeviceConfigs,
         PerDeviceConfigsMatchType,
