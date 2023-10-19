@@ -18,10 +18,19 @@ export function Example() {
 
 interface Args {
   checked: boolean;
+  disabled?: boolean;
 }
 
-function Template({ checked }: Args) {
-  return <Switch name="name" checked={checked} onChange={() => {}} id="id" />;
+function Template({ checked, disabled }: Args) {
+  return (
+    <Switch
+      name="name"
+      checked={checked}
+      onChange={() => {}}
+      id="id"
+      disabled={disabled}
+    />
+  );
 }
 
 export const Checked: Story<Args> = Template.bind({});
@@ -32,4 +41,16 @@ Checked.args = {
 export const Unchecked: Story<Args> = Template.bind({});
 Unchecked.args = {
   checked: false,
+};
+
+export const UncheckedDisabled: Story<Args> = Template.bind({});
+UncheckedDisabled.args = {
+  checked: false,
+  disabled: true,
+};
+
+export const CheckedDisabled: Story<Args> = Template.bind({});
+CheckedDisabled.args = {
+  checked: true,
+  disabled: true,
 };
