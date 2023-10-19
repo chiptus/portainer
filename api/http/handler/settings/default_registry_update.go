@@ -25,7 +25,7 @@ type defaultRegistryUpdatePayload struct {
 // @success 200 {object} portaineree.Settings "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /settings [put]
+// @router /settings/default_registry [put]
 func (handler *Handler) defaultRegistryUpdate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload defaultRegistryUpdatePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

@@ -36,7 +36,7 @@ export function EnabledWaitingRoomSwitch() {
       modalType: ModalType.Warn,
       title: 'Disable Edge Environment Waiting Room',
       message:
-        'By disabling the waiting room feature, all devices requesting association will be automatically associated and could pose a security risk. Are you sure?',
+        'By disabling the waiting room feature, all devices requesting association and devices that are already in the waiting room will be automatically associated which could pose a security risk, are you sure?',
       confirmButton: buildConfirmButton('Confirm', 'danger'),
     });
 

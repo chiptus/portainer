@@ -2,6 +2,7 @@ package settings
 
 import (
 	"fmt"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"net/http"
 	"strings"
 	"time"
@@ -324,6 +325,13 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 	}
 
 	if payload.TrustOnFirstConnect != nil {
+		if !settings.TrustOnFirstConnect && *payload.TrustOnFirstConnect {
+			err = trustAllEndpoints(tx)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		settings.TrustOnFirstConnect = *payload.TrustOnFirstConnect
 	}
 
@@ -474,6 +482,26 @@ func (handler *Handler) updateEnvironmentDeploymentType(tx dataservices.DataStor
 				if err != nil {
 					return httperror.InternalServerError("Unable to update the deployment options for the environment", err)
 				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func trustAllEndpoints(tx dataservices.DataStoreTx) error {
+	endpoints, err := tx.Endpoint().Endpoints()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve environment from the database", err)
+	}
+
+	for _, endpoint := range endpoints {
+		if endpointutils.IsEdgeEndpoint(&endpoint) {
+			endpoint.UserTrusted = true
+
+			err = tx.Endpoint().UpdateEndpoint(endpoint.ID, &endpoint)
+			if err != nil {
+				return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
 			}
 		}
 	}
