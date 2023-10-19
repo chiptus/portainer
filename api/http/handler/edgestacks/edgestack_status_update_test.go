@@ -10,6 +10,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/stretchr/testify/assert"
 )
 
 // Update Status
@@ -155,4 +156,95 @@ func TestUpdateStatusWithInvalidPayload(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInserRollbackEndpointStatus(t *testing.T) {
+	t.Run("RolledBack status should be inserted before Running status", func(t *testing.T) {
+		testStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusAcknowledged,
+				Time: 1697163144,
+			},
+			{
+				Type: portainer.EdgeStackStatusDeploying,
+				Time: 1697163147,
+			},
+			{
+				Type: portainer.EdgeStackStatusDeploymentReceived,
+				Time: 1697163148,
+			},
+			{
+				Type: portainer.EdgeStackStatusRunning,
+				Time: 1697163150,
+			},
+		}
+
+		expectedStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusAcknowledged,
+				Time: 1697163144,
+			},
+			{
+				Type: portainer.EdgeStackStatusDeploying,
+				Time: 1697163147,
+			},
+			{
+				Type: portainer.EdgeStackStatusDeploymentReceived,
+				Time: 1697163148,
+			},
+			{
+				Type: portainer.EdgeStackStatusRolledBack,
+				Time: 1697163150,
+			},
+			{
+				Type: portainer.EdgeStackStatusRunning,
+				Time: 1697163150,
+			},
+		}
+
+		actualStatus := insertRollbackEndpointStatus(testStatus)
+		assert.Equal(t, expectedStatus, actualStatus, "status queue should be updated")
+	})
+
+	t.Run("RolledBack status should be inserted if there is only Running status", func(t *testing.T) {
+		testStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusRunning,
+				Time: 1697163144,
+			},
+		}
+
+		expectedStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusRolledBack,
+				Time: 1697163144,
+			},
+			{
+				Type: portainer.EdgeStackStatusRunning,
+				Time: 1697163144,
+			},
+		}
+
+		actualStatus := insertRollbackEndpointStatus(testStatus)
+		assert.Equal(t, expectedStatus, actualStatus, "status queue should be updated")
+	})
+
+	t.Run("No RolledBack status should be inserted if there is no Running status", func(t *testing.T) {
+		testStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusPending,
+				Time: 1697163144,
+			},
+		}
+
+		expectedStatus := []portainer.EdgeStackDeploymentStatus{
+			{
+				Type: portainer.EdgeStackStatusPending,
+				Time: 1697163144,
+			},
+		}
+
+		actualStatus := insertRollbackEndpointStatus(testStatus)
+		assert.Equal(t, expectedStatus, actualStatus, "status queue should not be updated")
+	})
 }

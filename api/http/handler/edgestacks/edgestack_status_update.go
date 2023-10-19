@@ -202,8 +202,9 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 					FileVersion: edgeStack.PreviousDeploymentInfo.FileVersion,
 					ConfigHash:  edgeStack.PreviousDeploymentInfo.ConfigHash,
 				}
-				edgeStack.Status[payload.EndpointID] = environmentStatus
 
+				environmentStatus.Status = insertRollbackEndpointStatus(environmentStatus.Status)
+				edgeStack.Status[payload.EndpointID] = environmentStatus
 				return
 			}
 
@@ -226,4 +227,31 @@ func updateEnvStatus(edgeStack *portaineree.EdgeStack, environmentStatus portain
 	}
 
 	edgeStack.Status[payload.EndpointID] = environmentStatus
+}
+
+func insertRollbackEndpointStatus(environmentStatus []portainer.EdgeStackDeploymentStatus) []portainer.EdgeStackDeploymentStatus {
+	if !slices.ContainsFunc(environmentStatus, func(sts portainer.EdgeStackDeploymentStatus) bool {
+		return sts.Type == portainer.EdgeStackStatusRunning
+	}) {
+		// if the endpoint has no running status, we should not insert rollback status
+		return environmentStatus
+	}
+
+	rolledBackTime := time.Now().Unix()
+	if len(environmentStatus) > 0 {
+		rolledBackTime = environmentStatus[len(environmentStatus)-1].Time
+	}
+
+	updatedEnvStatus := []portainer.EdgeStackDeploymentStatus{}
+	updatedEnvStatus = append(updatedEnvStatus, environmentStatus[:len(environmentStatus)-1]...)
+
+	updatedEnvStatus = append(updatedEnvStatus, portainer.EdgeStackDeploymentStatus{
+		Type:  portainer.EdgeStackStatusRolledBack,
+		Error: "",
+		Time:  rolledBackTime,
+	})
+
+	updatedEnvStatus = append(updatedEnvStatus, environmentStatus[len(environmentStatus)-1:]...)
+
+	return updatedEnvStatus
 }

@@ -30,7 +30,7 @@ type Handler struct {
 	EdgeService          *edgeasync.Service
 	edgeUpdateService    updateschedules.EdgeUpdateService
 	edgeStackCache       *cache.Cache
-	staggerService       *staggers.Service
+	staggerService       staggers.StaggerService
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
@@ -41,7 +41,7 @@ func NewHandler(bouncer security.BouncerService,
 	edgeService *edgeasync.Service,
 	licenseService portaineree.LicenseService,
 	edgeUpdateService updateschedules.EdgeUpdateService,
-	staggerService *staggers.Service) *Handler {
+	staggerService staggers.StaggerService) *Handler {
 	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,

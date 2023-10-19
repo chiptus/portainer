@@ -5,6 +5,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
@@ -85,7 +86,7 @@ func (sso *StaggerScheduleOperation) Info() string {
 
 // UpdateStaggerQueue is used to check if the stagger queue should be moved to the next queue or set to other
 // state based on the incoming endpoint status and the update failure action
-func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portainer.EndpointID, status portainer.EdgeStackStatusType) {
+func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portainer.EndpointID, status portainer.EdgeStackStatusType, dataStore dataservices.DataStore) {
 	staggeredEndpoints := sso.staggerQueue[sso.currentIndex]
 
 	allowToMoveToNextStaggerQueue := true
@@ -126,6 +127,9 @@ func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portainer.End
 					// if the update failure action is pause and we found an error, it
 					// means we need to pause the entire stagger workflow
 					sso.SetPaused(true)
+
+					// update paused environment status
+					updateEnvironmentStatus(dataStore, sso.edgeStackID, UpdatePausedEnvironmentStatus)
 					return
 
 				} else if sso.updateFailureAction == portaineree.EdgeUpdateFailureActionRollback {
@@ -138,6 +142,9 @@ func (sso *StaggerScheduleOperation) UpdateStaggerQueue(endpointID portainer.End
 					// with rolling back the current stagger queue, we need to overwrite the
 					// current endpoint status to pending from Error
 					sso.endpointStatus[staggeredEndpoint] = portainer.EdgeStackStatusPending
+
+					// update rollback environment status
+					updateEnvironmentStatus(dataStore, sso.edgeStackID, UpdateRollingBackEnvironmentStatus)
 
 				} else {
 					log.Error().Msgf("Unsupported update failure action: %d", sso.updateFailureAction)

@@ -9,9 +9,40 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/set"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
+
+type StaggerService interface {
+	AddStaggerConfig(id portainer.EdgeStackID, stackFileVersion int, config *portaineree.EdgeStaggerConfig, endpointIDs []portainer.EndpointID) error
+
+	RemoveStaggerConfig(id portainer.EdgeStackID)
+
+	IsEdgeStackUpdating(id portainer.EdgeStackID) bool
+
+	IsStaggeredEdgeStack(id portainer.EdgeStackID, fileVersion int, endpointID portainer.EndpointID) bool
+
+	StopAndRemoveStaggerScheduleOperation(id portainer.EdgeStackID)
+
+	CanProceedAsStaggerJob(id portainer.EdgeStackID, fileVersion int, endpointID portainer.EndpointID) bool
+
+	MarkedAsRollback(id portainer.EdgeStackID, fileVersion int) bool
+
+	WasEndpointRolledBack(id portainer.EdgeStackID, fileVersion int, endpointId portainer.EndpointID) bool
+
+	MarkedAsCompleted(id portainer.EdgeStackID, fileVersion int) bool
+
+	UpdateStaggerEndpointStatusIfNeeds(id portainer.EdgeStackID, fileVersion int, rollbackTo *int, endpointID portainer.EndpointID, status portainer.EdgeStackStatusType)
+
+	DisplayStaggerInfo()
+
+	ProcessStatusJob(newStatusJob *StaggerStatusJob)
+
+	StartStaggerJobForAsyncUpdate(edgeStackID portainer.EdgeStackID, relatedEndpointIds []portainer.EndpointID, endpointsToAdd set.Set[portainer.EndpointID], stackFileVersion int)
+
+	StartStaggerJobForAsyncRollback(ctx context.Context, wg *sync.WaitGroup, edgeStackID portainer.EdgeStackID, stackFileVersion int, endpoints map[portainer.EndpointID]*portaineree.Endpoint)
+}
 
 type StaggerJob struct {
 	EdgeStackID        portainer.EdgeStackID

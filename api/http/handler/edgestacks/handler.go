@@ -35,7 +35,7 @@ type Handler struct {
 	edgeUpdateService   updateschedules.EdgeUpdateService
 	KubernetesDeployer  portaineree.KubernetesDeployer
 	scheduler           *scheduler.Scheduler
-	staggerService      *staggers.Service
+	staggerService      staggers.StaggerService
 }
 
 const contextKey = "edgeStack_item"
@@ -49,7 +49,7 @@ func NewHandler(
 	edgeStacksService *edgestackservice.Service,
 	edgeUpdateService updateschedules.EdgeUpdateService,
 	scheduler *scheduler.Scheduler,
-	staggerService *staggers.Service,
+	staggerService staggers.StaggerService,
 ) *Handler {
 	h := &Handler{
 		Router:              mux.NewRouter(),

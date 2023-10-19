@@ -83,7 +83,6 @@ func (service *Service) startStaggerPool() {
 			}
 
 			// 1. collect all related endpoints
-
 			endpointIDs := unique.Unique(newJob.RelatedEndpointIDs)
 
 			// 2. build stagger queue based on the stagger config
@@ -165,7 +164,7 @@ func (service *Service) ProcessStatusJob(newStatusJob *StaggerStatusJob) {
 	} else {
 		// Operation to update the edge stack of endpoints in the stagger queue one by one
 		// This operation corresponds to the failure action of "continue" and "pause"
-		scheduleOperation.UpdateStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status)
+		scheduleOperation.UpdateStaggerQueue(newStatusJob.EndpointID, newStatusJob.Status, service.dataStore)
 
 	}
 

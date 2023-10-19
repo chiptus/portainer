@@ -646,6 +646,9 @@ func getEdgeStackStatusParam(r *http.Request) (*portainer.EdgeStackStatusType, e
 		portainer.EdgeStackStatusRunning,
 		portainer.EdgeStackStatusDeploying,
 		portainer.EdgeStackStatusRemoving,
+		portainer.EdgeStackStatusPausedDeploying,
+		portainer.EdgeStackStatusRollingBack,
+		portainer.EdgeStackStatusRolledBack,
 	}, edgeStackStatus) {
 		return nil, errors.New("invalid edgeStackStatus parameter")
 	}

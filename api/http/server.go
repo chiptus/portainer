@@ -105,7 +105,7 @@ type Server struct {
 	SignatureService            portainer.DigitalSignatureService
 	EdgeAsyncService            *edgeasync.Service
 	EdgeStacksService           *edgestackservice.Service
-	EdgeStaggerService          *staggers.Service
+	EdgeStaggerService          staggers.StaggerService
 	SnapshotService             portaineree.SnapshotService
 	FileService                 portaineree.FileService
 	DataStore                   dataservices.DataStore
