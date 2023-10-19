@@ -167,7 +167,10 @@ func TestStdFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	createEdgeGroup(t, store, 1, []portainer.EndpointID{endpointID})
-	createEdgeGroup(t, store, 2, []portainer.EndpointID{})
+
+	// endpointID appears again here to ensure that removing it from this edge group won't affect its edge config given
+	// that it's still part of another edge group for the same edge config
+	createEdgeGroup(t, store, 2, []portainer.EndpointID{endpointID})
 	createEdgeGroup(t, store, 3, []portainer.EndpointID{endpointIDtoAddRm})
 
 	bouncer := security.NewRequestBouncer(store, testhelpers.Licenseservice{}, jwtService, nil, nil)

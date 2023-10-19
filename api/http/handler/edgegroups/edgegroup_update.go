@@ -7,8 +7,8 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/edge/edgeconfigtrigger"
 	"github.com/portainer/portainer-ee/api/internal/edge"
-	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/unique"
 	portainer "github.com/portainer/portainer/api"
@@ -160,7 +160,7 @@ func (handler *Handler) edgeGroupUpdate(w http.ResponseWriter, r *http.Request) 
 				continue
 			}
 
-			if err = handler.updateEdgeConfigs(tx, endpoint, edgeGroup, operation); err != nil {
+			if err = edgeconfigtrigger.UpdateForEndpoint(tx, handler.edgeAsyncService, endpoint); err != nil {
 				return err
 			}
 
@@ -252,76 +252,6 @@ func (handler *Handler) updateEndpointEdgeJobs(tx dataservices.DataStoreTx, edge
 			}
 		}
 	}
-
-	return nil
-}
-
-func (handler *Handler) updateEdgeConfigs(tx dataservices.DataStoreTx, endpoint *portaineree.Endpoint, edgeGroup *portaineree.EdgeGroup, op string) error {
-	if endpoint.Type != portaineree.EdgeAgentOnDockerEnvironment {
-		return nil
-	}
-
-	edgeConfigs, err := tx.EdgeConfig().ReadAll()
-	if err != nil || len(edgeConfigs) == 0 {
-		return err
-	}
-
-	var edgeConfigsToCreate []portaineree.EdgeConfigID
-	for _, edgeConfig := range edgeConfigs {
-		if slices.Contains(edgeConfig.EdgeGroupIDs, edgeGroup.ID) {
-			edgeConfigsToCreate = append(edgeConfigsToCreate, edgeConfig.ID)
-		}
-	}
-
-	edgeConfigsToCreate = unique.Unique(edgeConfigsToCreate)
-
-	for _, edgeConfigID := range edgeConfigsToCreate {
-		edgeConfig, err := tx.EdgeConfig().Read(edgeConfigID)
-		if err != nil {
-			return err
-		}
-
-		switch edgeConfig.State {
-		case portaineree.EdgeConfigFailureState, portaineree.EdgeConfigDeletingState:
-			continue
-		}
-
-		edgeConfigState, err := tx.EdgeConfigState().Read(endpoint.ID)
-		if err != nil {
-			edgeConfigState = &portaineree.EdgeConfigState{
-				EndpointID: endpoint.ID,
-				States:     make(map[portaineree.EdgeConfigID]portaineree.EdgeConfigStateType),
-			}
-
-			if err := tx.EdgeConfigState().Create(edgeConfigState); err != nil {
-				return err
-			}
-		}
-
-		switch op {
-		case "add":
-			edgeConfig.Progress.Total++
-
-			if err := tx.EdgeConfig().Update(edgeConfigID, edgeConfig); err != nil {
-				return err
-			}
-
-			edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigSavingState
-
-		case "remove":
-			edgeConfigState.States[edgeConfigID] = portaineree.EdgeConfigDeletingState
-		}
-
-		if err := tx.EdgeConfigState().Update(edgeConfigState.EndpointID, edgeConfigState); err != nil {
-			return err
-		}
-
-		if err = handler.edgeAsyncService.PushConfigCommand(tx, endpoint, edgeConfig, edgeConfigState); err != nil {
-			return httperror.InternalServerError("Unable to persist the edge configuration command inside the database", err)
-		}
-	}
-
-	cache.Del(endpoint.ID)
 
 	return nil
 }
