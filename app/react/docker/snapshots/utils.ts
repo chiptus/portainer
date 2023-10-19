@@ -6,7 +6,7 @@ import {
 } from '@/react/constants';
 import { VolumeViewModel } from '@/docker/models/volume';
 
-import { parseListViewModel as parseContainer } from '../containers/utils';
+import { toListViewModel as parseContainer } from '../containers/utils';
 import { parseViewModel as parseImage } from '../images/utils';
 
 import { DockerContainerSnapshot, DockerSnapshotRaw } from './types';
