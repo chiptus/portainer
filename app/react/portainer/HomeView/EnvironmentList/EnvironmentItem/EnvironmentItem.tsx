@@ -21,6 +21,7 @@ import { useTags } from '@/portainer/tags/queries';
 import { EdgeIndicator } from '@@/EdgeIndicator';
 import { EnvironmentStatusBadge } from '@@/EnvironmentStatusBadge';
 import { Link } from '@@/Link';
+import { BlocklistItem } from '@@/Blocklist/BlocklistItem';
 
 import { EnvironmentIcon } from './EnvironmentIcon';
 import { EnvironmentStats } from './EnvironmentStats';
@@ -52,15 +53,14 @@ export function EnvironmentItem({
   const tags = useEnvironmentTagNames(environment.TagIds);
   const dashboardRoute = getDashboardRoute(environment);
 
-  const Button = dashboardRoute.to ? Link : 'button';
-
   return (
     <div className="relative">
-      <Button
-        className={clsx(
-          'blocklist-item no-link !m-0 flex min-h-[110px] w-full items-stretch overflow-hidden bg-transparent !pr-56',
-          { 'cursor-default': !dashboardRoute.to }
-        )}
+      <BlocklistItem
+        as={dashboardRoute.to ? Link : 'button'}
+        className={clsx('!m-0 min-h-[110px] !pr-56', {
+          'cursor-default': !dashboardRoute.to,
+          'no-link': dashboardRoute.to,
+        })}
         onClick={onClickBrowse}
         to={dashboardRoute.to}
         params={dashboardRoute.params}
@@ -110,7 +110,7 @@ export function EnvironmentItem({
           </div>
           <EnvironmentStats environment={environment} />
         </div>
-      </Button>
+      </BlocklistItem>
       {/* 
       Buttons are extracted out of the main button because it causes errors with react and accessibility issues
       see https://stackoverflow.com/questions/66409964/warning-validatedomnesting-a-cannot-appear-as-a-descendant-of-a

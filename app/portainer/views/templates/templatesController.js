@@ -18,6 +18,7 @@ angular.module('portainer.app').controller('TemplatesController', [
   'FormValidator',
   'StackService',
   'endpoint',
+  '$async',
   function (
     $scope,
     $q,
@@ -34,7 +35,8 @@ angular.module('portainer.app').controller('TemplatesController', [
     Authentication,
     FormValidator,
     StackService,
-    endpoint
+    endpoint,
+    $async
   ) {
     const DOCKER_STANDALONE = 'DOCKER_STANDALONE';
     const DOCKER_SWARM_MODE = 'DOCKER_SWARM_MODE';
@@ -222,35 +224,41 @@ angular.module('portainer.app').controller('TemplatesController', [
       }
     };
 
-    $scope.unselectTemplate = function (template) {
-      template.Selected = false;
-      $scope.state.selectedTemplate = null;
+    $scope.isSelected = function (template) {
+      return $scope.state.selectedTemplate && $scope.state.selectedTemplate.Id === template.Id;
+    };
+
+    $scope.unselectTemplate = function () {
+      return $async(async () => {
+        $scope.state.selectedTemplate = null;
+      });
     };
 
     $scope.selectTemplate = function (template) {
-      if (!Authentication.isAdmin() && !Authentication.hasAuthorizations(['DockerContainerCreate', 'PortainerStackCreate'])) {
-        return;
-      }
+      return $async(async () => {
+        if (!Authentication.isAdmin() && !Authentication.hasAuthorizations(['DockerContainerCreate', 'PortainerStackCreate'])) {
+          return;
+        }
 
-      if ($scope.state.selectedTemplate) {
-        $scope.unselectTemplate($scope.state.selectedTemplate);
-      }
+        if ($scope.state.selectedTemplate) {
+          $scope.unselectTemplate($scope.state.selectedTemplate);
+        }
 
-      template.Selected = true;
-      if (template.Network) {
-        $scope.formValues.network = _.find($scope.availableNetworks, function (o) {
-          return o.Name === template.Network;
-        });
-      } else {
-        $scope.formValues.network = _.find($scope.availableNetworks, function (o) {
-          return o.Name === 'bridge';
-        });
-      }
+        if (template.Network) {
+          $scope.formValues.network = _.find($scope.availableNetworks, function (o) {
+            return o.Name === template.Network;
+          });
+        } else {
+          $scope.formValues.network = _.find($scope.availableNetworks, function (o) {
+            return o.Name === 'bridge';
+          });
+        }
 
-      $scope.formValues.name = template.Name ? template.Name : '';
-      $scope.state.selectedTemplate = template;
-      $scope.state.deployable = isDeployable($scope.applicationState.endpoint, template.Type);
-      $anchorScroll('view-top');
+        $scope.formValues.name = template.Name ? template.Name : '';
+        $scope.state.selectedTemplate = template;
+        $scope.state.deployable = isDeployable($scope.applicationState.endpoint, template.Type);
+        $anchorScroll('view-top');
+      });
     };
 
     function isDeployable(endpoint, templateType) {
