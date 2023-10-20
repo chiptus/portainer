@@ -84,22 +84,18 @@ export function EdgeComputeSettings({ settings, onSubmit }: Props) {
                   capabilities.
                 </TextTip>
 
-                {values.EnableEdgeComputeFeatures && (
-                  <>
-                    <PortainerUrlField
-                      fieldName="EdgePortainerUrl"
-                      tooltip="URL of this Portainer instance that will be used by Edge agents to initiate the communications."
-                    />
+                <PortainerUrlField
+                  fieldName="EdgePortainerUrl"
+                  tooltip="URL of this Portainer instance that will be used by Edge agents to initiate the communications."
+                />
 
-                    <PortainerTunnelAddrField fieldName="Edge.TunnelServerAddress" />
+                <PortainerTunnelAddrField fieldName="Edge.TunnelServerAddress" />
 
-                    {isBE && (
-                      <MTLSOptions
-                        values={values.Edge.MTLS}
-                        onChange={(value) => setFieldValue('Edge.MTLS', value)}
-                      />
-                    )}
-                  </>
+                {isBE && (
+                  <MTLSOptions
+                    values={values.Edge.MTLS}
+                    onChange={(value) => setFieldValue('Edge.MTLS', value)}
+                  />
                 )}
 
                 <FormControl
