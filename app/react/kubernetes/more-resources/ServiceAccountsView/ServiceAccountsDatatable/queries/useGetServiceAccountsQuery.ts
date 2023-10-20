@@ -13,7 +13,10 @@ import { queryKeys } from './query-keys';
 export function useGetServiceAccountsQuery(
   environmentId: EnvironmentId,
   namespaces: string[],
-  options?: { autoRefreshRate?: number; enabled?: boolean }
+  options?: {
+    autoRefreshRate?: number;
+    enabled?: boolean;
+  }
 ) {
   return useQuery(
     queryKeys.list(environmentId),

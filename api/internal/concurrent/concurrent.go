@@ -91,37 +91,52 @@ type Result struct {
 type Func func(ctx context.Context) (interface{}, error)
 
 // Run runs a list of functions returns the results
-func Run(ctx context.Context, tasks ...Func) ([]Result, error) {
+func Run(ctx context.Context, maxConcurrency int, tasks ...Func) ([]Result, error) {
 	var wg sync.WaitGroup
 	resultsChan := make(chan Result, len(tasks))
+	taskChan := make(chan Func, len(tasks))
 
 	localCtx, cancelCtx := context.WithCancel(ctx)
 	defer cancelCtx()
 
-	// run each task function in a separate goroutine
-	for _, fn := range tasks {
-		wg.Add(1)
-		go func(fn Func) {
-			defer wg.Done()
+	runTask := func() {
+		defer wg.Done()
+		for fn := range taskChan {
 			result, err := fn(localCtx)
 			resultsChan <- Result{Result: result, Err: err}
-		}(fn)
+		}
 	}
 
-	// wait for all the goroutines to complete and close the results channel
-	go func() {
-		wg.Wait()
-		close(resultsChan)
-	}()
+	// Set maxConcurrency to the number of tasks if zero or negative
+	if maxConcurrency <= 0 {
+		maxConcurrency = len(tasks)
+	}
 
-	// collect the results from the results channel. Cancel outstanding requests on failure
+	// Start worker goroutines
+	for i := 0; i < maxConcurrency; i++ {
+		wg.Add(1)
+		go runTask()
+	}
+
+	// Add tasks to the task channel
+	for _, fn := range tasks {
+		taskChan <- fn
+	}
+
+	// Close the task channel to signal workers to stop when all tasks are done
+	close(taskChan)
+
+	// Wait for all workers to complete
+	wg.Wait()
+	close(resultsChan)
+
+	// Collect the results and cancel on error
 	results := make([]Result, 0, len(tasks))
 	for r := range resultsChan {
 		if r.Err != nil {
 			cancelCtx()
 			return nil, r.Err
 		}
-
 		results = append(results, r)
 	}
 

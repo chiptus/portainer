@@ -511,7 +511,7 @@ func (kcl *KubeClient) GetRoles(namespace string) ([]models.K8sRole, error) {
 		return kcl.cli.RbacV1().RoleBindings(namespace).List(ctx, metav1.ListOptions{})
 	}
 
-	results, err := concurrent.Run(context.Background(), listRoles, listRoleBindings)
+	results, err := concurrent.Run(context.Background(), 0, listRoles, listRoleBindings)
 	if err != nil {
 		return nil, err
 	}

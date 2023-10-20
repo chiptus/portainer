@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
@@ -29,7 +30,7 @@ func (kcl *KubeClient) GetClusterRoles() ([]models.K8sClusterRole, error) {
 		return kcl.cli.CoreV1().Namespaces().List(ctx, meta.ListOptions{})
 	}
 
-	results, err := concurrent.Run(context.TODO(), listClusterRoles, listClusterRoleBindings, listNamespaces)
+	results, err := concurrent.Run(context.TODO(), 0, listClusterRoles, listClusterRoleBindings, listNamespaces)
 	if err != nil {
 		return nil, err
 	}
@@ -83,22 +84,59 @@ func (kcl *KubeClient) GetClusterRoles() ([]models.K8sClusterRole, error) {
 		}
 	}
 
-	// Cluster roles can also be referenced by rolebindings also
-	for _, namespace := range namespaceList.Items {
-		roleBindingList, err := kcl.cli.RbacV1().RoleBindings(namespace.Name).List(context.Background(), meta.ListOptions{})
-		if err != nil {
-			return roles, nil
-		}
+	// Get all the role bindings for all namespaces concurrently
 
-		// then mark the roles that are used by a role binding
-		for _, roleBinding := range roleBindingList.Items {
-			for i, role := range roles {
-				if role.Name == roleBinding.RoleRef.Name {
-					roles[i].IsUnused = false
+	isUnusedTask := func(namespace string) concurrent.Func {
+		return func(ctx context.Context) (interface{}, error) {
+			return kcl.cli.RbacV1().RoleBindings(namespace).List(context.Background(), meta.ListOptions{})
+		}
+	}
+
+	// Create our worker tasks.
+	// TODO: an future optimisation is to skip known system namespaces if the user doesn't have that option set
+	var tasks []concurrent.Func
+	for i := 0; i < len(namespaceList.Items); i++ {
+		taskFunc := isUnusedTask(namespaceList.Items[i].Namespace)
+		tasks = append(tasks, taskFunc)
+	}
+
+	unused, err := concurrent.Run(context.Background(), maxConcurrency, tasks...)
+	if err != nil {
+		return roles, fmt.Errorf("failed to lookup unused labels: %w", err)
+	}
+
+	// Update the details
+	for _, roleBinding := range unused {
+		// Strictly speaking, I don't need the "ok" here as it should only be
+		// the one result type, just feels safter...
+		if rbl, ok := roleBinding.Result.(*rbac.RoleBindingList); ok {
+			for _, rb := range rbl.Items {
+				for j, role := range roles {
+					if role.Name == rb.RoleRef.Name {
+						roles[j].IsUnused = false
+					}
 				}
 			}
 		}
 	}
+
+	// The slower way of looking up and updating unused labels for reference
+	// // Cluster roles can also be referenced by rolebindings also
+	// for _, namespace := range namespaceList.Items {
+	// 	roleBindingList, err := kcl.cli.RbacV1().RoleBindings(namespace.Name).List(context.Background(), meta.ListOptions{})
+	// 	if err != nil {
+	// 		return roles, nil
+	// 	}
+
+	// 	// then mark the roles that are used by a role binding
+	// 	for _, roleBinding := range roleBindingList.Items {
+	// 		for i, role := range roles {
+	// 			if role.Name == roleBinding.RoleRef.Name {
+	// 				roles[i].IsUnused = false
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	return roles, err
 }

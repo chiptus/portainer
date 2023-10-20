@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
+	"github.com/portainer/portainer-ee/api/internal/concurrent"
 	"github.com/portainer/portainer-ee/api/internal/errorlist"
 	portainer "github.com/portainer/portainer/api"
 	v1 "k8s.io/api/core/v1"
@@ -40,20 +41,70 @@ func (kcl *KubeClient) GetServiceAccounts(namespace string) ([]models.K8sService
 	}
 
 	serviceAccounts := make([]models.K8sServiceAccount, len(serviceAccountList.Items))
-	for i, item := range serviceAccountList.Items {
+	for i := 0; i < len(serviceAccountList.Items); i++ {
+		item := &serviceAccountList.Items[i]
 		sa := models.K8sServiceAccount{
 			Name:         item.Name,
 			Namespace:    item.Namespace,
 			CreationDate: item.CreationTimestamp.Time,
 			UID:          string(item.UID),
-			IsSystem:     kcl.isSystemServiceAccount(&item),
-			IsUnused:     kcl.isServiceAccountUnused(&item),
 		}
 
 		serviceAccounts[i] = sa
 	}
 
+	kcl.lookupSystemResources(serviceAccountList, serviceAccounts)
+	kcl.lookupUnusedResources(serviceAccountList, serviceAccounts)
+
 	return serviceAccounts, nil
+}
+
+func (kcl *KubeClient) lookupSystemResources(serviceAccountList *v1.ServiceAccountList, serviceAccounts []models.K8sServiceAccount) {
+	isSystemTask := func(sa *v1.ServiceAccount) concurrent.Func {
+		return func(ctx context.Context) (interface{}, error) {
+			result := kcl.isSystemServiceAccount(sa)
+			return result, nil
+		}
+	}
+
+	// Create a slice of tasks by iterating over the ServiceAccount pointers
+	var tasks []concurrent.Func
+	for i := 0; i < len(serviceAccountList.Items); i++ {
+		taskFunc := isSystemTask(&serviceAccountList.Items[i])
+		tasks = append(tasks, taskFunc)
+	}
+
+	// we can ignore errors here because the tasks here don't return errors
+	results, _ := concurrent.Run(context.Background(), maxConcurrency, tasks...)
+
+	for i, result := range results {
+		// Update the ServiceAccount struct with the result
+		serviceAccounts[i].IsSystem = result.Result.(bool)
+	}
+}
+
+func (kcl *KubeClient) lookupUnusedResources(serviceAccountList *v1.ServiceAccountList, serviceAccounts []models.K8sServiceAccount) {
+	isUnusedTask := func(sa *v1.ServiceAccount) concurrent.Func {
+		return func(ctx context.Context) (interface{}, error) {
+			result := kcl.isServiceAccountUnused(sa)
+			return result, nil
+		}
+	}
+
+	// Create a slice of tasks by iterating over the ServiceAccount pointers
+	var tasks []concurrent.Func
+	for _, sa := range serviceAccountList.Items {
+		taskFunc := isUnusedTask(&sa)
+		tasks = append(tasks, taskFunc)
+	}
+
+	// Run the tasks concurrently
+	results, _ := concurrent.Run(context.Background(), maxConcurrency, tasks...)
+
+	for i, result := range results {
+		// Update the ServiceAccount struct with the result
+		serviceAccounts[i].IsUnused = result.Result.(bool)
+	}
 }
 
 func (kcl *KubeClient) isSystemServiceAccount(sa *v1.ServiceAccount) bool {

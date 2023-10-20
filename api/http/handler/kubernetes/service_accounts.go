@@ -26,10 +26,7 @@ func (h *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *http.Re
 
 	namespace, err := request.RetrieveRouteVariableValue(r, "namespace")
 	if err != nil {
-		return httperror.BadRequest(
-			"Invalid namespace identifier route variable",
-			err,
-		)
+		return httperror.BadRequest("Invalid namespace identifier route variable", err)
 	}
 
 	cli, handlerErr := h.getProxyKubeClient(r)
@@ -39,10 +36,7 @@ func (h *Handler) getKubernetesServiceAccounts(w http.ResponseWriter, r *http.Re
 
 	services, err := cli.GetServiceAccounts(namespace)
 	if err != nil {
-		return httperror.InternalServerError(
-			"Unable to retrieve services",
-			err,
-		)
+		return httperror.InternalServerError("Unable to retrieve services", err)
 	}
 
 	return response.JSON(w, services)
