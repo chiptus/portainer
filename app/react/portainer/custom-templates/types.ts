@@ -11,14 +11,7 @@ export enum Platform {
   WINDOWS,
 }
 
-export /**
- * CustomTemplate represents a custom template.
- */
-interface CustomTemplate {
-  /**
-   * CustomTemplate Identifier.
-   * @example 1
-   */
+export type CustomTemplate = {
   Id: number;
 
   /**
@@ -96,7 +89,7 @@ interface CustomTemplate {
    * @example false
    */
   IsComposeFormat: boolean;
-}
+};
 
 export type CustomTemplateFileContent = {
   FileContent: string;

@@ -21,7 +21,6 @@ class KubeCreateCustomTemplateViewController {
       formValidationError: '',
       isEditorDirty: false,
       isTemplateValid: true,
-      templateNameRegex: KUBE_TEMPLATE_NAME_VALIDATION_REGEX,
     };
 
     this.formValues = {
@@ -48,6 +47,14 @@ class KubeCreateCustomTemplateViewController {
       ComposeFilePathInRepository: 'manifest.yml',
     };
 
+    this.validationData = {
+      title: {
+        pattern: KUBE_TEMPLATE_NAME_VALIDATION_REGEX,
+        error:
+          "This field must consist of lower-case alphanumeric characters, '.', '_' or '-', must start and end with an alphanumeric character and must be 63 characters or less (e.g. 'my-name', or 'abc-123').",
+      },
+    };
+
     this.onChangeFile = this.onChangeFile.bind(this);
     this.onChangeFileContent = this.onChangeFileContent.bind(this);
     this.onChangeMethod = this.onChangeMethod.bind(this);
@@ -55,6 +62,16 @@ class KubeCreateCustomTemplateViewController {
     this.handleChange = this.handleChange.bind(this);
     this.onVariablesChange = this.onVariablesChange.bind(this);
     this.onChangeGitCredential = this.onChangeGitCredential.bind(this);
+    this.onChangePlatform = this.onChangePlatform.bind(this);
+    this.onChangeType = this.onChangeType.bind(this);
+  }
+
+  onChangePlatform(value) {
+    this.handleChange({ Platform: value });
+  }
+
+  onChangeType(value) {
+    this.handleChange({ Type: value });
   }
 
   onChangeMethod(method) {
