@@ -4,8 +4,6 @@ import { r2a } from '@/react-tools/react2angular';
 import { withControlledInput } from '@/react-tools/withControlledInput';
 import { StackContainersDatatable } from '@/react/common/stacks/ItemView/StackContainersDatatable';
 import { ImageStatus } from '@/react/docker/components/ImageStatus';
-import { TemplateListDropdown } from '@/react/docker/app-templates/TemplateListDropdown';
-import { TemplateListSort } from '@/react/docker/app-templates/TemplateListSort';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
@@ -48,22 +46,7 @@ const ngModule = angular
       'nodeName',
     ])
   )
-  .component(
-    'templateListDropdown',
-    r2a(TemplateListDropdown, ['options', 'onChange', 'placeholder', 'value'])
-  )
-  .component(
-    'templateListSort',
-    r2a(TemplateListSort, [
-      'options',
-      'onChange',
-      'onDescending',
-      'placeholder',
-      'sortByDescending',
-      'sortByButton',
-      'value',
-    ])
-  )
+
   .component(
     'stackContainersDatatable',
     r2a(
