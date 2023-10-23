@@ -1208,7 +1208,7 @@ type (
 		NamespaceAccessPoliciesDeleteNamespace(namespace string) error
 		GetNamespaceAccessPolicies() (map[string]portainer.K8sNamespaceAccessPolicy, error)
 		UpdateNamespaceAccessPolicies(accessPolicies map[string]portainer.K8sNamespaceAccessPolicy) error
-		DeleteRegistrySecret(registry *Registry, namespace string) error
+		DeleteRegistrySecret(registry portainer.RegistryID, namespace string) error
 		CreateRegistrySecret(registry *Registry, namespace string) error
 		IsRegistrySecret(namespace, secretName string) (bool, error)
 		ToggleSystemState(namespace string, isSystem bool) error

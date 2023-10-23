@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
+	"github.com/portainer/portainer-ee/api/pendingactions"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -32,11 +33,12 @@ type Handler struct {
 	requestBouncer       accessGuard
 	registryProxyService *registryproxy.Service
 
-	DataStore           dataservices.DataStore
-	FileService         portainer.FileService
-	ProxyManager        *proxy.Manager
-	userActivityService portaineree.UserActivityService
-	K8sClientFactory    *cli.ClientFactory
+	DataStore             dataservices.DataStore
+	FileService           portainer.FileService
+	ProxyManager          *proxy.Manager
+	userActivityService   portaineree.UserActivityService
+	K8sClientFactory      *cli.ClientFactory
+	PendingActionsService *pendingactions.PendingActionsService
 }
 
 // NewHandler creates a handler to manage registry operations.

@@ -294,6 +294,7 @@ func (server *Server) Start() error {
 	registryHandler.FileService = server.FileService
 	registryHandler.ProxyManager = server.ProxyManager
 	registryHandler.K8sClientFactory = server.KubernetesClientFactory
+	registryHandler.PendingActionsService = server.PendingActionsService
 
 	var resourceControlHandler = resourcecontrols.NewHandler(requestBouncer, server.DataStore, server.UserActivityService)
 

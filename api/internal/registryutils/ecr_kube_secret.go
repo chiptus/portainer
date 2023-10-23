@@ -36,7 +36,7 @@ func RefreshEcrSecret(cli portaineree.KubeClient, endpoint *portaineree.Endpoint
 			return
 		}
 
-		err = cli.DeleteRegistrySecret(&registry, namespace)
+		err = cli.DeleteRegistrySecret(registry.ID, namespace)
 		if err != nil {
 			return
 		}

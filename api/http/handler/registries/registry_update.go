@@ -206,7 +206,7 @@ func (handler *Handler) updateEndpointRegistryAccess(endpoint *portaineree.Endpo
 	}
 
 	for _, namespace := range endpointAccess.Namespaces {
-		err := cli.DeleteRegistrySecret(registry, namespace)
+		err := cli.DeleteRegistrySecret(registry.ID, namespace)
 		if err != nil {
 			return err
 		}

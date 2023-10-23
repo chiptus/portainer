@@ -304,8 +304,11 @@ func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portaineree.End
 	}
 
 	// Run the pending actions
-	if latestEndpointReference.Status == portainer.EndpointStatusUp {
-		pendingActionsService.Execute(endpoint.ID)
+	if latestEndpointReference.Status == portaineree.EndpointStatusUp {
+		err = pendingActionsService.Execute(endpoint.ID)
+		if err != nil {
+			log.Error().Err(err).Msg("background schedule error (environment snapshot), unable to execute pending actions")
+		}
 	}
 }
 
