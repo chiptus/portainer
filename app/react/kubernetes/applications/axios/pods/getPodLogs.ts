@@ -2,8 +2,8 @@ import _ from 'lodash';
 
 import axios from '@/portainer/services/axios';
 import { EnvironmentId } from '@/react/portainer/environments/types';
-import PortainerError from '@/portainer/error';
 import { urlBuilder } from '@/react/kubernetes/applications/axios/pods/urlBuilder';
+import { parseKubernetesAxiosError } from '@/react/kubernetes/axiosError';
 
 export type PodLogsParams = {
   timestamps?: boolean;
@@ -28,6 +28,6 @@ export async function getPodLogs(
 
     return data;
   } catch (e) {
-    throw new PortainerError('Unable to get pod logs', e as Error);
+    throw parseKubernetesAxiosError(e, 'Unable to get pod logs');
   }
 }

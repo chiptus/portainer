@@ -1,11 +1,12 @@
 import { NodeList, Node } from 'kubernetes-types/core/v1';
 import { useMutation, useQuery } from 'react-query';
 
-import axios from '@/portainer/services/axios';
+import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { queryClient, withError } from '@/react-tools/react-query';
 
 import { AddNodesFormValues } from '../NodeCreateView/types';
+import { parseKubernetesAxiosError } from '../../axiosError';
 
 const queryKeys = {
   node: (environmentId: number, nodeName: string) => [
@@ -24,10 +25,14 @@ const queryKeys = {
 };
 
 async function getNode(environmentId: EnvironmentId, nodeName: string) {
-  const { data: node } = await axios.get<Node>(
-    `/endpoints/${environmentId}/kubernetes/api/v1/nodes/${nodeName}`
-  );
-  return node;
+  try {
+    const { data: node } = await axios.get<Node>(
+      `/endpoints/${environmentId}/kubernetes/api/v1/nodes/${nodeName}`
+    );
+    return node;
+  } catch (e) {
+    throw parseKubernetesAxiosError(e, 'Unable to get node details');
+  }
 }
 
 export function useNodeQuery(environmentId: EnvironmentId, nodeName: string) {
@@ -35,20 +40,21 @@ export function useNodeQuery(environmentId: EnvironmentId, nodeName: string) {
     queryKeys.node(environmentId, nodeName),
     () => getNode(environmentId, nodeName),
     {
-      ...withError(
-        'Unable to get node details from the Kubernetes api',
-        'Failed to get node details'
-      ),
+      ...withError('Unable to get node details'),
     }
   );
 }
 
 // getNodes is used to get a list of nodes using the kubernetes API
 async function getNodes(environmentId: EnvironmentId) {
-  const { data: nodeList } = await axios.get<NodeList>(
-    `/endpoints/${environmentId}/kubernetes/api/v1/nodes`
-  );
-  return nodeList.items;
+  try {
+    const { data: nodeList } = await axios.get<NodeList>(
+      `/endpoints/${environmentId}/kubernetes/api/v1/nodes`
+    );
+    return nodeList.items;
+  } catch (e) {
+    throw parseKubernetesAxiosError(e, 'Unable to get nodes');
+  }
 }
 
 // useNodesQuery is used to get an array of nodes using the kubernetes API
@@ -76,9 +82,13 @@ async function removeNodes(
   environmentId: EnvironmentId,
   nodesToRemove: string[]
 ) {
-  await axios.post(`/cloud/endpoints/${environmentId}/nodes/remove`, {
-    nodesToRemove,
-  });
+  try {
+    await axios.post(`/cloud/endpoints/${environmentId}/nodes/remove`, {
+      nodesToRemove,
+    });
+  } catch (e) {
+    throw parseAxiosError(e, 'Unable to remove nodes');
+  }
 }
 
 // useRemoveNodesMutation is used to remove a node from a microk8s cluster
@@ -97,10 +107,14 @@ async function addNodes(
   environmentId: EnvironmentId,
   addNodesValues: AddNodesFormValues // the formvalues and the request payload match
 ) {
-  await axios.post(
-    `/cloud/endpoints/${environmentId}/nodes/add`,
-    addNodesValues
-  );
+  try {
+    await axios.post(
+      `/cloud/endpoints/${environmentId}/nodes/add`,
+      addNodesValues
+    );
+  } catch (e) {
+    throw parseAxiosError(e, 'Unable to add nodes');
+  }
 }
 
 // useAddNodesMutation is used to nodes to an existing microk8s cluster

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import moment from 'moment';
 import { useQuery } from 'react-query';
 
+import { withError } from '@/react-tools/react-query';
+
 import { formatLogs } from '@@/LogViewer/helpers/formatLogs';
 import {
   ControllerStatesInterface,
@@ -38,6 +40,7 @@ export function useLogsQuery(
     },
     refetchInterval: () => (autoRefresh ? AUTO_REFRESH_INTERVAL : false),
     refetchOnWindowFocus: false,
+    ...withError('Failure', 'Unable to get logs.'),
   });
 
   return { logsQuery, originalLogs };
