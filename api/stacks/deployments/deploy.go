@@ -1,11 +1,13 @@
 package deployments
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/agent"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/git"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -13,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/git/update"
 
 	"github.com/pkg/errors"
@@ -144,6 +147,10 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 		return &StackAuthorMissingErr{int(stack.ID), author}
 	}
 
+	if !isEnvironmentOnline(endpoint) {
+		return nil
+	}
+
 	var gitCommitChangedOrForceUpdate bool
 	folderToBeRemoved := []string{}
 	if !stack.FromAppTemplate {
@@ -189,13 +196,10 @@ func RedeployWhenChanged(stackID portainer.StackID, deployer StackDeployer, data
 		}
 	}(gitCommitChangedOrForceUpdate)
 
-	forcePullImage := func() bool {
-		if options != nil && options.PullDockerImage != nil {
-			return *options.PullDockerImage
-		}
-
-		return stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
-	}()
+	forcePullImage := stack.AutoUpdate == nil || stack.AutoUpdate.ForcePullImage
+	if options != nil && options.PullDockerImage != nil {
+		forcePullImage = *options.PullDockerImage
+	}
 
 	if !forcePullImage && !gitCommitChangedOrForceUpdate && !additionalEnvUpserted && !isRollingRestart(options) {
 		return nil
@@ -305,4 +309,18 @@ func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User,
 	}
 
 	return filteredRegistries, nil
+}
+
+func isEnvironmentOnline(endpoint *portaineree.Endpoint) bool {
+	var err error
+	var tlsConfig *tls.Config
+	if endpoint.TLSConfig.TLS {
+		tlsConfig, err = crypto.CreateTLSConfigurationFromDisk(endpoint.TLSConfig.TLSCACertPath, endpoint.TLSConfig.TLSCertPath, endpoint.TLSConfig.TLSKeyPath, endpoint.TLSConfig.TLSSkipVerify)
+		if err != nil {
+			return false
+		}
+	}
+
+	_, _, err = agent.GetAgentVersionAndPlatform(endpoint.URL, tlsConfig)
+	return err == nil
 }
