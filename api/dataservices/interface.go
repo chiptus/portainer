@@ -4,11 +4,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/kubernetes/podsecurity"
+	"github.com/portainer/portainer-ee/pkg/liblicense"
 	portainer "github.com/portainer/portainer/api"
 	cemodels "github.com/portainer/portainer/api/database/models"
 )

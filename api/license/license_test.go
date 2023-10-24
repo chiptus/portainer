@@ -3,8 +3,9 @@ package license
 import (
 	"testing"
 
-	"github.com/portainer/liblicense/v3"
 	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/portainer/portainer-ee/pkg/liblicense"
+
 	"github.com/stretchr/testify/assert"
 )
 

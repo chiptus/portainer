@@ -4,11 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
+	"github.com/portainer/portainer-ee/pkg/liblicense"
 	portainer "github.com/portainer/portainer/api"
+
 	"github.com/stretchr/testify/assert"
 )
 

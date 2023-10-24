@@ -3,11 +3,11 @@ package license
 import (
 	"net/http"
 
-	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	nodeutil "github.com/portainer/portainer-ee/api/internal/nodes"
 	"github.com/portainer/portainer-ee/api/internal/snapshot"
+	"github.com/portainer/portainer-ee/pkg/liblicense"
 	"github.com/portainer/portainer/pkg/libhelm/time"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 

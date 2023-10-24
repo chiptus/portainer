@@ -2,8 +2,7 @@ package license
 
 import (
 	"github.com/portainer/portainer-ee/api/dataservices"
-
-	"github.com/portainer/liblicense/v3"
+	"github.com/portainer/portainer-ee/pkg/liblicense"
 	portainer "github.com/portainer/portainer/api"
 )
 
