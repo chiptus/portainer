@@ -1,12 +1,13 @@
 package oauth
 
 import (
-	"encoding/json"
 	"reflect"
 	"sort"
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

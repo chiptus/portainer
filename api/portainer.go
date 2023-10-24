@@ -40,11 +40,11 @@ type (
 		Type          EdgeAsyncCommandType      `json:"type"`
 		EndpointID    portainer.EndpointID      `json:"endpointID"`
 		Timestamp     time.Time                 `json:"timestamp"`
-		Executed      bool                      `json:"executed"`
+		Executed      bool                      `json:"executed,omitempty"`
 		Operation     EdgeAsyncCommandOperation `json:"op"`
 		Path          string                    `json:"path"`
 		Value         interface{}               `json:"value"`
-		ScheduledTime string                    `json:"scheduledTime"`
+		ScheduledTime string                    `json:"scheduledTime,omitempty"`
 	}
 
 	AuthActivityLog struct {
@@ -79,41 +79,41 @@ type (
 		Name      string   `json:"Name"`
 		URL       string   `json:"URL"`
 		Region    string   `json:"Region"`
-		Size      *string  `json:"Size"`
-		NodeCount int      `json:"NodeCount"`
-		CPU       *int     `json:"CPU"`
-		RAM       *float64 `json:"RAM"`
-		HDD       *int     `json:"HDD"`
+		Size      *string  `json:"Size,omitempty"`
+		NodeCount int      `json:"NodeCount,omitempty"`
+		CPU       *int     `json:"CPU,omitempty"`
+		RAM       *float64 `json:"RAM,omitempty"`
+		HDD       *int     `json:"HDD,omitempty"`
 		// Pointer will hide this field for providers other than civo which do
 		// not use this field.
-		NetworkID *string `json:"NetworkID"`
+		NetworkID *string `json:"NetworkID,omitempty"`
 		// CredentialID holds an ID of the credential used to create the cluster
 		CredentialID models.CloudCredentialID `json:"CredentialID"`
 
 		// Azure specific fields
-		ResourceGroup     string
-		Tier              string
-		PoolName          string
-		DNSPrefix         string
-		KubernetesVersion string
+		ResourceGroup     string `json:"ResourceGroup,omitempty"`
+		Tier              string `json:"Tier,omitempty"`
+		PoolName          string `json:"PoolName,omitempty"`
+		DNSPrefix         string `json:"DNSPrefix,omitempty"`
+		KubernetesVersion string `json:"KubernetesVersion,omitempty"`
 
 		// Amazon specific fields
-		AmiType        *string `json:"AmiType"`
-		InstanceType   *string `json:"InstanceType"`
-		NodeVolumeSize *int    `json:"NodeVolumeSize"`
+		AmiType        *string `json:"AmiType,omitempty"`
+		InstanceType   *string `json:"InstanceType,omitempty"`
+		NodeVolumeSize *int    `json:"NodeVolumeSize,omitempty"`
 
 		// MicroK8S specific fields
 		AddonsWithArgs []MicroK8sAddon `json:"AddonWithArgs"`
-		NodeIPs        *string         `json:"NodeIPs"`
+		NodeIPs        *string         `json:"NodeIPs,omitempty"`
 
 		// @deprecated
 		Addons *string `json:"-"` // Dont't send it back to the client
 	}
 
 	MicroK8sAddon struct {
-		Name       string `json:"name"`
-		Args       string `json:"arguments"`
-		Repository string `json:"repository"`
+		Name       string `json:"name,omitempty"`
+		Args       string `json:"arguments,omitempty"`
+		Repository string `json:"repository,omitempty"`
 	}
 
 	// CLIFlags represents the available flags on the CLI
@@ -167,11 +167,11 @@ type (
 		// EdgeGroup Identifier
 		ID           portainer.EdgeGroupID  `json:"Id" example:"1"`
 		Name         string                 `json:"Name"`
-		Dynamic      bool                   `json:"Dynamic"`
+		Dynamic      bool                   `json:"Dynamic,omitempty"`
 		TagIDs       []portainer.TagID      `json:"TagIds"`
 		Endpoints    []portainer.EndpointID `json:"Endpoints"`
-		PartialMatch bool                   `json:"PartialMatch"`
-		EdgeUpdateID int
+		PartialMatch bool                   `json:"PartialMatch,omitempty"`
+		EdgeUpdateID int                    `json:"EdgeUpdateID,omitempty"`
 	}
 
 	// EdgeJobStatus represents an Edge job status
@@ -192,9 +192,9 @@ type (
 	EdgeStaggerConfig struct {
 		StaggerOption           EdgeStaggerOption
 		StaggerParallelOption   EdgeStaggerParallelOption
-		DeviceNumber            int
-		DeviceNumberStartFrom   int
-		DeviceNumberIncrementBy int
+		DeviceNumber            int `json:"DeviceNumber,omitempty"`
+		DeviceNumberStartFrom   int `json:"DeviceNumberStartFrom,omitempty"`
+		DeviceNumberIncrementBy int `json:"DeviceNumberIncrementBy,omitempty"`
 		// Timeout unit is minute
 		Timeout string `example:"5"`
 		// UpdateDelay unit is minute
@@ -218,50 +218,50 @@ type (
 		ManifestPath   string                                             `json:"ManifestPath"`
 		DeploymentType portainer.EdgeStackDeploymentType                  `json:"DeploymentType"`
 		// EdgeUpdateID represents the parent update ID, will be zero if this stack is not part of an update
-		EdgeUpdateID int
+		EdgeUpdateID int `json:"EdgeUpdateID,omitempty"`
 		// Schedule represents the schedule of the Edge stack (optional, format - 'YYYY-MM-DD HH:mm:ss')
-		ScheduledTime string `example:"2020-11-13 14:53:00"`
+		ScheduledTime string `json:"ScheduledTime,omitempty" example:"2020-11-13 14:53:00"`
 		// Uses the manifest's namespaces instead of the default one
-		UseManifestNamespaces bool
+		UseManifestNamespaces bool `json:"UseManifestNamespaces,omitempty"`
 		// Pre Pull Image
-		PrePullImage bool `json:"PrePullImage"`
+		PrePullImage bool `json:"PrePullImage,omitempty"`
 		// Re-Pull Image
-		RePullImage bool `json:"RePullImage"`
+		RePullImage bool `json:"RePullImage,omitempty"`
 		// Retry deploy
-		RetryDeploy bool `example:"false"`
+		RetryDeploy bool `json:"RetryDeploy,omitempty" example:"false"`
 
 		// The GitOps update settings of a git stack
 		AutoUpdate *portainer.AutoUpdateSettings `json:"AutoUpdate"`
 		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
-		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
+		Webhook string `json:"Webhook,omitempty" example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 		// The git configuration of a git stack
-		GitConfig *gittypes.RepoConfig
+		GitConfig *gittypes.RepoConfig `json:"GitConfig,omitempty"`
 
 		// Whether the stack supports relative path volume
-		SupportRelativePath bool `example:"false"`
+		SupportRelativePath bool `json:"SupportRelativePath,omitempty" example:"false"`
 		// Local filesystem path
-		FilesystemPath string `example:"/tmp"`
+		FilesystemPath string `json:"FilesystemPath,omitempty" example:"/tmp"`
 
 		// Whether the edge stack supports per device configs
-		SupportPerDeviceConfigs bool `example:"false"`
+		SupportPerDeviceConfigs bool `json:"SupportPerDeviceConfigs,omitempty" example:"false"`
 		// Per device configs match type
 		PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
 		// Per device configs group match type
 		PerDeviceConfigsGroupMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
 		// Per device configs path
-		PerDeviceConfigsPath string `example:"configs"`
+		PerDeviceConfigsPath string `json:"PerDeviceConfigsPath,omitempty" example:"configs"`
 
 		// StackFileVersion represents the version of the stack file, such yaml, hcl, manifest file
 		StackFileVersion int `json:"StackFileVersion" example:"1"`
 		// PreviousDeploymentInfo represents the previous deployment info of the stack
-		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
+		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo,omitempty"`
 		// EnvVars is a list of environment variables to inject into the stack
 		EnvVars []portainer.Pair
 		// StaggerConfig is the configuration for staggered update
-		StaggerConfig *EdgeStaggerConfig
+		StaggerConfig *EdgeStaggerConfig `json:"StaggerConfig,omitempty"`
 
 		// Deprecated
-		Prune bool `json:"Prune"`
+		Prune bool `json:"Prune,omitempty"`
 	}
 
 	EndpointLog struct {
@@ -278,20 +278,20 @@ type (
 
 	// EndpointChangeWindow determine when GitOps stack/app updates may occur
 	EndpointChangeWindow struct {
-		Enabled   bool   `json:"Enabled" example:"true"`
-		StartTime string `json:"StartTime" example:"22:00"`
-		EndTime   string `json:"EndTime" example:"02:00"`
+		Enabled   bool   `json:"Enabled,omitempty" example:"true"`
+		StartTime string `json:"StartTime,omitempty" example:"22:00"`
+		EndTime   string `json:"EndTime,omitempty" example:"02:00"`
 	}
 
 	// DeploymentOptions hides manual deployment forms for an environment
 	DeploymentOptions struct {
-		OverrideGlobalOptions bool `json:"overrideGlobalOptions"`
+		OverrideGlobalOptions bool `json:"overrideGlobalOptions,omitempty"`
 		// Hide manual deploy forms in portainer
-		HideAddWithForm bool `json:"hideAddWithForm" example:"true"`
+		HideAddWithForm bool `json:"hideAddWithForm,omitempty" example:"true"`
 		// Hide the webeditor in the remaining visible forms
-		HideWebEditor bool `json:"hideWebEditor" example:"false"`
+		HideWebEditor bool `json:"hideWebEditor,omitempty" example:"false"`
 		// Hide the file upload option in the remaining visible forms
-		HideFileUpload bool `json:"hideFileUpload" example:"false"`
+		HideFileUpload bool `json:"hideFileUpload,omitempty" example:"false"`
 	}
 
 	// Environment(Endpoint) represents a Docker environment(endpoint) with all the info required
@@ -304,11 +304,11 @@ type (
 		// Environment(Endpoint) environment(endpoint) type. 1 for a Docker environment(endpoint), 2 for an agent on Docker environment(endpoint) or 3 for an Azure environment(endpoint).
 		Type portainer.EndpointType `json:"Type" example:"1"`
 		// URL or IP address of the Docker host associated to this environment(endpoint)
-		URL string `json:"URL" example:"docker.mydomain.tld:2375"`
+		URL string `json:"URL,omitempty" example:"docker.mydomain.tld:2375"`
 		// Environment(Endpoint) group identifier
 		GroupID portainer.EndpointGroupID `json:"GroupId" example:"1"`
 		// URL or IP address where exposed containers will be reachable
-		PublicURL        string                     `json:"PublicURL" example:"docker.mydomain.tld:2375"`
+		PublicURL        string                     `json:"PublicURL,omitempty" example:"docker.mydomain.tld:2375"`
 		Gpus             []portainer.Pair           `json:"Gpus"`
 		TLSConfig        portainer.TLSConfiguration `json:"TLSConfig"`
 		AzureCredentials portainer.AzureCredentials `json:"AzureCredentials,omitempty"`
@@ -322,7 +322,7 @@ type (
 		StatusMessage EndpointStatusMessage `json:"StatusMessage"`
 		// A Kubernetes as a service cloud provider. Only included if this
 		// endpoint was created using KaaS provisioning.
-		CloudProvider *CloudProvider `json:"CloudProvider"`
+		CloudProvider *CloudProvider `json:"CloudProvider,omitempty"`
 		// List of snapshots
 		Snapshots []portainer.DockerSnapshot `json:"Snapshots"`
 		// List of user identifiers authorized to connect to this environment(endpoint)
@@ -332,27 +332,27 @@ type (
 		// The identifier of the edge agent associated with this environment(endpoint)
 		EdgeID string `json:"EdgeID,omitempty"`
 		// The key which is used to map the agent to Portainer
-		EdgeKey string `json:"EdgeKey"`
+		EdgeKey string `json:"EdgeKey,omitempty"`
 
 		// Associated Kubernetes data
 		Kubernetes KubernetesData `json:"Kubernetes"`
 		// Associated Nomad data
 		Nomad NomadData `json:"Nomad"`
 		// Maximum version of docker-compose
-		ComposeSyntaxMaxVersion string `json:"ComposeSyntaxMaxVersion" example:"3.8"`
+		ComposeSyntaxMaxVersion string `json:"ComposeSyntaxMaxVersion,omitempty" example:"3.8"`
 		// Environment(Endpoint) specific security settings
 		SecuritySettings portainer.EndpointSecuritySettings
 		// The identifier of the AMT Device associated with this environment(endpoint)
 		AMTDeviceGUID string `json:"AMTDeviceGUID,omitempty" example:"4c4c4544-004b-3910-8037-b6c04f504633"`
 		// LastCheckInDate mark last check-in date on checkin
-		LastCheckInDate int64
+		LastCheckInDate int64 `json:"LastCheckInDate,omitempty"`
 		// QueryDate of each query with the endpoints list
-		QueryDate int64
+		QueryDate int64 `json:"QueryDate,omitempty"`
 		// Heartbeat indicates the heartbeat status of an edge environment
-		Heartbeat bool `json:"Heartbeat" example:"true"`
+		Heartbeat bool `json:"Heartbeat,omitempty" example:"true"`
 
 		// Whether the device has been trusted or not by the user
-		UserTrusted bool
+		UserTrusted bool `json:"UserTrusted,omitempty"`
 
 		// Whether we need to run any "post init migrations".
 		PostInitMigrations EndpointPostInitMigrations `json:"PostInitMigrations"`
@@ -365,16 +365,16 @@ type (
 		Agent EnvironmentAgentData
 
 		// LocalTimeZone is the local time zone of the endpoint
-		LocalTimeZone string
+		LocalTimeZone string `json:"LocalTimeZone,omitempty"`
 
 		// GitOps update change window restriction for stacks and apps
 		ChangeWindow EndpointChangeWindow `json:"ChangeWindow"`
 		// Hide manual deployment forms for an environment
-		DeploymentOptions *DeploymentOptions `json:"DeploymentOptions"`
+		DeploymentOptions *DeploymentOptions `json:"DeploymentOptions,omitempty"`
 
-		EnableImageNotification bool `json:"EnableImageNotification"`
+		EnableImageNotification bool `json:"EnableImageNotification,omitempty"`
 
-		EnableGPUManagement bool `json:"EnableGPUManagement"`
+		EnableGPUManagement bool `json:"EnableGPUManagement,omitempty"`
 
 		// Deprecated fields
 		// Deprecated in DBVersion == 4
@@ -391,13 +391,13 @@ type (
 		Tags []string `json:"Tags"`
 
 		// Deprecated v2.18
-		IsEdgeDevice bool
+		IsEdgeDevice bool `json:"IsEdgeDevice,omitempty"`
 	}
 
 	// EnvironmentAgentData represents the data associated to an agent deployed
 	EnvironmentAgentData struct {
-		Version         string `example:"1.0.0"`
-		PreviousVersion string `example:"1.0.0"`
+		Version         string `json:"Version,omitempty" example:"1.0.0"`
+		PreviousVersion string `json:"PreviousVersion,omitempty" example:"1.0.0"`
 	}
 
 	// EndpointStatusMessage represents the current status of a provisioning or
@@ -415,16 +415,16 @@ type (
 
 	// EndpointPostInitMigrations
 	EndpointPostInitMigrations struct {
-		MigrateIngresses  bool `json:"MigrateIngresses"`
-		MigrateGPUs       bool `json:"MigrateGPUs"`
-		MigrateGateKeeper bool `json:"MigrateGateKeeper"`
+		MigrateIngresses  bool `json:"MigrateIngresses,omitempty"`
+		MigrateGPUs       bool `json:"MigrateGPUs,omitempty"`
+		MigrateGateKeeper bool `json:"MigrateGateKeeper,omitempty"`
 	}
 
 	// Extension represents a deprecated Portainer extension
 	Extension struct {
 		// Extension Identifier
 		ID               portainer.ExtensionID       `json:"Id" example:"1"`
-		Enabled          bool                        `json:"Enabled"`
+		Enabled          bool                        `json:"Enabled,omitempty"`
 		Name             string                      `json:"Name,omitempty"`
 		ShortDescription string                      `json:"ShortDescription,omitempty"`
 		Description      string                      `json:"Description,omitempty"`
@@ -461,13 +461,13 @@ type (
 
 	// GithubRegistryData represents data required for Github registry to work
 	GithubRegistryData struct {
-		UseOrganisation  bool   `json:"UseOrganisation"`
+		UseOrganisation  bool   `json:"UseOrganisation,omitempty"`
 		OrganisationName string `json:"OrganisationName"`
 	}
 
 	K8sNamespaceInfo struct {
-		IsSystem  bool        `json:"IsSystem"`
-		IsDefault bool        `json:"IsDefault"`
+		IsSystem  bool        `json:"IsSystem,omitempty"`
+		IsDefault bool        `json:"IsDefault,omitempty"`
 		Status    interface{} `json:"Status"`
 	}
 
@@ -482,13 +482,13 @@ type (
 	}
 
 	MTLSSettings struct {
-		UseSeparateCert bool `json:"UseSeparateCert"`
+		UseSeparateCert bool `json:"UseSeparateCert,omitempty"`
 		// CaCertFile is the path to the mTLS CA certificate file
-		CaCertFile string `json:"CaCertFile"`
+		CaCertFile string `json:"CaCertFile,omitempty"`
 		// CertFile is the path to the mTLS certificate file
-		CertFile string `json:"CertFile"`
+		CertFile string `json:"CertFile,omitempty"`
 		// KeyFile is the path to the mTLS key file
-		KeyFile string `json:"KeyFile"`
+		KeyFile string `json:"KeyFile,omitempty"`
 	}
 
 	// NomadData contains all the Nomad related environment(endpoint) information
@@ -530,16 +530,16 @@ type (
 
 	// KubernetesConfiguration represents the configuration of a Kubernetes environment(endpoint)
 	KubernetesConfiguration struct {
-		UseLoadBalancer                 bool                                     `json:"UseLoadBalancer"`
-		UseServerMetrics                bool                                     `json:"UseServerMetrics"`
-		EnableResourceOverCommit        bool                                     `json:"EnableResourceOverCommit"`
+		UseLoadBalancer                 bool                                     `json:"UseLoadBalancer,omitempty"`
+		UseServerMetrics                bool                                     `json:"UseServerMetrics,omitempty"`
+		EnableResourceOverCommit        bool                                     `json:"EnableResourceOverCommit,omitempty"`
 		ResourceOverCommitPercentage    int                                      `json:"ResourceOverCommitPercentage"`
 		StorageClasses                  []portainer.KubernetesStorageClassConfig `json:"StorageClasses"`
 		IngressClasses                  []portainer.KubernetesIngressClassConfig `json:"IngressClasses"`
-		RestrictDefaultNamespace        bool                                     `json:"RestrictDefaultNamespace"`
-		IngressAvailabilityPerNamespace bool                                     `json:"IngressAvailabilityPerNamespace"`
-		RestrictStandardUserIngressW    bool                                     `json:"RestrictStandardUserIngressW"`
-		AllowNoneIngressClass           bool                                     `json:"AllowNoneIngressClass"`
+		RestrictDefaultNamespace        bool                                     `json:"RestrictDefaultNamespace,omitempty"`
+		IngressAvailabilityPerNamespace bool                                     `json:"IngressAvailabilityPerNamespace,omitempty"`
+		RestrictStandardUserIngressW    bool                                     `json:"RestrictStandardUserIngressW,omitempty"`
+		AllowNoneIngressClass           bool                                     `json:"AllowNoneIngressClass,omitempty"`
 	}
 
 	// LDAPServerType represents the type of the LDAP server
@@ -548,7 +548,7 @@ type (
 	// LDAPSettings represents the settings used to connect to a LDAP server
 	LDAPSettings struct {
 		// Enable this option if the server is configured for Anonymous access. When enabled, ReaderDN and Password will not be used
-		AnonymousMode bool `json:"AnonymousMode" example:"true" validate:"validate_bool"`
+		AnonymousMode bool `json:"AnonymousMode,omitempty" example:"true" validate:"validate_bool"`
 		// Account that will be used to search for users
 		ReaderDN string `json:"ReaderDN" example:"cn=readonly-account,dc=ldap,dc=domain,dc=tld" validate:"required_if=AnonymousMode false"`
 		// Password of the account that will be used to search users
@@ -557,28 +557,28 @@ type (
 		URLs      []string                   `json:"URLs" validate:"validate_urls"`
 		TLSConfig portainer.TLSConfiguration `json:"TLSConfig"`
 		// Whether LDAP connection should use StartTLS
-		StartTLS            bool                                `json:"StartTLS" example:"true"`
+		StartTLS            bool                                `json:"StartTLS,omitempty" example:"true"`
 		SearchSettings      []portainer.LDAPSearchSettings      `json:"SearchSettings"`
 		GroupSearchSettings []portainer.LDAPGroupSearchSettings `json:"GroupSearchSettings"`
 		// Automatically provision users and assign them to matching LDAP group names
-		AutoCreateUsers bool           `json:"AutoCreateUsers" example:"true"`
+		AutoCreateUsers bool           `json:"AutoCreateUsers,omitempty" example:"true"`
 		ServerType      LDAPServerType `json:"ServerType" example:"1"`
 		// Whether auto admin population is switched on or not
-		AdminAutoPopulate        bool                                `json:"AdminAutoPopulate" example:"true"`
+		AdminAutoPopulate        bool                                `json:"AdminAutoPopulate,omitempty" example:"true"`
 		AdminGroupSearchSettings []portainer.LDAPGroupSearchSettings `json:"AdminGroupSearchSettings"`
 		// Saved admin group list, the user will be populated as an admin role if any user group matches the record in the list
 		AdminGroups []string `json:"AdminGroups" example:"['manager','operator']"`
 		// Deprecated
-		URL string `json:"URL" validate:"hostname_port"`
+		URL string `json:"URL,omitempty" validate:"hostname_port"`
 	}
 
 	// LicenseInfo represents aggregated information about an instance license
 	LicenseInfo struct {
 		Company   string                          `json:"company"`
 		ExpiresAt int64                           `json:"expiresAt"`
-		Nodes     int                             `json:"nodes"`
+		Nodes     int                             `json:"nodes,omitempty"`
 		Type      liblicense.PortainerLicenseType `json:"type"`
-		Valid     bool                            `json:"valid"`
+		Valid     bool                            `json:"valid,omitempty"`
 		// unix timestamp when node usage exceeded avaiable license limit
 		OveruseStartedTimestamp int64 `json:"overuseStartedTimestamp"`
 	}
@@ -593,7 +593,7 @@ type (
 	TeamMemberships struct {
 		OAuthClaimName            string               `json:"OAuthClaimName"`
 		OAuthClaimMappings        []OAuthClaimMappings `json:"OAuthClaimMappings"`
-		AdminAutoPopulate         bool                 `json:"AdminAutoPopulate"`
+		AdminAutoPopulate         bool                 `json:"AdminAutoPopulate,omitempty"`
 		AdminGroupClaimsRegexList []string             `json:"AdminGroupClaimsRegexList"`
 	}
 
@@ -634,13 +634,13 @@ type (
 		// Registry Name
 		Name string `json:"Name" example:"my-registry"`
 		// URL or IP address of the Docker registry
-		URL string `json:"URL" example:"registry.mydomain.tld:2375/feed-name"`
+		URL string `json:"URL,omitempty" example:"registry.mydomain.tld:2375/feed-name"`
 		// Base URL, introduced for ProGet registry
-		BaseURL string `json:"BaseURL" example:"registry.mydomain.tld:2375"`
+		BaseURL string `json:"BaseURL,omitempty" example:"registry.mydomain.tld:2375"`
 		// Is authentication against this registry enabled
-		Authentication bool `json:"Authentication" example:"true"`
+		Authentication bool `json:"Authentication,omitempty" example:"true"`
 		// Username or AccessKeyID used to authenticate against this registry
-		Username string `json:"Username" example:"registry user"`
+		Username string `json:"Username,omitempty" example:"registry user"`
 		// Password or SecretAccessKey used to authenticate against this registry
 		Password                string                                     `json:"Password,omitempty" example:"registry_password"`
 		ManagementConfiguration *portainer.RegistryManagementConfiguration `json:"ManagementConfiguration"`
@@ -674,17 +674,17 @@ type (
 		// Role name
 		Name string `json:"Name" example:"HelpDesk" validate:"required"`
 		// Role description
-		Description string `json:"Description" example:"Read-only access of all resources in an environment(endpoint)" validate:"required"`
+		Description string `json:"Description,omitempty" example:"Read-only access of all resources in an environment(endpoint)" validate:"required"`
 		// Authorizations associated to a role
 		Authorizations portainer.Authorizations `json:"Authorizations" validate:"required"`
-		Priority       int                      `json:"Priority" validate:"required"`
+		Priority       int                      `json:"Priority,omitempty" validate:"required"`
 	}
 
 	// APIKey represents an API key
 	APIKey struct {
 		ID          portainer.APIKeyID `json:"id" example:"1"`
 		UserID      portainer.UserID   `json:"userId" example:"1"`
-		Description string             `json:"description" example:"portainer-api-key"`
+		Description string             `json:"description,omitempty" example:"portainer-api-key"`
 		Prefix      string             `json:"prefix"`           // API key identifier (7 char prefix)
 		DateCreated int64              `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
 		LastUsed    int64              `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
@@ -717,14 +717,14 @@ type (
 		// AWS S3 bucket name
 		BucketName string `json:"bucketName"`
 		// Password to encrypt the backup with
-		Password string `json:"password"`
+		Password string `json:"password,omitempty"`
 		// S3 compatible host
 		S3CompatibleHost string `json:"s3CompatibleHost"`
 	}
 
 	// S3BackupStatus represents result of the scheduled s3 backup
 	S3BackupStatus struct {
-		Failed    bool
+		Failed    bool `json:"Failed,omitempty"`
 		Timestamp time.Time
 	}
 
@@ -754,17 +754,17 @@ type (
 		ID             portainer.ScheduleID `json:"Id" example:"1"`
 		Name           string
 		CronExpression string
-		Recurring      bool
+		Recurring      bool `json:"Recurring,omitempty"`
 		Created        int64
 		JobType        portainer.JobType
 		EdgeSchedule   *portainer.EdgeSchedule
 	}
 
 	CloudApiKeys struct {
-		CivoApiKey        string `json:"CivoApiKey" example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
-		DigitalOceanToken string `json:"DigitalOceanToken" example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
-		LinodeToken       string `json:"LinodeToken" example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
-		GKEApiKey         string `json:"GKEApiKey" example:"an entire base64ed key file"`
+		CivoApiKey        string `json:"CivoApiKey,omitempty" example:"DgJ33kwIhnHumQFyc8ihGwWJql9cC8UJDiBhN8YImKqiX"`
+		DigitalOceanToken string `json:"DigitalOceanToken,omitempty" example:"dop_v1_n9rq7dkcbg3zb3bewtk9nnvmfkyfnr94d42n28lym22vhqu23rtkllsldygqm22v"`
+		LinodeToken       string `json:"LinodeToken,omitempty" example:"92gsh9r9u5helgs4eibcuvlo403vm45hrmc6mzbslotnrqmkwc1ovqgmolcyq0wc"`
+		GKEApiKey         string `json:"GKEApiKey,omitempty" example:"an entire base64ed key file"`
 	}
 
 	CloudManagementRequest interface{}
@@ -787,13 +787,13 @@ type (
 		StartingState     int
 
 		// Azure specific fields
-		ResourceGroup     string
-		ResourceGroupName string
-		ResourceName      string
-		Tier              string
-		PoolName          string
+		ResourceGroup     string `json:"ResourceGroup,omitempty"`
+		ResourceGroupName string `json:"ResourceGroupName,omitempty"`
+		ResourceName      string `json:"ResourceName,omitempty"`
+		Tier              string `json:"Tier,omitempty"`
+		PoolName          string `json:"PoolName,omitempty"`
 		PoolType          containerservice.AgentPoolType
-		DNSPrefix         string
+		DNSPrefix         string `json:"DNSPrefix,omitempty"`
 		// Azure AKS
 		// --------------------------------------------------
 		// AvailabilityZones - The list of Availability zones to use for nodes.
@@ -801,17 +801,17 @@ type (
 		AvailabilityZones []string
 
 		// Amazon specific fields
-		AmiType        string
-		InstanceType   string
-		NodeVolumeSize int
+		AmiType        string `json:"AmiType,omitempty"`
+		InstanceType   string `json:"InstanceType,omitempty"`
+		NodeVolumeSize int    `json:"NodeVolumeSize,omitempty"`
 
 		// Microk8S specific fields
 		MasterNodes   []string
 		WorkerNodes   []string
 		AddonWithArgs []MicroK8sAddon
 
-		CustomTemplateID      portainer.CustomTemplateID
-		CustomTemplateContent string
+		CustomTemplateID      portainer.CustomTemplateID `json:"CustomTemplateID,omitempty"`
+		CustomTemplateContent string                     `json:"CustomTemplateContent,omitempty"`
 
 		// --- Common portainer internal fields ---
 		// the userid of the user who created this request.
@@ -861,42 +861,42 @@ type (
 	// GlobalDeploymentOptions hides manual deployment forms globally, to enforce infrastructure as code practices
 	GlobalDeploymentOptions struct {
 		// Hide manual deploy forms in portainer
-		HideAddWithForm bool `json:"hideAddWithForm" example:"false"`
+		HideAddWithForm bool `json:"hideAddWithForm,omitempty" example:"false"`
 		// Configure this per environment or globally
-		PerEnvOverride bool `json:"perEnvOverride" example:"false"`
+		PerEnvOverride bool `json:"perEnvOverride,omitempty" example:"false"`
 		// Hide the webeditor in the remaining visible forms
-		HideWebEditor bool `json:"hideWebEditor" example:"false"`
+		HideWebEditor bool `json:"hideWebEditor,omitempty" example:"false"`
 		// Hide the file upload option in the remaining visible forms
-		HideFileUpload bool `json:"hideFileUpload" example:"false"`
+		HideFileUpload bool `json:"hideFileUpload,omitempty" example:"false"`
 		// Make note field mandatory if enabled
-		RequireNoteOnApplications bool `json:"requireNoteOnApplications" example:"false"`
-		MinApplicationNoteLength  int  `json:"minApplicationNoteLength" example:"10"`
+		RequireNoteOnApplications bool `json:"requireNoteOnApplications,omitempty" example:"false"`
+		MinApplicationNoteLength  int  `json:"minApplicationNoteLength,omitempty" example:"10"`
 
-		HideStacksFunctionality bool `json:"hideStacksFunctionality" example:"false"`
+		HideStacksFunctionality bool `json:"hideStacksFunctionality,omitempty" example:"false"`
 	}
 
 	Edge struct {
 		// The command list interval for edge agent - used in edge async mode (in seconds)
-		CommandInterval int `json:"CommandInterval" example:"5"`
+		CommandInterval int `json:"CommandInterval,omitempty" example:"5"`
 		// The ping interval for edge agent - used in edge async mode (in seconds)
-		PingInterval int `json:"PingInterval" example:"5"`
+		PingInterval int `json:"PingInterval,omitempty" example:"5"`
 		// The snapshot interval for edge agent - used in edge async mode (in seconds)
-		SnapshotInterval int `json:"SnapshotInterval" example:"5"`
+		SnapshotInterval int `json:"SnapshotInterval,omitempty" example:"5"`
 
 		MTLS MTLSSettings
 		// The address where the tunneling server can be reached by Edge agents
 		TunnelServerAddress string `json:"TunnelServerAddress" example:"portainer.domain.tld"`
 
 		// Deprecated 2.18
-		AsyncMode bool
+		AsyncMode bool `json:"AsyncMode,omitempty" example:"false"`
 	}
 
 	// Settings represents the application settings
 	Settings struct {
 		// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
-		LogoURL string `json:"LogoURL" example:"https://mycompany.mydomain.tld/logo.png"`
+		LogoURL string `json:"LogoURL,omitempty" example:"https://mycompany.mydomain.tld/logo.png"`
 		// The content in plaintext used to display in the login page. Will hide when value is empty string
-		CustomLoginBanner string `json:"CustomLoginBanner"`
+		CustomLoginBanner string `json:"CustomLoginBanner,omitempty"`
 		// A list of label name & value that will be used to hide containers when querying containers
 		BlackListedLabels []portainer.Pair `json:"BlackListedLabels"`
 		// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
@@ -913,27 +913,27 @@ type (
 		// Deployment options for encouraging git ops workflows
 		GlobalDeploymentOptions GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
 		// Show the Kompose build option (discontinued in 2.18)
-		ShowKomposeBuildOption bool `json:"ShowKomposeBuildOption" example:"false"`
+		ShowKomposeBuildOption bool `json:"ShowKomposeBuildOption,omitempty" example:"false"`
 		// Whether edge compute features are enabled
-		EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures"`
+		EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures,omitempty"`
 		// The duration of a user session
 		UserSessionTimeout string `json:"UserSessionTimeout" example:"5m"`
 		// The expiry of a Kubeconfig
 		KubeconfigExpiry string `json:"KubeconfigExpiry" example:"24h"`
 		// Whether telemetry is enabled
-		EnableTelemetry bool `json:"EnableTelemetry" example:"false"`
+		EnableTelemetry bool `json:"EnableTelemetry,omitempty" example:"false"`
 		// Helm repository URL, defaults to "https://charts.bitnami.com/bitnami"
 		HelmRepositoryURL string `json:"HelmRepositoryURL" example:"https://charts.bitnami.com/bitnami"`
 		// KubectlImage, defaults to portainer/kubectl-shell
 		KubectlShellImage string `json:"KubectlShellImage" example:"portainer/kubectl-shell"`
 		// TrustOnFirstConnect makes Portainer accepting edge agent connection by default
-		TrustOnFirstConnect bool `json:"TrustOnFirstConnect" example:"false"`
+		TrustOnFirstConnect bool `json:"TrustOnFirstConnect,omitempty" example:"false"`
 		// EnforceEdgeID makes Portainer store the Edge ID instead of accepting anyone
-		EnforceEdgeID bool `json:"EnforceEdgeID" example:"false"`
+		EnforceEdgeID bool `json:"EnforceEdgeID,omitempty" example:"false"`
 		// Container environment parameter AGENT_SECRET
-		AgentSecret string `json:"AgentSecret"`
+		AgentSecret string `json:"AgentSecret,omitempty"`
 		// EdgePortainerURL is the URL that is exposed to edge agents
-		EdgePortainerURL string `json:"EdgePortainerUrl"`
+		EdgePortainerURL string `json:"EdgePortainerUrl,omitempty"`
 		// CloudAPIKeys
 		CloudApiKeys CloudApiKeys `json:"CloudApiKeys"`
 		// The default check in interval for edge agent (in seconds)
@@ -941,7 +941,7 @@ type (
 
 		// the default builtin registry now is anonymous docker hub registry
 		DefaultRegistry struct {
-			Hide bool `json:"Hide" example:"false"`
+			Hide bool `json:"Hide,omitempty" example:"false"`
 		}
 
 		Edge Edge `json:"Edge"`
@@ -950,34 +950,34 @@ type (
 		ExperimentalFeatures ExperimentalFeatures `json:"ExperimentalFeatures"`
 
 		// Deprecated fields
-		DisplayDonationHeader       bool
-		DisplayExternalContributors bool
+		DisplayDonationHeader       bool `json:"DisplayDonationHeader,omitempty"`
+		DisplayExternalContributors bool `json:"DisplayExternalContributors,omitempty"`
 
 		// Deprecated fields v26
-		EnableHostManagementFeatures              bool `json:"EnableHostManagementFeatures"`
-		AllowVolumeBrowserForRegularUsers         bool `json:"AllowVolumeBrowserForRegularUsers"`
-		AllowBindMountsForRegularUsers            bool `json:"AllowBindMountsForRegularUsers"`
-		AllowPrivilegedModeForRegularUsers        bool `json:"AllowPrivilegedModeForRegularUsers"`
-		AllowHostNamespaceForRegularUsers         bool `json:"AllowHostNamespaceForRegularUsers"`
-		AllowStackManagementForRegularUsers       bool `json:"AllowStackManagementForRegularUsers"`
-		AllowDeviceMappingForRegularUsers         bool `json:"AllowDeviceMappingForRegularUsers"`
-		AllowContainerCapabilitiesForRegularUsers bool `json:"AllowContainerCapabilitiesForRegularUsers"`
+		EnableHostManagementFeatures              bool `json:"EnableHostManagementFeatures,omitempty"`
+		AllowVolumeBrowserForRegularUsers         bool `json:"AllowVolumeBrowserForRegularUsers,omitempty"`
+		AllowBindMountsForRegularUsers            bool `json:"AllowBindMountsForRegularUsers,omitempty"`
+		AllowPrivilegedModeForRegularUsers        bool `json:"AllowPrivilegedModeForRegularUsers,omitempty"`
+		AllowHostNamespaceForRegularUsers         bool `json:"AllowHostNamespaceForRegularUsers,omitempty"`
+		AllowStackManagementForRegularUsers       bool `json:"AllowStackManagementForRegularUsers,omitempty"`
+		AllowDeviceMappingForRegularUsers         bool `json:"AllowDeviceMappingForRegularUsers,omitempty"`
+		AllowContainerCapabilitiesForRegularUsers bool `json:"AllowContainerCapabilitiesForRegularUsers,omitempty"`
 
-		IsDockerDesktopExtension bool `json:"IsDockerDesktopExtension"`
+		IsDockerDesktopExtension bool `json:"IsDockerDesktopExtension,omitempty"`
 	}
 
 	// ExperimentalFeatures represents experimental features that can be enabled
 	ExperimentalFeatures struct {
-		OpenAIIntegration bool `json:"OpenAIIntegration"`
+		OpenAIIntegration bool `json:"OpenAIIntegration,omitempty"`
 	}
 
 	// SSLSettings represents a pair of SSL certificate and key
 	SSLSettings struct {
-		CertPath    string `json:"certPath"`
-		KeyPath     string `json:"keyPath"`
-		CACertPath  string `json:"caCertPath"`
-		SelfSigned  bool   `json:"selfSigned"`
-		HTTPEnabled bool   `json:"httpEnabled"`
+		CertPath    string `json:"certPath,omitempty"`
+		KeyPath     string `json:"keyPath,omitempty"`
+		CACertPath  string `json:"caCertPath,omitempty"`
+		SelfSigned  bool   `json:"selfSigned,omitempty"`
+		HTTPEnabled bool   `json:"httpEnabled,omitempty"`
 	}
 
 	// Stack represents a Docker stack created via docker stack deploy
@@ -991,13 +991,13 @@ type (
 		// Environment(Endpoint) identifier. Reference the environment(endpoint) that will be used for deployment
 		EndpointID portainer.EndpointID `json:"EndpointId" example:"1"`
 		// Cluster identifier of the Swarm cluster where the stack is deployed
-		SwarmID string `json:"SwarmId" example:"jpofkc0i9uo9wtx1zesuk649w"`
+		SwarmID string `json:"SwarmId,omitempty" example:"jpofkc0i9uo9wtx1zesuk649w"`
 		// Path to the Stack file
 		EntryPoint string `json:"EntryPoint" example:"docker-compose.yml"`
 		// A list of environment(endpoint) variables used during stack deployment
 		Env []portainer.Pair `json:"Env"`
 		//
-		ResourceControl *portainer.ResourceControl `json:"ResourceControl"`
+		ResourceControl *portainer.ResourceControl `json:"ResourceControl,omitempty"`
 		// Stack status (1 - active, 2 - inactive)
 		Status portainer.StackStatus `json:"Status" example:"1"`
 		// Path on disk to the repository hosting the Stack file
@@ -1013,29 +1013,29 @@ type (
 		// Only applies when deploying stack with multiple files
 		AdditionalFiles []string `json:"AdditionalFiles"`
 		// The GitOps update settings of a git stack
-		AutoUpdate *portainer.AutoUpdateSettings `json:"AutoUpdate"`
+		AutoUpdate *portainer.AutoUpdateSettings `json:"AutoUpdate,omitempty"`
 		// The stack deployment option
-		Option *portainer.StackOption `json:"Option"`
+		Option *portainer.StackOption `json:"Option,omitempty"`
 		// The git configuration of a git stack
-		GitConfig *gittypes.RepoConfig
+		GitConfig *gittypes.RepoConfig `json:"GitConfig,omitempty"`
 		// Whether the stack is from a app template
-		FromAppTemplate bool `example:"false"`
+		FromAppTemplate bool `json:"FromAppTemplate,omitempty" example:"false"`
 		// Kubernetes namespace if stack is a kube application
-		Namespace string `example:"default"`
+		Namespace string `json:"Namespace,omitempty" example:"default"`
 		// IsComposeFormat indicates if the Kubernetes stack is created from a Docker Compose file
-		IsComposeFormat bool `example:"false"`
+		IsComposeFormat bool `json:"IsComposeFormat,omitempty" example:"false"`
 		// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook was invoked.
-		Webhook string `example:"c11fdf23-183e-428a-9bb6-16db01032174"`
+		Webhook string `json:"Webhook,omitempty" example:"c11fdf23-183e-428a-9bb6-16db01032174"`
 		// If stack support relative path volume
-		SupportRelativePath bool `example:"false"`
+		SupportRelativePath bool `json:"SupportRelativePath,omitempty" example:"false"`
 		// Network(Swarm) or local(Standalone) filesystem path
-		FilesystemPath string `example:"/tmp"`
+		FilesystemPath string `json:"FilesystemPath,omitempty" example:"/tmp"`
 		// StackFileVersion indicates the stack file version, such as yaml, hcl, and manifest
 		StackFileVersion int `example:"1"`
 		// The previous deployment info of the stack
-		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo"`
+		PreviousDeploymentInfo *portainer.StackDeploymentInfo `json:"PreviousDeploymentInfo,omitempty"`
 		// Whether the stack is detached from git
-		IsDetachedFromGit bool `example:"false"`
+		IsDetachedFromGit bool `json:"IsDetachedFromGit,omitempty" example:"false"`
 	}
 
 	// TunnelDetails represents information associated to a tunnel
@@ -1061,12 +1061,12 @@ type (
 		ThemeSettings           UserThemeSettings
 
 		// OpenAI integration parameters
-		OpenAIApiKey string `json:"OpenAIApiKey" example:"sk-1234567890"`
+		OpenAIApiKey string `json:"OpenAIApiKey,omitempty" example:"sk-1234567890"`
 
 		// Deprecated fields
 
 		// Deprecated
-		UserTheme string `example:"dark"`
+		UserTheme string `json:"UserTheme,omitempty" example:"dark"`
 	}
 
 	// AuthActivityLog represents a log entry for user authentication activities
@@ -1097,16 +1097,16 @@ type (
 	// UserThemeSettings represents the theme settings for a user
 	UserThemeSettings struct {
 		// Color represents the color theme of the UI
-		Color string `json:"color" example:"dark" enums:"dark,light,highcontrast,auto"`
+		Color string `json:"color,omitempty" example:"dark" enums:"dark,light,highcontrast,auto"`
 		// SubtleUpgradeButton indicates if the upgrade banner should be displayed in a subtle way
-		SubtleUpgradeButton bool `json:"subtleUpgradeButton"`
+		SubtleUpgradeButton bool `json:"subtleUpgradeButton,omitempty"`
 	}
 
 	Snapshot struct {
 		EndpointID portainer.EndpointID          `json:"EndpointId"`
-		Docker     *portainer.DockerSnapshot     `json:"Docker"`
-		Kubernetes *portainer.KubernetesSnapshot `json:"Kubernetes"`
-		Nomad      *NomadSnapshot                `json:"Nomad"`
+		Docker     *portainer.DockerSnapshot     `json:"Docker,omitempty"`
+		Kubernetes *portainer.KubernetesSnapshot `json:"Kubernetes,omitempty"`
+		Nomad      *NomadSnapshot                `json:"Nomad,omitempty"`
 	}
 
 	// AuthEventHandler represents an handler for an auth event
@@ -2085,8 +2085,8 @@ type (
 	EdgeConfigCategory  string
 
 	EdgeConfigProgress struct {
-		Success int `json:"success"`
-		Total   int `json:"total"`
+		Success int `json:"success,omitempty"`
+		Total   int `json:"total,omitempty"`
 	}
 
 	EdgeConfig struct {
@@ -2099,10 +2099,10 @@ type (
 		BaseDir      string                  `json:"baseDir"`
 		Created      int64                   `json:"created"`
 		CreatedBy    portainer.UserID        `json:"createdBy"`
-		Updated      int64                   `json:"updated"`
-		UpdatedBy    portainer.UserID        `json:"updatedBy"`
+		Updated      int64                   `json:"updated,omitempty"`
+		UpdatedBy    portainer.UserID        `json:"updatedBy,omitempty"`
 		Progress     EdgeConfigProgress      `json:"progress"`
-		Prev         *EdgeConfig             `json:"prev"`
+		Prev         *EdgeConfig             `json:"prev,omitempty"`
 	}
 
 	EdgeConfigState struct {

@@ -1,7 +1,6 @@
 package users
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,6 +18,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

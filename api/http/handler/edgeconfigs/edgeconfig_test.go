@@ -3,7 +3,6 @@ package edgeconfigs
 import (
 	"archive/zip"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -28,6 +27,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/errors"
 
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/require"
 )
 

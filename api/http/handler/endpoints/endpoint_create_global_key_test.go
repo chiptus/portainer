@@ -3,7 +3,6 @@ package endpoints
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
+
+	"github.com/segmentio/encoding/json"
 )
 
 func mustSetupGlobalKeyHandler(t *testing.T) *Handler {

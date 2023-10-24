@@ -9,7 +9,7 @@ import (
 )
 
 type defaultRegistryUpdatePayload struct {
-	Hide bool `json:"Hide" example:"false"`
+	Hide bool `json:"Hide,omitempty" example:"false"`
 }
 
 // @id DefaultRegistryUpdate

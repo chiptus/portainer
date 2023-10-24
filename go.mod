@@ -47,7 +47,6 @@ require (
 	github.com/hashicorp/nomad/api v0.0.0-20220128200432-22bd08912af7
 	github.com/joho/godotenv v1.4.0
 	github.com/jpillora/chisel v1.9.0
-	github.com/json-iterator/go v1.1.12
 	github.com/koding/websocketproxy v0.0.0-20181220232114-7ed82d81a28c
 	github.com/linode/linodego v1.3.0
 	github.com/opencontainers/go-digest v1.0.0
@@ -58,6 +57,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.30.0
 	github.com/sashabaranov/go-openai v1.9.3
+	github.com/segmentio/encoding v0.3.6
 	github.com/stretchr/testify v1.8.2
 	github.com/urfave/negroni/v3 v3.0.0
 	github.com/viney-shih/go-lock v1.1.1
@@ -76,6 +76,11 @@ require (
 	k8s.io/client-go v0.27.4
 	k8s.io/metrics v0.27.4
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
+)
+
+require (
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/segmentio/asm v1.1.3 // indirect
 )
 
 require (

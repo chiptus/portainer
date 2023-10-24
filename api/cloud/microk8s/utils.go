@@ -2,7 +2,6 @@ package microk8s
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -10,7 +9,9 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/database/models"
+
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"

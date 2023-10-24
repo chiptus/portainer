@@ -3,8 +3,9 @@ package gke
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+
+	"github.com/segmentio/encoding/json"
 )
 
 type Key struct {

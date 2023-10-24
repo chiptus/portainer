@@ -2,7 +2,6 @@ package registries
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +11,8 @@ import (
 	"github.com/portainer/portainer-ee/api/http/security"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

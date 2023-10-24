@@ -3,7 +3,6 @@ package middlewares
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 )
 
 const contextEndpoint = "endpoint"

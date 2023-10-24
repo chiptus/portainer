@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"encoding/json"
 	"net/http"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -13,6 +12,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 // @id getKubernetesPodSecurityRule

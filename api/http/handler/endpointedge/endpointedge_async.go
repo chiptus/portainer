@@ -2,7 +2,6 @@ package endpointedge
 
 import (
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"net/http"
@@ -24,6 +23,7 @@ import (
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 const edgeIntervalUseDefault = -1

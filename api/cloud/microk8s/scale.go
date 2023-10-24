@@ -1,14 +1,15 @@
 package microk8s
 
 import (
-	"encoding/json"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
+
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 type (

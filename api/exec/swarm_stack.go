@@ -2,7 +2,6 @@ package exec
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -16,7 +15,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
+
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 // SwarmStackManager represents a service for managing stacks.

@@ -2,7 +2,6 @@ package deployments
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 type StackAuthorMissingErr struct {

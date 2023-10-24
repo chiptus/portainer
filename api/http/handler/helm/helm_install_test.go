@@ -2,7 +2,6 @@ package helm
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +19,8 @@ import (
 	"github.com/portainer/portainer/pkg/libhelm/binary/test"
 	"github.com/portainer/portainer/pkg/libhelm/options"
 	"github.com/portainer/portainer/pkg/libhelm/release"
+
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

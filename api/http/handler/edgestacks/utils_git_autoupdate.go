@@ -1,7 +1,6 @@
 package edgestacks
 
 import (
-	"encoding/json"
 	"fmt"
 
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 // autoUpdate checks if the git repository or env vars have changed and updates the stack if needed

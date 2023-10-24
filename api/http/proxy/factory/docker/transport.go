@@ -3,7 +3,6 @@ package docker
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -24,6 +23,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 var apiVersionRe = regexp.MustCompile(`(/v[0-9]\.[0-9]*)?`)

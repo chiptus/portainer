@@ -2,7 +2,6 @@ package customtemplates
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -23,6 +22,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

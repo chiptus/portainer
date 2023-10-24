@@ -2,14 +2,15 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
-	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/internal/registryutils"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/pkg/errors"
+	"github.com/segmentio/encoding/json"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

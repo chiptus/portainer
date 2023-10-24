@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

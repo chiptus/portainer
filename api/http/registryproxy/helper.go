@@ -2,13 +2,14 @@ package registryproxy
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"regexp"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/segmentio/encoding/json"
 )
 
 func requestToken(response *http.Response, config *portainer.RegistryManagementConfiguration) (*string, error) {

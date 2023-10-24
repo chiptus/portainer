@@ -2,7 +2,6 @@ package datastore
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -10,13 +9,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Masterminds/semver"
-	"github.com/google/go-cmp/cmp"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer/api/database/models"
+
+	"github.com/Masterminds/semver"
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 func TestMigrateData(t *testing.T) {

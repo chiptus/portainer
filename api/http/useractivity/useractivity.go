@@ -1,7 +1,6 @@
 package useractivity
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/portainer/portainer-ee/api/useractivity"
 
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 	negroni "github.com/urfave/negroni/v3"
 )
 

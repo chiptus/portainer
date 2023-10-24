@@ -2,12 +2,13 @@ package kubernetes
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
+	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/exec/exectest"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
@@ -18,8 +19,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 
-	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/datastore"
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

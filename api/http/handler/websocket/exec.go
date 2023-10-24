@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"bytes"
-	"encoding/json"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -17,6 +16,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 type execStartOperationPayload struct {

@@ -1,9 +1,10 @@
 package packages
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/segmentio/encoding/json"
 )
 
 func (ghPackages *Packages) GetPackages() ([]GPPackage, error) {

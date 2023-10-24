@@ -1,13 +1,14 @@
 package edgestacks
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+
+	"github.com/segmentio/encoding/json"
 )
 
 // Delete

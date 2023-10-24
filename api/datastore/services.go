@@ -1,7 +1,6 @@
 package datastore
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -53,6 +52,7 @@ import (
 	"github.com/portainer/portainer/api/dataservices/webhook"
 
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 // Store defines the implementation of dataservices.DataStore using

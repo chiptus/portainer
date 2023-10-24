@@ -1,7 +1,6 @@
 package customtemplates
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 func (handler *Handler) customTemplateCreate(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

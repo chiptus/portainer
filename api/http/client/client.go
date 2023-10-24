@@ -2,7 +2,6 @@ package client
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,6 +14,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/encoding/json"
 )
 
 var errInvalidResponseStatus = errors.New("invalid response status (expecting 200)")
