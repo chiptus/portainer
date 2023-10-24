@@ -1,11 +1,11 @@
-// matches https://github.com/portainer/portainer-ee/pkg/liblicense/blob/develop/liblicense.go#L66-L74
+// matches https://github.com/portainer/liblicense/blob/develop/liblicense.go#L66-L74
 export enum Edition {
   CE = 1,
   BE,
   EE,
 }
 
-// matches https://github.com/portainer/portainer-ee/pkg/liblicense/blob/develop/liblicense.go#L64-L69
+// matches https://github.com/portainer/liblicense/blob/develop/liblicense.go#L64-L69
 
 export enum LicenseType {
   Trial = 1,
@@ -16,7 +16,7 @@ export enum LicenseType {
   Essentials,
 }
 
-// matches https://github.com/portainer/portainer-ee/pkg/liblicense/blob/develop/liblicense.go#L35-L50
+// matches https://github.com/portainer/liblicense/blob/develop/liblicense.go#L35-L50
 export interface License {
   id: string;
   company: string;

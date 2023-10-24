@@ -5,15 +5,15 @@ import (
 	"io"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
+	liblicense "github.com/portainer/liblicense/v3"
 	"github.com/portainer/portainer-ee/api/database/models"
 	kubeModels "github.com/portainer/portainer-ee/api/http/models/kubernetes"
-	"github.com/portainer/portainer-ee/pkg/liblicense"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/pkg/featureflags"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/containerservice/mgmt/containerservice"
 	nomad "github.com/hashicorp/nomad/api"
 	v1 "k8s.io/api/core/v1"
 )

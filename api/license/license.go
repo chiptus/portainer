@@ -7,11 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
-	"github.com/portainer/portainer-ee/pkg/liblicense"
-
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 

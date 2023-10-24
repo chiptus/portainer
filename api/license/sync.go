@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/pkg/liblicense"
-
 	"github.com/rs/zerolog/log"
 )
 

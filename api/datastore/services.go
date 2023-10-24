@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
@@ -38,7 +39,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/teammembership"
 	"github.com/portainer/portainer-ee/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer-ee/api/dataservices/user"
-	"github.com/portainer/portainer-ee/pkg/liblicense"
 	portainer "github.com/portainer/portainer/api"
 	cemodels "github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"

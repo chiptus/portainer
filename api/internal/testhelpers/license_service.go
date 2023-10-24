@@ -1,8 +1,8 @@
 package testhelpers
 
 import (
+	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/pkg/liblicense"
 )
 
 type Licenseservice struct{}
