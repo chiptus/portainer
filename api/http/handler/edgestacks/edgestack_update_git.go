@@ -212,6 +212,11 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 		}
 
 		if payload.UpdateVersion {
+			// Remove the old version folder after the new stack is deployed
+			stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
+				log.Info().Err(err).Msg("failed to remove the old edge stack version folder")
+			})
+
 			// Stagger configuration check
 			if handler.staggerService != nil &&
 				payload.StaggerConfig != nil &&
@@ -237,11 +242,6 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 					}
 				}
 			}
-
-			// remove the old version folder after the new stack is deployed
-			stackutils.RemoveStackVersionFolders(folderToBeRemoved, func() {
-				log.Info().Err(err).Msg("failed to remove the old edge stack version folder")
-			})
 		}
 
 		return nil
@@ -250,7 +250,6 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 	return httperrors.TxResponse(err, func() *httperror.HandlerError {
 		return response.Empty(w)
 	})
-
 }
 
 func (handler *Handler) updateAutoUpdateSettings(edgeStackID portainer.EdgeStackID, settings *portainer.AutoUpdateSettings, oldJobID string) (*portainer.AutoUpdateSettings, error) {

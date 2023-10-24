@@ -11,6 +11,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	portainer "github.com/portainer/portainer/api"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/stretchr/testify/assert"
@@ -192,5 +193,53 @@ func TestHandler_EdgeStackUpdateFromGit_RemovePreviousVersionFolder(t *testing.T
 
 		versionFolder3 := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, result.GitConfig.ConfigHash)
 		is.DirExists(versionFolder3, "expected current version folder to be kept")
+	})
+
+	// Case4: parallel update will only keep the latest two version folders
+	t.Run("keep the latest two version folders during parallel update", func(t *testing.T) {
+		edgeStack, err := handler.DataStore.EdgeStack().EdgeStack(edgeStack.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		folderToBeRemoved := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, edgeStack.PreviousDeploymentInfo.ConfigHash)
+
+		handler.staggerService = testhelpers.NewTestStaggerService()
+		data := stackGitUpdatePayload{
+			RefName:       "update",
+			UpdateVersion: true,
+			StaggerConfig: &portaineree.EdgeStaggerConfig{
+				StaggerOption:         portaineree.EdgeStaggerOptionParallel,
+				StaggerParallelOption: portaineree.EdgeStaggerParallelOptionFixed,
+				DeviceNumber:          1,
+				UpdateFailureAction:   portaineree.EdgeUpdateFailureActionContinue,
+			},
+		}
+		payload, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req, err := http.NewRequest(http.MethodPut, "/edge_stacks/1/git", bytes.NewBuffer(payload))
+		req.Header.Add("x-api-key", rawAPIKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+
+		is.Equal(http.StatusNoContent, rr.Code, "expected status code 200")
+		is.NoDirExists(folderToBeRemoved, "expected previous version folder to be removed")
+
+		result, err := handler.DataStore.EdgeStack().EdgeStack(edgeStack.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		versionFolder3 := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, result.PreviousDeploymentInfo.ConfigHash)
+		is.DirExists(versionFolder3, "expected previous version folder to be kept")
+
+		versionFolder4 := handler.FileService.FormProjectPathByVersion(edgeStack.ProjectPath, 0, result.GitConfig.ConfigHash)
+		is.DirExists(versionFolder4, "expected current version folder to be kept")
 	})
 }
