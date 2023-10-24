@@ -152,7 +152,10 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 	}
 
 	version := r.Header.Get(portaineree.PortainerAgentHeader)
-	endpoint.Agent.Version = version
+	if version != "" && version != endpoint.Agent.Version {
+		endpoint.Agent.PreviousVersion = endpoint.Agent.Version
+		endpoint.Agent.Version = version
+	}
 
 	// Take an initial snapshot
 	if endpoint.LastCheckInDate == 0 {
@@ -189,7 +192,6 @@ func (handler *Handler) inspectStatus(tx dataservices.DataStoreTx, r *http.Reque
 		return nil, false, httperror.BadRequest("Unable to parse edge update id", err)
 	}
 
-	// check endpoint version, if it has the same version as the active schedule, then we can mark the edge stack as successfully deployed
 	activeUpdateSchedule := handler.edgeUpdateService.ActiveSchedule(endpoint.ID)
 	if activeUpdateSchedule != nil && activeUpdateSchedule.ScheduleID == updateID {
 		err := handler.handleSuccessfulUpdate(tx, activeUpdateSchedule)

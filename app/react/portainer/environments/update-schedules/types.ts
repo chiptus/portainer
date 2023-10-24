@@ -1,8 +1,8 @@
-import { EnvironmentId } from '@/react/portainer/environments/types';
 import { UserId } from '@/portainer/users/types';
 import { EdgeGroup } from '@/react/edge/edge-groups/types';
 
 import { RegistryId } from '../../registries/types/registry';
+import { EnvironmentId } from '../types';
 
 export enum ScheduleType {
   Update = 1,
@@ -23,12 +23,11 @@ export type EdgeUpdateSchedule = {
   created: number;
   createdBy: UserId;
   version: string;
-  environmentsPreviousVersions: Record<EnvironmentId, string>;
   registryId: RegistryId;
 };
 
 export type EdgeUpdateResponse = EdgeUpdateSchedule & {
-  // from edge stack:
   edgeGroupIds: EdgeGroup['Id'][];
   scheduledTime: string;
+  environmentIds: Array<EnvironmentId>;
 };

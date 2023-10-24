@@ -140,17 +140,11 @@ func (handler *Handler) updateEdgeStackStatus(tx dataservices.DataStoreTx, r *ht
 		Msg("Updating stack status")
 
 	if stack.EdgeUpdateID != 0 {
-		if status == portainer.EdgeStackStatusError {
-			err := handler.edgeUpdateService.RemoveActiveSchedule(payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
-			if err != nil {
-				log.Warn().
-					Err(err).
-					Msg("Failed to remove active schedule")
-			}
-		}
-
-		if status == portainer.EdgeStackStatusRunning {
-			handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+		err := handler.edgeUpdateService.HandleStatusChange(payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID), status, endpoint.Agent.Version)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Msg("Failed to handle edge update status change")
 		}
 	}
 

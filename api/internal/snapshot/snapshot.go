@@ -161,7 +161,10 @@ func (service *Service) SnapshotEndpoint(endpoint *portaineree.Endpoint) error {
 			return err
 		}
 
-		endpoint.Agent.Version = version
+		if version != "" && version != endpoint.Agent.Version {
+			endpoint.Agent.PreviousVersion = endpoint.Agent.Version
+			endpoint.Agent.Version = version
+		}
 	}
 
 	switch endpoint.Type {

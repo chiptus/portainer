@@ -203,7 +203,10 @@ func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID strin
 	endpoint.LastCheckInDate = time.Now().Unix()
 	endpoint.Status = portainer.EndpointStatusUp
 	endpoint.Edge.AsyncMode = true
-	endpoint.Agent.Version = version
+	if version != "" && version != endpoint.Agent.Version {
+		endpoint.Agent.PreviousVersion = endpoint.Agent.Version
+		endpoint.Agent.Version = version
+	}
 
 	err = tx.Endpoint().UpdateEndpoint(endpoint.ID, endpoint)
 	if err != nil {
@@ -374,7 +377,10 @@ func (handler *Handler) createAsyncEdgeAgentEndpoint(tx dataservices.DataStoreTx
 		}
 	}
 
-	endpoint.Agent.Version = version
+	if version != "" && version != endpoint.Agent.Version {
+		endpoint.Agent.PreviousVersion = endpoint.Agent.Version
+		endpoint.Agent.Version = version
+	}
 
 	endpoint.Edge.AsyncMode = true
 	endpoint.Edge.PingInterval = settings.Edge.PingInterval
@@ -556,22 +562,14 @@ func (handler *Handler) saveSnapshot(tx dataservices.DataStoreTx, endpoint *port
 			continue
 		}
 
-		if stack.EdgeUpdateID != 0 {
-			if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-				return sts.Type == portainer.EdgeStackStatusError
-			}) {
-				err = handler.edgeUpdateService.RemoveActiveSchedule(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
-				if err != nil {
-					log.Warn().
-						Err(err).
-						Msg("Failed to remove active schedule")
-				}
-			}
+		if stack.EdgeUpdateID != 0 && len(environmentStatus.Status) > 0 {
+			lastStatus := environmentStatus.Status[len(environmentStatus.Status)-1]
 
-			if slices.ContainsFunc(environmentStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-				return sts.Type == portainer.EdgeStackStatusRunning
-			}) {
-				handler.edgeUpdateService.EdgeStackDeployed(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID))
+			err := handler.edgeUpdateService.HandleStatusChange(endpoint.ID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID), lastStatus.Type, endpoint.Agent.Version)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Msg("Failed to handle edge update status change")
 			}
 		}
 

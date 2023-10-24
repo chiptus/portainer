@@ -28,15 +28,11 @@ func Test_EndpointList_AgentVersion(t *testing.T) {
 		ID:      1,
 		GroupID: 1,
 		Type:    portaineree.AgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{
+		Agent: portaineree.EnvironmentAgentData{
 			Version: "1.0.0",
 		},
 	}
-	version2Endpoint := portaineree.Endpoint{ID: 2, GroupID: 1, Type: portaineree.AgentOnDockerEnvironment, Agent: struct {
-		Version string "example:\"1.0.0\""
-	}{Version: "2.0.0"}}
+	version2Endpoint := portaineree.Endpoint{ID: 2, GroupID: 1, Type: portaineree.AgentOnDockerEnvironment, Agent: portaineree.EnvironmentAgentData{Version: "2.0.0"}}
 	noVersionEndpoint := portaineree.Endpoint{ID: 3, Type: portaineree.AgentOnDockerEnvironment, GroupID: 1}
 	notAgentEnvironments := portaineree.Endpoint{ID: 4, Type: portaineree.DockerEnvironment, GroupID: 1}
 

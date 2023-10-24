@@ -362,9 +362,7 @@ type (
 
 		Edge portainer.EnvironmentEdgeSettings
 
-		Agent struct {
-			Version string `example:"1.0.0"`
-		}
+		Agent EnvironmentAgentData
 
 		// LocalTimeZone is the local time zone of the endpoint
 		LocalTimeZone string
@@ -394,6 +392,12 @@ type (
 
 		// Deprecated v2.18
 		IsEdgeDevice bool
+	}
+
+	// EnvironmentAgentData represents the data associated to an agent deployed
+	EnvironmentAgentData struct {
+		Version         string `example:"1.0.0"`
+		PreviousVersion string `example:"1.0.0"`
 	}
 
 	// EndpointStatusMessage represents the current status of a provisioning or

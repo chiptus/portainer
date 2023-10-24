@@ -36,6 +36,7 @@ type (
 		// ID of registry
 		RegistryID portainer.RegistryID `json:"registryId" example:"1"`
 
+		// Deprecated - use Environment.Agent.PreviousVersion instead
 		EnvironmentsPreviousVersions map[portainer.EndpointID]string `json:"environmentsPreviousVersions"`
 
 		// EdgeGroups to be updated

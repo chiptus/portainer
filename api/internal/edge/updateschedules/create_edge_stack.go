@@ -1,4 +1,4 @@
-package edgeupdateschedules
+package updateschedules
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	eefs "github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
@@ -38,7 +39,8 @@ const (
 	updaterImageEnvVar = "EDGE_UPDATE_UPDATER_IMAGE"
 )
 
-func (handler *Handler) createUpdateEdgeStack(
+func (service *Service) createEdgeStack(
+	tx dataservices.DataStoreTx,
 	scheduleID edgetypes.UpdateScheduleID,
 	relatedEnvironments []portainer.EndpointID,
 	registryID portainer.RegistryID,
@@ -60,7 +62,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		rePullImage = true
 		registries = append(registries, registryID)
 
-		registry, err := handler.dataStore.Registry().Read(registryID)
+		registry, err := tx.Registry().Read(registryID)
 		if err != nil {
 			return 0, errors.WithMessage(err, "failed to retrieve registry")
 		}
@@ -71,7 +73,7 @@ func (handler *Handler) createUpdateEdgeStack(
 
 	agentImage := fmt.Sprintf("%s:%s", agentImagePrefix, version)
 
-	deploymentConfig, err := getDeploymentConfig(endpointType, handler.assetsPath)
+	deploymentConfig, err := getDeploymentConfig(endpointType, service.assetsPath)
 	if err != nil {
 		return 0, err
 	}
@@ -82,7 +84,7 @@ func (handler *Handler) createUpdateEdgeStack(
 		EdgeUpdateID: int(scheduleID),
 	}
 
-	err = handler.dataStore.EdgeGroup().Create(edgeGroup)
+	err = tx.EdgeGroup().Create(edgeGroup)
 	if err != nil {
 		return 0, errors.WithMessage(err, "failed to create edge group for update schedule")
 	}
@@ -96,8 +98,8 @@ func (handler *Handler) createUpdateEdgeStack(
 		RetryDeploy:           false,
 	}
 
-	stack, err := handler.edgeStacksService.BuildEdgeStack(
-		handler.dataStore,
+	stack, err := service.edgeStacksService.BuildEdgeStack(
+		tx,
 		buildEdgeStackName(scheduleID),
 		deploymentConfig.Type,
 		[]portainer.EdgeGroupID{edgeGroup.ID},
@@ -109,8 +111,8 @@ func (handler *Handler) createUpdateEdgeStack(
 
 	stack.EdgeUpdateID = int(scheduleID)
 
-	_, err = handler.edgeStacksService.PersistEdgeStack(
-		handler.dataStore,
+	_, err = service.edgeStacksService.PersistEdgeStack(
+		tx,
 		stack,
 		func(stackFolder string, relatedEndpointIds []portainer.EndpointID) (configPath string, manifestPath string, projectPath string, err error) {
 			skipPullAgentImage := ""
@@ -138,9 +140,9 @@ func (handler *Handler) createUpdateEdgeStack(
 			configPath = deploymentConfig.Path
 
 			initialStackFileVersion := 1 // When creating a new stack, the version is always 1
-			projectPath = handler.fileService.GetEdgeStackProjectPath(stackFolder)
+			projectPath = service.fileService.GetEdgeStackProjectPath(stackFolder)
 
-			_, err = handler.fileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, configPath, initialStackFileVersion, []byte(deploymentFile))
+			_, err = service.fileService.StoreEdgeStackFileFromBytesByVersion(stackFolder, configPath, initialStackFileVersion, []byte(deploymentFile))
 			if err != nil {
 				return "", "", "", err
 			}

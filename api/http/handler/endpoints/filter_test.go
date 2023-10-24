@@ -20,15 +20,11 @@ type filterTest struct {
 func Test_Filter_AgentVersion(t *testing.T) {
 
 	version1Endpoint := portaineree.Endpoint{ID: 1, GroupID: 1,
-		Type: portaineree.AgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{Version: "1.0.0"}}
+		Type:  portaineree.AgentOnDockerEnvironment,
+		Agent: portaineree.EnvironmentAgentData{Version: "1.0.0"}}
 	version2Endpoint := portaineree.Endpoint{ID: 2, GroupID: 1,
-		Type: portaineree.AgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{Version: "2.0.0"}}
+		Type:  portaineree.AgentOnDockerEnvironment,
+		Agent: portaineree.EnvironmentAgentData{Version: "2.0.0"}}
 	noVersionEndpoint := portaineree.Endpoint{ID: 3, GroupID: 1,
 		Type: portaineree.AgentOnDockerEnvironment,
 	}

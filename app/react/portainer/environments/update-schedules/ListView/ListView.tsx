@@ -76,7 +76,7 @@ export function ListView() {
         renderTableActions={(selectedRows) => (
           <TableActions selectedRows={selectedRows} />
         )}
-        isRowSelectable={(row) => row.original.status === StatusType.Pending}
+        isRowSelectable={(row) => row.original.status !== StatusType.Sent}
       />
     </>
   );

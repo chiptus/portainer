@@ -6,7 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Masterminds/semver"
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
 
@@ -14,28 +17,43 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type CreateMetadata struct {
+	RelatedEnvironmentsIDs []portainer.EndpointID
+	ScheduledTime          string
+	EnvironmentType        portainer.EndpointType
+}
+
 type EdgeUpdateService interface {
 	ActiveSchedule(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation
 	ActiveSchedules(environmentsIDs []portainer.EndpointID) []edgetypes.EndpointUpdateScheduleRelation
 	RemoveActiveSchedule(environmentID portainer.EndpointID, scheduleID edgetypes.UpdateScheduleID) error
 	EdgeStackDeployed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID)
-	Schedules() ([]edgetypes.UpdateSchedule, error)
+	Schedules(tx dataservices.DataStoreTx) ([]edgetypes.UpdateSchedule, error)
 	Schedule(scheduleID edgetypes.UpdateScheduleID) (*edgetypes.UpdateSchedule, error)
-	CreateSchedule(schedule *edgetypes.UpdateSchedule) error
-	UpdateSchedule(id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule) error
+	CreateSchedule(tx dataservices.DataStoreTx, schedule *edgetypes.UpdateSchedule, metadata CreateMetadata) error
+	UpdateSchedule(tx dataservices.DataStoreTx, id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule, metadata CreateMetadata) error
 	DeleteSchedule(id edgetypes.UpdateScheduleID) error
+	HandleStatusChange(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID, status portainer.EdgeStackStatusType, agentVersion string) error
 }
 
 // Service manages schedules for edge device updates
 type Service struct {
-	dataStore dataservices.DataStore
+	dataStore         dataservices.DataStore
+	assetsPath        string
+	edgeStacksService *edgestacks.Service
+	fileService       portainer.FileService
 
 	mu                 sync.Mutex
 	idxActiveSchedules map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation
 }
 
 // NewService returns a new instance of Service
-func NewService(dataStore dataservices.DataStore) (*Service, error) {
+func NewService(
+	dataStore dataservices.DataStore,
+	assetsPath string,
+	edgeStacksService *edgestacks.Service,
+	fileService portainer.FileService,
+) (*Service, error) {
 	idxActiveSchedules := map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
 
 	schedules, err := dataStore.EdgeUpdateSchedule().ReadAll()
@@ -53,29 +71,35 @@ func NewService(dataStore dataservices.DataStore) (*Service, error) {
 			return nil, errors.WithMessage(err, "Unable to retrieve edge stack for schedule")
 		}
 
-		for endpointId := range schedule.EnvironmentsPreviousVersions {
-			if idxActiveSchedules[endpointId] != nil {
+		for environmentID, envStatus := range edgeStack.Status {
+			if idxActiveSchedules[environmentID] != nil {
 				continue
 			}
 
-			// check if schedule is active
-			envStatus := edgeStack.Status[endpointId]
-			if !slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-				return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess
+			if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
+				return sts.Type == portainer.EdgeStackStatusRemoteUpdateSuccess ||
+					sts.Type == portainer.EdgeStackStatusError ||
+					(sts.Type == portainer.EdgeStackStatusDeploymentReceived && sts.Time < time.Now().Add(-3*time.Minute).Unix())
 			}) {
-				idxActiveSchedules[endpointId] = &edgetypes.EndpointUpdateScheduleRelation{
-					EnvironmentID: endpointId,
-					ScheduleID:    schedule.ID,
-					TargetVersion: schedule.Version,
-					EdgeStackID:   schedule.EdgeStackID,
-				}
+				continue
 			}
+
+			idxActiveSchedules[environmentID] = &edgetypes.EndpointUpdateScheduleRelation{
+				EnvironmentID: environmentID,
+				ScheduleID:    schedule.ID,
+				TargetVersion: schedule.Version,
+				EdgeStackID:   schedule.EdgeStackID,
+			}
+
 		}
 	}
 
 	return &Service{
 		dataStore:          dataStore,
 		idxActiveSchedules: idxActiveSchedules,
+		assetsPath:         assetsPath,
+		edgeStacksService:  edgeStacksService,
+		fileService:        fileService,
 	}, nil
 }
 
@@ -127,6 +151,26 @@ func (service *Service) RemoveActiveSchedule(environmentID portainer.EndpointID,
 	return nil
 }
 
+// payload.EndpointID, edgetypes.UpdateScheduleID(stack.EdgeUpdateID), status, endpoint.Agent.Version
+func (service *Service) HandleStatusChange(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID, status portainer.EdgeStackStatusType, agentVersion string) error {
+	if status == portainer.EdgeStackStatusError {
+		err := service.RemoveActiveSchedule(environmentID, updateID)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Msg("Failed to remove active schedule")
+		}
+
+		return nil
+	}
+
+	if (!supportsRunningStatus(agentVersion) && status == portainer.EdgeStackStatusDeploymentReceived) || status == portainer.EdgeStackStatusRunning {
+		service.EdgeStackDeployed(environmentID, updateID)
+	}
+
+	return nil
+}
+
 // EdgeStackDeployed marks an active schedule as deployed
 // After this call, if the schedule will not be removed from the active schedules after three minute, it means the stack have failed
 // Edge agents mark a stack as failed if the exit status of `docker-compose up` or `docker stack deploy` is not 0,
@@ -141,23 +185,57 @@ func (service *Service) EdgeStackDeployed(environmentID portainer.EndpointID, up
 	}
 
 	go func() {
-		// 3 mins is safer
 		time.Sleep(3 * time.Minute)
-		err := service.RemoveActiveSchedule(environmentID, updateID)
+
+		err := service.markStackAsFailed(environmentID, updateID)
 		if err != nil {
 			log.Error().
-				Int("schedule-id", int(schedule.ScheduleID)).
+				Int("schedule-id", int(updateID)).
 				Int("environment-id", int(environmentID)).
 				Err(err).
-				Msg("Unable to remove active schedule")
+				Msg("Unable to mark edge stack as failed")
+			return
 		}
 
 	}()
 }
 
+// markStackAsFailed checks if the update is still active and marks the stack as failed and deletes the active schedule
+func (service *Service) markStackAsFailed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) error {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+
+	schedule := service.idxActiveSchedules[environmentID]
+	if schedule == nil || schedule.ScheduleID != updateID {
+		return nil
+	}
+
+	err := service.dataStore.EdgeStack().UpdateEdgeStackFunc(schedule.EdgeStackID, func(stack *portaineree.EdgeStack) {
+		envStatus, ok := stack.Status[environmentID]
+		if !ok {
+			envStatus = portainer.EdgeStackStatus{
+				Status: []portainer.EdgeStackDeploymentStatus{},
+			}
+		}
+		envStatus.Status = append(envStatus.Status, portainer.EdgeStackDeploymentStatus{
+			Type:  portainer.EdgeStackStatusError,
+			Time:  time.Now().Unix(),
+			Error: "Edge Update failed.",
+		})
+
+		stack.Status[environmentID] = envStatus
+	})
+	if err != nil {
+		return errors.WithMessage(err, "Unable to mark edge stack as failed")
+	}
+
+	delete(service.idxActiveSchedules, environmentID)
+	return nil
+}
+
 // Schedules returns all schedules
-func (service *Service) Schedules() ([]edgetypes.UpdateSchedule, error) {
-	return service.dataStore.EdgeUpdateSchedule().ReadAll()
+func (service *Service) Schedules(tx dataservices.DataStoreTx) ([]edgetypes.UpdateSchedule, error) {
+	return tx.EdgeUpdateSchedule().ReadAll()
 }
 
 // Schedule returns a schedule by ID
@@ -166,34 +244,92 @@ func (service *Service) Schedule(scheduleID edgetypes.UpdateScheduleID) (*edgety
 }
 
 // CreateSchedule creates a new schedule
-func (service *Service) CreateSchedule(schedule *edgetypes.UpdateSchedule) error {
-	if service.hasActiveSchedule(schedule) {
+func (service *Service) CreateSchedule(tx dataservices.DataStoreTx, schedule *edgetypes.UpdateSchedule, metadata CreateMetadata) error {
+	if len(metadata.RelatedEnvironmentsIDs) == 0 {
+		return errors.New("No related environments")
+	}
+
+	if metadata.EnvironmentType == 0 {
+		return errors.New("No environment type specified")
+	}
+
+	if service.hasActiveSchedule(metadata.RelatedEnvironmentsIDs, schedule.ID) {
 		return errors.New("Cannot create a new schedule while another schedule is active")
 	}
 
-	err := service.dataStore.EdgeUpdateSchedule().Create(schedule)
+	err := tx.EdgeUpdateSchedule().Create(schedule)
 	if err != nil {
 		return err
 	}
 
-	service.setRelation(schedule)
+	edgeStackID, err := service.createEdgeStack(
+		tx,
+		schedule.ID,
+		metadata.RelatedEnvironmentsIDs,
+		schedule.RegistryID,
+		schedule.Version,
+		metadata.ScheduledTime,
+		metadata.EnvironmentType,
+	)
+	if err != nil {
+		return err
+	}
+
+	schedule.EdgeStackID = edgeStackID
+
+	err = tx.EdgeUpdateSchedule().Update(schedule.ID, schedule)
+
+	if err != nil {
+		return err
+	}
+
+	service.setRelation(schedule, metadata.RelatedEnvironmentsIDs)
 
 	return nil
 }
 
 // UpdateSchedule updates an existing schedule
-func (service *Service) UpdateSchedule(id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule) error {
-	if service.hasActiveSchedule(item) {
+func (service *Service) UpdateSchedule(tx dataservices.DataStoreTx, id edgetypes.UpdateScheduleID, schedule *edgetypes.UpdateSchedule, metadata CreateMetadata) error {
+	if len(metadata.RelatedEnvironmentsIDs) == 0 {
+		return errors.New("No related environments")
+	}
+
+	if metadata.EnvironmentType == 0 {
+		return errors.New("No environment type specified")
+	}
+
+	if service.hasActiveSchedule(metadata.RelatedEnvironmentsIDs, schedule.ID) {
 		return errors.New("Cannot update a schedule while another schedule is active")
 	}
 
-	err := service.dataStore.EdgeUpdateSchedule().Update(id, item)
+	service.cleanRelation(id)
+
+	err := service.deleteEdgeRelations(tx, schedule.EdgeStackID)
 	if err != nil {
 		return err
 	}
-	service.cleanRelation(id)
 
-	service.setRelation(item)
+	edgeStackID, err := service.createEdgeStack(
+		tx,
+		schedule.ID,
+		metadata.RelatedEnvironmentsIDs,
+		schedule.RegistryID,
+		schedule.Version,
+		metadata.ScheduledTime,
+		metadata.EnvironmentType,
+	)
+	if err != nil {
+		return err
+	}
+
+	schedule.EdgeStackID = edgeStackID
+
+	err = tx.EdgeUpdateSchedule().Update(schedule.ID, schedule)
+	if err != nil {
+		return err
+	}
+
+	service.setRelation(schedule, metadata.RelatedEnvironmentsIDs)
 
 	return nil
 }
@@ -202,7 +338,32 @@ func (service *Service) UpdateSchedule(id edgetypes.UpdateScheduleID, item *edge
 func (service *Service) DeleteSchedule(id edgetypes.UpdateScheduleID) error {
 	service.cleanRelation(id)
 
-	return service.dataStore.EdgeUpdateSchedule().Delete(id)
+	return service.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+
+		schedule, err := tx.EdgeUpdateSchedule().Read(id)
+		if err != nil {
+			return err
+		}
+
+		err = service.deleteEdgeRelations(tx, schedule.EdgeStackID)
+		if err != nil {
+			return err
+		}
+
+		return tx.EdgeUpdateSchedule().Delete(id)
+	})
+}
+
+func (service *Service) hasActiveSchedule(relatedEnvironmentIds []portainer.EndpointID, skipID edgetypes.UpdateScheduleID) bool {
+	service.mu.Lock()
+	defer service.mu.Unlock()
+	for _, environmentId := range relatedEnvironmentIds {
+		if service.idxActiveSchedules[environmentId] != nil && service.idxActiveSchedules[environmentId].ScheduleID != skipID {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (service *Service) cleanRelation(id edgetypes.UpdateScheduleID) {
@@ -216,28 +377,54 @@ func (service *Service) cleanRelation(id edgetypes.UpdateScheduleID) {
 	}
 }
 
-func (service *Service) hasActiveSchedule(item *edgetypes.UpdateSchedule) bool {
-	service.mu.Lock()
-	defer service.mu.Unlock()
-	for endpointId := range item.EnvironmentsPreviousVersions {
-		if service.idxActiveSchedules[endpointId] != nil && service.idxActiveSchedules[endpointId].ScheduleID != item.ID {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (service *Service) setRelation(item *edgetypes.UpdateSchedule) {
+func (service *Service) setRelation(item *edgetypes.UpdateSchedule, relatedEnvironmentIds []portainer.EndpointID) {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
-	for endpointId := range item.EnvironmentsPreviousVersions {
-		service.idxActiveSchedules[endpointId] = &edgetypes.EndpointUpdateScheduleRelation{
-			EnvironmentID: endpointId,
+	for _, environmentID := range relatedEnvironmentIds {
+		service.idxActiveSchedules[environmentID] = &edgetypes.EndpointUpdateScheduleRelation{
+			EnvironmentID: environmentID,
 			ScheduleID:    item.ID,
 			TargetVersion: item.Version,
 			EdgeStackID:   item.EdgeStackID,
 		}
 	}
+}
+
+// supportsRunningStatus checks if the agent version is less than 2.19.0
+// will return true on errors
+func supportsRunningStatus(version string) bool {
+	if version == "" {
+		return true
+	}
+
+	agentVersion, err := semver.NewVersion(version)
+	if err != nil {
+		log.Warn().Err(err).Msg("Unable to parse agent version")
+		return true
+	}
+
+	return !agentVersion.LessThan(semver.MustParse("2.19.0"))
+}
+
+// deleteEdgeRelations deletes the temp edge stack and edge group
+func (service *Service) deleteEdgeRelations(tx dataservices.DataStoreTx, edgeStackID portainer.EdgeStackID) error {
+	stack, err := tx.EdgeStack().EdgeStack(edgeStackID)
+	if err != nil {
+		return err
+	}
+
+	err = service.edgeStacksService.DeleteEdgeStack(tx, stack.ID, stack.EdgeGroups)
+	if err != nil {
+		return err
+	}
+
+	if len(stack.EdgeGroups) > 0 {
+		err = tx.EdgeGroup().Delete(stack.EdgeGroups[0])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

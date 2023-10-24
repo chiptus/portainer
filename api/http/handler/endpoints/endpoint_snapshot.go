@@ -54,6 +54,7 @@ func (handler *Handler) endpointSnapshot(w http.ResponseWriter, r *http.Request)
 		latestEndpointReference.Status = portainer.EndpointStatusDown
 	}
 
+	latestEndpointReference.Agent.PreviousVersion = endpoint.Agent.PreviousVersion
 	latestEndpointReference.Agent.Version = endpoint.Agent.Version
 
 	err = handler.DataStore.Endpoint().UpdateEndpoint(latestEndpointReference.ID, latestEndpointReference)

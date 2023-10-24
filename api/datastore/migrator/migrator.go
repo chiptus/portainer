@@ -278,6 +278,7 @@ func (m *Migrator) initMigrations() {
 		m.updateEdgeStackStatusForDB100,
 		m.fixPotentialUpdateScheduleDBCorruptionForDB100,
 		m.migrateCloudProviderAddonsForDB100,
+		m.moveEnvironmentPreviousVersionFromEdgeUpdatesDB100,
 	)
 	m.addMigrations("2.20",
 		m.setDefaultCategoryForEdgeConfigForDB110,

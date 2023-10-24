@@ -1,7 +1,6 @@
 import { useFormikContext } from 'formik';
 import _ from 'lodash';
 import { useMemo, useEffect } from 'react';
-import { useCurrentStateAndParams } from '@uirouter/react';
 
 import { useEdgeGroups } from '@/react/edge/edge-groups/queries/useEdgeGroups';
 
@@ -53,38 +52,22 @@ function useSelectVersionOnMount() {
 
   const environmentIdsQuery = useEdgeGroupsEnvironmentIds(groupIds);
 
-  const {
-    params: { id: idParam },
-  } = useCurrentStateAndParams();
+  const previousVersionsQuery = usePreviousVersions(
+    environmentIdsQuery.data ?? []
+  );
 
-  const id = parseInt(idParam, 10);
+  const previousVersions = useMemo(
+    () =>
+      previousVersionsQuery.data
+        ? _.uniq(Object.values(previousVersionsQuery.data))
+        : [],
+    [previousVersionsQuery.data]
+  );
 
-  const previousVersionsQuery = usePreviousVersions({
-    enabled: !!environmentIdsQuery.data,
-    skipScheduleID: id,
-  });
-
-  const { previousVersions, count } = useMemo(() => {
-    const previousVersions = previousVersionsQuery.data;
-    const environmentIds = environmentIdsQuery.data;
-
-    if (!previousVersions || !environmentIds) {
-      return { previousVersions: [], count: 0 };
-    }
-
-    const filteredVersions = Object.fromEntries(
-      environmentIds
-        .map((envId) => [envId, previousVersions[envId]])
-        .filter(([, version]) => !!version)
-    );
-
-    return {
-      previousVersions: _.uniq(
-        _.compact(Object.values(filteredVersions).flat())
-      ),
-      count: Object.keys(filteredVersions).length,
-    };
-  }, [environmentIdsQuery.data, previousVersionsQuery.data]);
+  const count = useMemo(
+    () => Object.keys(previousVersions).length,
+    [previousVersions]
+  );
 
   useEffect(() => {
     switch (previousVersions.length) {

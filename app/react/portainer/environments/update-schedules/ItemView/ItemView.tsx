@@ -68,10 +68,6 @@ function ItemView() {
     registryId: item.registryId,
   };
 
-  const environmentsCount = Object.keys(
-    item.environmentsPreviousVersions
-  ).length;
-
   return (
     <>
       <PageHeader
@@ -144,13 +140,11 @@ function ItemView() {
 
                     <div className="mt-2">
                       {isScheduleActive ? (
-                        <InformationPanel>
-                          <TextTip color="blue">
-                            {environmentsCount} environment(s) will be updated
-                            to version {item.version} on {item.scheduledTime}{' '}
-                            (local time)
-                          </TextTip>
-                        </InformationPanel>
+                        <UpdateVersionNotice
+                          scheduledTime={item.scheduledTime}
+                          version={item.version}
+                          environmentsCount={item.environmentIds.length}
+                        />
                       ) : (
                         <ScheduleTypeSelector />
                       )}
@@ -199,4 +193,23 @@ function updateValidation(
   return !isScheduleActive
     ? validation(schedules, edgeGroups, itemId)
     : object({ name: nameValidation(schedules, itemId) });
+}
+
+function UpdateVersionNotice({
+  version,
+  scheduledTime,
+  environmentsCount,
+}: {
+  version: string;
+  scheduledTime: string;
+  environmentsCount: number;
+}) {
+  return (
+    <InformationPanel>
+      <TextTip color="blue">
+        {environmentsCount} environment(s) will be updated to version {version}{' '}
+        on {scheduledTime} (local time)
+      </TextTip>
+    </InformationPanel>
+  );
 }

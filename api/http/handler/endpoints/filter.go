@@ -11,6 +11,7 @@ import (
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/handler/edgegroups"
+	"github.com/portainer/portainer-ee/api/http/utils"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/unique"
@@ -47,41 +48,41 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		search = strings.ToLower(search)
 	}
 
-	status, err := getNumberArrayQueryParameter[portainer.EndpointStatus](r, "status")
+	status, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointStatus](r, "status")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
-	groupIDs, err := getNumberArrayQueryParameter[portainer.EndpointGroupID](r, "groupIds")
+	groupIDs, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointGroupID](r, "groupIds")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
 	provisioned, _ := request.RetrieveBooleanQueryParameter(r, "provisioned", true)
 
-	endpointTypes, err := getNumberArrayQueryParameter[portainer.EndpointType](r, "types")
+	endpointTypes, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointType](r, "types")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
-	tagIDs, err := getNumberArrayQueryParameter[portainer.TagID](r, "tagIds")
+	tagIDs, err := utils.RetrieveNumberArrayQueryParameter[portainer.TagID](r, "tagIds")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
 	tagsPartialMatch, _ := request.RetrieveBooleanQueryParameter(r, "tagsPartialMatch", true)
 
-	endpointIDs, err := getNumberArrayQueryParameter[portainer.EndpointID](r, "endpointIds")
+	endpointIDs, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointID](r, "endpointIds")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
-	excludeIDs, err := getNumberArrayQueryParameter[portainer.EndpointID](r, "excludeIds")
+	excludeIDs, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointID](r, "excludeIds")
 	if err != nil {
 		return EnvironmentsQuery{}, err
 	}
 
-	agentVersions := getArrayQueryParameter(r, "agentVersions")
+	agentVersions := utils.RetrieveArrayQueryParameter(r, "agentVersions")
 
 	name, _ := request.RetrieveQueryParameter(r, "name", true)
 
@@ -257,8 +258,8 @@ func filterEndpointsByEdgeStack(endpoints []portaineree.Endpoint, edgeStackId po
 	}
 
 	envIds := make([]portainer.EndpointID, 0)
-	for _, edgeGroupdId := range stack.EdgeGroups {
-		edgeGroup, err := datastore.EdgeGroup().Read(edgeGroupdId)
+	for _, edgeGroupId := range stack.EdgeGroups {
+		edgeGroup, err := datastore.EdgeGroup().Read(edgeGroupId)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Unable to retrieve edge group from the database")
 		}
@@ -582,35 +583,6 @@ func filter(endpoints []portaineree.Endpoint, predicate func(endpoint portainere
 	}
 
 	return endpoints[:n]
-}
-
-func getArrayQueryParameter(r *http.Request, parameter string) []string {
-	list, exists := r.Form[fmt.Sprintf("%s[]", parameter)]
-	if !exists {
-		list = []string{}
-	}
-
-	return list
-}
-
-func getNumberArrayQueryParameter[T ~int](r *http.Request, parameter string) ([]T, error) {
-	list := getArrayQueryParameter(r, parameter)
-	if list == nil {
-		return []T{}, nil
-	}
-
-	var result []T
-	for _, item := range list {
-		number, err := strconv.Atoi(item)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Unable to parse parameter %s", parameter)
-
-		}
-
-		result = append(result, T(number))
-	}
-
-	return result, nil
 }
 
 func contains(strings []string, param string) bool {

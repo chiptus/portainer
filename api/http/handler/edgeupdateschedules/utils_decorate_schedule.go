@@ -5,11 +5,10 @@ import (
 	"slices"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/pkg/errors"
 )
 
 type decoratedUpdateSchedule struct {
@@ -20,13 +19,18 @@ type decoratedUpdateSchedule struct {
 	ScheduledTime string                             `json:"scheduledTime"`
 }
 
-func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlewares.ItemGetter[portainer.EdgeStackID, portaineree.EdgeStack], environmentGetter middlewares.ItemGetter[portainer.EndpointID, portaineree.Endpoint]) (*decoratedUpdateSchedule, error) {
-	edgeStack, err := edgeStackGetter(schedule.EdgeStackID)
+func decorateSchedule(tx dataservices.DataStoreTx, schedule edgetypes.UpdateSchedule) (*decoratedUpdateSchedule, error) {
+	edgeStack, err := tx.EdgeStack().EdgeStack(schedule.EdgeStackID)
 	if err != nil {
-		return nil, errors.WithMessage(err, "unable to get edge stack")
+		return nil, fmt.Errorf("unable to get edge stack: %w", err)
 	}
 
-	status, statusMessage := aggregateStatus(schedule.EnvironmentsPreviousVersions, edgeStack, environmentGetter)
+	edgeGroup, err := tx.EdgeGroup().Read(edgeStack.EdgeGroups[0])
+	if err != nil {
+		return nil, fmt.Errorf("unable to get edge group: %w", err)
+	}
+
+	status, statusMessage := aggregateStatus(edgeGroup.Endpoints, edgeStack, tx.Endpoint().Endpoint)
 
 	decoratedItem := &decoratedUpdateSchedule{
 		UpdateSchedule: schedule,
@@ -39,7 +43,7 @@ func decorateSchedule(schedule edgetypes.UpdateSchedule, edgeStackGetter middlew
 	return decoratedItem, nil
 }
 
-func aggregateStatus(relatedEnvironmentsIDs map[portainer.EndpointID]string, edgeStack *portaineree.EdgeStack, environmentGetter middlewares.ItemGetter[portainer.EndpointID, portaineree.Endpoint]) (edgetypes.UpdateScheduleStatusType, string) {
+func aggregateStatus(relatedEnvironmentsIDs []portainer.EndpointID, edgeStack *portaineree.EdgeStack, environmentGetter middlewares.ItemGetter[portainer.EndpointID, portaineree.Endpoint]) (edgetypes.UpdateScheduleStatusType, string) {
 	hasSent := false
 	hasPending := false
 
@@ -48,15 +52,9 @@ func aggregateStatus(relatedEnvironmentsIDs map[portainer.EndpointID]string, edg
 		return edgetypes.UpdateScheduleStatusSuccess, ""
 	}
 
-	for environmentID := range relatedEnvironmentsIDs {
+	for _, environmentID := range relatedEnvironmentsIDs {
 		envStatus, ok := edgeStack.Status[environmentID]
-		if !ok {
-			hasPending = true
-			continue
-		}
-
-		// if a update schedule task is scheduled for future date, it will not have any status
-		if len(envStatus.Status) == 0 {
+		if !ok || len(envStatus.Status) == 0 {
 			hasPending = true
 			continue
 		}
@@ -66,23 +64,20 @@ func aggregateStatus(relatedEnvironmentsIDs map[portainer.EndpointID]string, edg
 		}) {
 			continue
 		}
-
-		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-			return sts.Type == portainer.EdgeStackStatusPending ||
-				sts.Type == portainer.EdgeStackStatusDeploymentReceived
-		}) {
-			hasPending = true
-		}
-
 		if idx := slices.IndexFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
 			return sts.Type == portainer.EdgeStackStatusError
-		}); idx >= 0 {
+		}); idx != -1 {
 			return edgetypes.UpdateScheduleStatusError, fmt.Sprintf("Error on environment %d: %s", environmentID, envStatus.Status[idx].Error)
 		}
 
-		if slices.ContainsFunc(envStatus.Status, func(sts portainer.EdgeStackDeploymentStatus) bool {
-			return sts.Type == portainer.EdgeStackStatusAcknowledged
-		}) {
+		lastStatus := envStatus.Status[len(envStatus.Status)-1]
+
+		if lastStatus.Type == portainer.EdgeStackStatusPending {
+			hasPending = true
+		}
+
+		if lastStatus.Type == portainer.EdgeStackStatusAcknowledged ||
+			lastStatus.Type == portainer.EdgeStackStatusDeploymentReceived {
 			hasSent = true
 			break
 		}
@@ -90,12 +85,12 @@ func aggregateStatus(relatedEnvironmentsIDs map[portainer.EndpointID]string, edg
 		// status is "success update"
 	}
 
-	if hasPending {
-		return edgetypes.UpdateScheduleStatusPending, ""
-	}
-
 	if hasSent {
 		return edgetypes.UpdateScheduleStatusSent, ""
+	}
+
+	if hasPending {
+		return edgetypes.UpdateScheduleStatusPending, ""
 	}
 
 	return edgetypes.UpdateScheduleStatusSuccess, ""

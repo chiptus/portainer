@@ -4,8 +4,8 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge"
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/internal/set"
 	pslices "github.com/portainer/portainer-ee/api/internal/slices"
@@ -17,24 +17,24 @@ import (
 //
 // it also filters out environments that are already updated and validates that all
 // environments are of the same type
-func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID, version string, rollback bool, skipScheduleID edgetypes.UpdateScheduleID) ([]portainer.EndpointID, map[portainer.EndpointID]string, portainer.EndpointType, error) {
+func (handler *Handler) filterEnvironments(tx dataservices.DataStoreTx, edgeGroupIds []portainer.EdgeGroupID, version string, rollback bool) ([]portainer.EndpointID, portainer.EndpointType, error) {
 	relationConfig, err := edge.FetchEndpointRelationsConfig(handler.dataStore)
 	if err != nil {
-		return nil, nil, 0, errors.WithMessage(err, "unable to fetch environment relations config")
+		return nil, 0, errors.WithMessage(err, "unable to fetch environment relations config")
 	}
 
 	groupsEnvironmentsIds, err := edge.EdgeStackRelatedEndpoints(edgeGroupIds, relationConfig.Endpoints, relationConfig.EndpointGroups, relationConfig.EdgeGroups)
 	if err != nil {
-		return nil, nil, 0, errors.WithMessage(err, "unable to fetch related environments")
+		return nil, 0, errors.WithMessage(err, "unable to fetch related environments")
 	}
 
 	if len(groupsEnvironmentsIds) == 0 {
-		return nil, nil, 0, errors.New("no related environments")
+		return nil, 0, errors.New("no related environments")
 	}
 
-	environments, err := handler.dataStore.Endpoint().Endpoints()
+	environments, err := tx.Endpoint().Endpoints()
 	if err != nil {
-		return nil, nil, 0, errors.WithMessage(err, "unable to fetch environments")
+		return nil, 0, errors.WithMessage(err, "unable to fetch environments")
 	}
 
 	relatedEnvironmentIdsSet := set.ToSet(groupsEnvironmentsIds)
@@ -43,21 +43,10 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID,
 
 	semverConstraint, err := semver.NewConstraint("< " + version)
 	if err != nil {
-		return nil, nil, 0, errors.WithMessage(err, "unable to parse version constraint")
-	}
-
-	var previousVersionsMap map[portainer.EndpointID]string
-	if rollback {
-		schedules, err := handler.updateService.Schedules()
-		if err != nil {
-			return nil, nil, 0, errors.WithMessage(err, "unable to fetch schedules")
-		}
-
-		previousVersionsMap = previousVersions(schedules, handler.updateService.ActiveSchedule, skipScheduleID)
+		return nil, 0, errors.WithMessage(err, "unable to parse version constraint")
 	}
 
 	var envType portainer.EndpointType
-	currentVersions := map[portainer.EndpointID]string{}
 	for _, environment := range environments {
 		if !relatedEnvironmentIdsSet.Contains(environment.ID) {
 			continue
@@ -68,24 +57,24 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID,
 		}
 
 		if environment.Type != envType {
-			return nil, nil, 0, errors.New("environment type is not unified")
+			return nil, 0, errors.New("environment type is not unified")
 		}
 
 		if rollback {
-			if previousVersionsMap[environment.ID] != version {
+			if environment.Agent.PreviousVersion != version {
 				continue
 			}
 
 		} else {
-			err := handler.isUpdateSupported(&environment)
+			err := handler.isUpdateSupported(tx, &environment)
 			if err != nil {
-				return nil, nil, 0, errors.WithMessage(err, "unable to validate environment")
+				return nil, 0, errors.WithMessage(err, "unable to validate environment")
 			}
 
 			if environment.Agent.Version != "" {
 				agentVersion, err := semver.NewVersion(environment.Agent.Version)
 				if err != nil {
-					return nil, nil, 0, errors.WithMessage(err, "unable to parse agent version")
+					return nil, 0, errors.WithMessage(err, "unable to parse agent version")
 				}
 
 				if !semverConstraint.Check(agentVersion) {
@@ -95,7 +84,6 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID,
 
 		}
 
-		currentVersions[environment.ID] = environment.Agent.Version
 		relatedEnvironments = append(relatedEnvironments, environment)
 	}
 
@@ -104,13 +92,13 @@ func (handler *Handler) filterEnvironments(edgeGroupIds []portainer.EdgeGroupID,
 	})
 
 	if len(relatedEnvIds) == 0 {
-		return nil, nil, 0, errors.New("no related environments that require update")
+		return nil, 0, errors.New("no related environments that require update")
 	}
 
-	return relatedEnvIds, currentVersions, envType, nil
+	return relatedEnvIds, envType, nil
 }
 
-func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) error {
+func (handler *Handler) isUpdateSupported(tx dataservices.DataStoreTx, environment *portaineree.Endpoint) error {
 	if !endpointutils.IsEdgeEndpoint(environment) {
 		return errors.New("environment is not an edge endpoint, this feature is limited to edge endpoints")
 	}
@@ -121,7 +109,7 @@ func (handler *Handler) isUpdateSupported(environment *portaineree.Endpoint) err
 	}
 
 	if endpointutils.IsDockerEndpoint(environment) {
-		snapshot, err := handler.dataStore.Snapshot().Read(environment.ID)
+		snapshot, err := tx.Snapshot().Read(environment.ID)
 		if err != nil {
 			// if snapshot is missing, we require a tunnel, which will fetch the snapshot on close
 			handler.ReverseTunnelService.SetTunnelStatusToRequired(environment.ID)

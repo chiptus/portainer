@@ -5,15 +5,16 @@ import (
 	"slices"
 	"time"
 
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/http/utils"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
-	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type createPayload struct {
@@ -65,39 +66,10 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	err = handler.validateUniqueName(payload.Name, 0)
-	if err != nil {
-		return httperror.Conflict("Edge update schedule name already in use", err)
-
-	}
-
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user information from token", err)
 	}
-
-	var edgeStackID portainer.EdgeStackID
-	var scheduleID edgetypes.UpdateScheduleID
-	needCleanup := true
-	defer func() {
-		if !needCleanup {
-			return
-		}
-
-		if scheduleID != 0 {
-			err = handler.updateService.DeleteSchedule(scheduleID)
-			if err != nil {
-				log.Error().Err(err).Msg("Unable to cleanup edge update schedule")
-			}
-		}
-
-		if edgeStackID != 0 {
-			err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, edgeStackID, payload.GroupIDs)
-			if err != nil {
-				log.Error().Err(err).Msg("Unable to cleanup edge stack")
-			}
-		}
-	}()
 
 	item := &edgetypes.UpdateSchedule{
 		Name:         payload.Name,
@@ -109,38 +81,29 @@ func (handler *Handler) create(w http.ResponseWriter, r *http.Request) *httperro
 		EdgeGroupIDs: payload.GroupIDs,
 	}
 
-	relatedEnvironmentsIDs, previousVersions, envType, err := handler.filterEnvironments(payload.GroupIDs, payload.Version, payload.Type == edgetypes.UpdateScheduleRollback, 0)
-	if err != nil {
-		return httperror.InternalServerError("Unable to fetch related environments", err)
-	}
+	err = handler.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 
-	item.EnvironmentsPreviousVersions = previousVersions
+		err = handler.validateUniqueName(tx, payload.Name, 0)
+		if err != nil {
+			return httperror.NewError(http.StatusConflict, "Edge update schedule name already in use", err)
+		}
 
-	err = handler.updateService.CreateSchedule(item)
-	if err != nil {
-		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
-	}
+		relatedEnvironmentsIDs, environmentType, err := handler.filterEnvironments(tx, payload.GroupIDs, payload.Version, payload.Type == edgetypes.UpdateScheduleRollback)
+		if err != nil {
+			return httperror.InternalServerError("Unable to fetch related environments", err)
+		}
 
-	scheduleID = item.ID
+		err = handler.updateService.CreateSchedule(tx, item, updateschedules.CreateMetadata{
+			RelatedEnvironmentsIDs: relatedEnvironmentsIDs,
+			ScheduledTime:          payload.ScheduledTime,
+			EnvironmentType:        environmentType,
+		})
+		if err != nil {
+			return httperror.InternalServerError("Unable to persist the edge update schedule", err)
+		}
 
-	edgeStackID, err = handler.createUpdateEdgeStack(
-		item.ID,
-		relatedEnvironmentsIDs,
-		payload.RegistryID,
-		payload.Version,
-		payload.ScheduledTime,
-		envType,
-	)
-	if err != nil {
-		return httperror.InternalServerError("Unable to create edge stack", err)
-	}
+		return nil
+	})
 
-	item.EdgeStackID = edgeStackID
-	err = handler.updateService.UpdateSchedule(item.ID, item)
-	if err != nil {
-		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
-	}
-
-	needCleanup = false
-	return response.JSON(w, item)
+	return utils.TxResponse(w, item, err)
 }

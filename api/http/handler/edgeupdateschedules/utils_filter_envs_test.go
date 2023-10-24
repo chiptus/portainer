@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -28,7 +30,7 @@ func (m *mockUpdateService) RemoveActiveSchedule(environmentID portainer.Endpoin
 func (m *mockUpdateService) EdgeStackDeployed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) {
 }
 
-func (m *mockUpdateService) Schedules() ([]edgetypes.UpdateSchedule, error) {
+func (m *mockUpdateService) Schedules(tx dataservices.DataStoreTx) ([]edgetypes.UpdateSchedule, error) {
 	return m.schedules, nil
 }
 
@@ -36,16 +38,20 @@ func (m *mockUpdateService) Schedule(scheduleID edgetypes.UpdateScheduleID) (*ed
 	return nil, nil
 }
 
-func (m *mockUpdateService) CreateSchedule(schedule *edgetypes.UpdateSchedule) error {
+func (m *mockUpdateService) CreateSchedule(tx dataservices.DataStoreTx, schedule *edgetypes.UpdateSchedule, metadata updateschedules.CreateMetadata) error {
 
 	return nil
 }
 
-func (m *mockUpdateService) UpdateSchedule(id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule) error {
+func (m *mockUpdateService) UpdateSchedule(tx dataservices.DataStoreTx, id edgetypes.UpdateScheduleID, item *edgetypes.UpdateSchedule, metadata updateschedules.CreateMetadata) error {
 	return nil
 }
 
 func (m *mockUpdateService) DeleteSchedule(id edgetypes.UpdateScheduleID) error {
+	return nil
+}
+
+func (m *mockUpdateService) HandleStatusChange(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID, status portainer.EdgeStackStatusType, agentVersion string) error {
 	return nil
 }
 
@@ -71,9 +77,7 @@ func TestFilterEnvironments(t *testing.T) {
 		ID:   1,
 		Name: "endpoint1",
 		Type: portaineree.EdgeAgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{
+		Agent: portaineree.EnvironmentAgentData{
 			Version: "1.0.0",
 		},
 	}
@@ -89,9 +93,7 @@ func TestFilterEnvironments(t *testing.T) {
 		ID:   2,
 		Name: "endpoint2",
 		Type: portaineree.EdgeAgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{
+		Agent: portaineree.EnvironmentAgentData{
 			Version: "1.8.0",
 		},
 	}
@@ -107,9 +109,7 @@ func TestFilterEnvironments(t *testing.T) {
 		ID:   3,
 		Name: "endpoint3",
 		Type: portaineree.EdgeAgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{
+		Agent: portaineree.EnvironmentAgentData{
 			Version: "1.8.3",
 		},
 	}
@@ -125,9 +125,7 @@ func TestFilterEnvironments(t *testing.T) {
 		ID:   4,
 		Name: "endpoint4",
 		Type: portaineree.EdgeAgentOnDockerEnvironment,
-		Agent: struct {
-			Version string "example:\"1.0.0\""
-		}{
+		Agent: portaineree.EnvironmentAgentData{
 			Version: "1.8.3",
 		},
 	}
@@ -258,7 +256,7 @@ func TestFilterEnvironments(t *testing.T) {
 			}
 
 			// filter environments
-			relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portainer.EdgeGroupID{edgeGroup.ID}, tc.version, false, 0)
+			relatedEnvIds, envType, err := handler.filterEnvironments(handler.dataStore, []portainer.EdgeGroupID{edgeGroup.ID}, tc.version, false)
 			if err != nil {
 				if len(tc.expected.relatedEnvIds) == 0 && err.Error() == "no related environments that require update" {
 					return
@@ -275,25 +273,26 @@ func TestFilterEnvironments(t *testing.T) {
 				t.Fatalf("expected env type to be %d, got %d", tc.expected.envType, envType)
 			}
 
-			for _, envId := range relatedEnvIds {
-				if currentVersions[envId] != tc.expected.currentVersions[envId] {
-					t.Fatalf("expected env %d current version to be %s, got %s", envId, tc.expected.currentVersions[envId], currentVersions[envId])
-				}
-			}
 		})
 	}
 
 	t.Run("rollback - 2 endpoints with the same version, but with different previous version. the select version is the lowest (should return 1)", func(t *testing.T) {
+		requestedVersion := "1.8.0"
+		endpoint3.Agent.PreviousVersion = requestedVersion
+		err := handler.dataStore.Endpoint().UpdateEndpoint(3, endpoint3)
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		edgeGroup := &portaineree.EdgeGroup{
 			Name:      "rollback - 2 endpoints with the same version, but with different previous version. the select version is the lowest (should return 1)",
 			Endpoints: []portainer.EndpointID{3, 4},
 		}
 
-		err := handler.dataStore.EdgeGroup().Create(edgeGroup)
+		err = handler.dataStore.EdgeGroup().Create(edgeGroup)
 		if err != nil {
 			t.Fatal(err)
 		}
-		requestedVersion := "1.8.0"
 
 		handler.updateService = &mockUpdateService{
 			schedules: []edgetypes.UpdateSchedule{
@@ -301,14 +300,11 @@ func TestFilterEnvironments(t *testing.T) {
 					ID:          1,
 					EdgeStackID: 1,
 					Version:     endpoint3.Agent.Version,
-					EnvironmentsPreviousVersions: map[portainer.EndpointID]string{
-						endpoint3.ID: requestedVersion,
-					},
 				},
 			},
 		}
 
-		relatedEnvIds, currentVersions, envType, err := handler.filterEnvironments([]portainer.EdgeGroupID{edgeGroup.ID}, requestedVersion, true, 0)
+		relatedEnvIds, envType, err := handler.filterEnvironments(handler.dataStore, []portainer.EdgeGroupID{edgeGroup.ID}, requestedVersion, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,10 +315,6 @@ func TestFilterEnvironments(t *testing.T) {
 
 		if envType != portaineree.EdgeAgentOnDockerEnvironment {
 			t.Fatalf("expected env type to be %d, got %d", portaineree.EdgeAgentOnDockerEnvironment, envType)
-		}
-
-		if currentVersions[3] != "1.8.3" {
-			t.Fatalf("expected env 3 current version to be %s, got %s", "1.8.3", currentVersions[3])
 		}
 
 	})

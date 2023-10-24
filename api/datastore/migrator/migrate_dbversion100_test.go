@@ -1,4 +1,4 @@
-package edgeupdateschedules
+package migrator
 
 import (
 	"testing"
@@ -10,8 +10,6 @@ import (
 )
 
 func TestPreviousVersions(t *testing.T) {
-
-	activeSchedulesMap := map[portainer.EndpointID]*edgetypes.EndpointUpdateScheduleRelation{}
 
 	schedules := []edgetypes.UpdateSchedule{
 		{
@@ -42,12 +40,8 @@ func TestPreviousVersions(t *testing.T) {
 		},
 	}
 
-	actual := previousVersions(
+	actual := getEdgeUpdatesPreviousVersions(
 		schedules,
-		func(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation {
-			return activeSchedulesMap[environmentID]
-		},
-		0,
 	)
 
 	assert.Equal(t, map[portainer.EndpointID]string{

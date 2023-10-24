@@ -35,6 +35,7 @@
   "endpoints": [
     {
       "Agent": {
+        "PreviousVersion": "",
         "Version": ""
       },
       "AuthorizedTeams": null,

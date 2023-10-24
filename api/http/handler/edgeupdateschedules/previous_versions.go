@@ -2,12 +2,12 @@ package edgeupdateschedules
 
 import (
 	"net/http"
-	"sort"
+	"slices"
 
-	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/http/utils"
+	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
-	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
@@ -19,82 +19,36 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param skipScheduleID query int false "Schedule ID, ignore the schedule which is being edited"
-// @success 200 {array} string
+// @param environmentIds query []int true "Environment IDs"
+// @success 200 {object} map[portainer.EndpointID]string{}
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @router /edge_update_schedules/previous_versions [get]
 func (handler *Handler) previousVersions(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	skipScheduleIDRaw, _ := request.RetrieveNumericQueryParameter(r, "skipScheduleID", true)
-	skipScheduleID := edgetypes.UpdateScheduleID(skipScheduleIDRaw)
-
-	schedules, err := handler.updateService.Schedules()
+	envIDs, err := utils.RetrieveNumberArrayQueryParameter[portainer.EndpointID](r, "environmentIds")
 	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
+		return httperror.BadRequest(err.Error(), err)
 	}
 
-	versionMap := previousVersions(schedules, handler.updateService.ActiveSchedule, skipScheduleID)
+	if envIDs == nil {
+		return httperror.BadRequest("Missing environmentIds query parameter", nil)
+	}
 
-	return response.JSON(w, versionMap)
-}
-
-type EnvironmentVersionDetails struct {
-	version    string
-	skip       bool
-	skipReason string
-}
-
-func previousVersions(
-	schedules []edgetypes.UpdateSchedule,
-	activeScheduleGetter func(environmentID portainer.EndpointID) *edgetypes.EndpointUpdateScheduleRelation,
-	skipScheduleID edgetypes.UpdateScheduleID,
-) map[portainer.EndpointID]string {
-
-	sort.SliceStable(schedules, func(i, j int) bool {
-		return schedules[i].Created > schedules[j].Created
-	})
-
-	environmentMap := map[portainer.EndpointID]*EnvironmentVersionDetails{}
-	// to all schedules[:schedule index -1].Created > schedule.Created
-	for _, schedule := range schedules {
-		if schedule.ID == skipScheduleID {
-			continue
-		}
-		for environmentId, version := range schedule.EnvironmentsPreviousVersions {
-			props, ok := environmentMap[environmentId]
-			if !ok {
-				environmentMap[environmentId] = &EnvironmentVersionDetails{}
-				props = environmentMap[environmentId]
-			}
-
-			if props.version != "" || props.skip {
-				continue
-			}
-
-			if schedule.Type == edgetypes.UpdateScheduleRollback {
-				props.skip = true
-				props.skipReason = "has rollback"
-				continue
-			}
-
-			activeSchedule := activeScheduleGetter(environmentId)
-
-			if activeSchedule != nil && activeSchedule.ScheduleID != skipScheduleID {
-				props.skip = true
-				props.skipReason = "has active schedule"
-				continue
-			}
-
-			props.version = version
-		}
+	envs, err := handler.dataStore.Endpoint().Endpoints()
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve environments", err)
 	}
 
 	versionMap := map[portainer.EndpointID]string{}
-	for environmentId, props := range environmentMap {
-		if !props.skip {
-			versionMap[environmentId] = props.version
+	for _, env := range envs {
+		if !slices.Contains(envIDs, env.ID) {
+			continue
+		}
+
+		if endpointutils.IsEdgeEndpoint(&env) {
+			versionMap[env.ID] = env.Agent.PreviousVersion
 		}
 	}
 
-	return versionMap
+	return response.JSON(w, versionMap)
 }

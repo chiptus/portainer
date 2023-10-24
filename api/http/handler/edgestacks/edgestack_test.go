@@ -58,8 +58,8 @@ func setupHandler(t *testing.T) (*Handler, string) {
 	}
 
 	edgeAsyncService := edgeasync.NewService(store, fs)
-
-	edgeUpdateService, err := updateschedules.NewService(store)
+	edgeStacksService := edgestacks.NewService(store, edgeAsyncService)
+	edgeUpdateService, err := updateschedules.NewService(store, "", edgeStacksService, fs)
 	if err != nil {
 		t.Fatal(err)
 	}

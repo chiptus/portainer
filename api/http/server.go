@@ -204,7 +204,7 @@ func (server *Server) Start() error {
 	edgeJobsHandler.FileService = server.FileService
 	edgeJobsHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	edgeUpdateService, err := updateschedules.NewService(server.DataStore)
+	edgeUpdateService, err := updateschedules.NewService(server.DataStore, server.AssetsPath, server.EdgeStacksService, server.FileService)
 	if err != nil {
 		return errors.WithMessage(err, "Unable to create EdgeUpdateService")
 	}

@@ -11,12 +11,14 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
+	"github.com/rs/zerolog/log"
 )
 
 type inspectResponse struct {
 	*edgetypes.UpdateSchedule
-	ScheduledTime string `json:"scheduledTime"`
-	IsActive      bool   `json:"isActive"`
+	ScheduledTime  string                 `json:"scheduledTime"`
+	IsActive       bool                   `json:"isActive"`
+	EnvironmentIDs []portainer.EndpointID `json:"environmentIds"`
 }
 
 // @id EdgeUpdateScheduleInspect
@@ -46,12 +48,31 @@ func (handler *Handler) inspect(w http.ResponseWriter, r *http.Request) *httperr
 		return httperror.InternalServerError("unable to get edge stack", err)
 	}
 
+	if len(edgeStack.EdgeGroups) != 1 {
+		if len(edgeStack.EdgeGroups) == 0 {
+			return httperror.BadRequest("edge stack has no edge groups", nil)
+		}
+
+		log.Warn().
+			Int("edgeStackID", int(edgeStack.ID)).
+			Int("edgeUpdateID", int(item.ID)).
+			Int("edgeGroupCount", len(edgeStack.EdgeGroups)).
+			Msg("edge stack has multiple edge groups")
+	}
+
+	edgeGroup, err := handler.dataStore.EdgeGroup().Read(edgeStack.EdgeGroups[0])
+	if err != nil {
+		return httperror.InternalServerError("unable to get edge group", err)
+	}
+
 	isActive := isUpdateActive(edgeStack)
 
 	decoratedItem := &inspectResponse{
 		UpdateSchedule: item,
 		IsActive:       isActive,
 		ScheduledTime:  edgeStack.ScheduledTime,
+		// the edge update group is always static
+		EnvironmentIDs: edgeGroup.Endpoints,
 	}
 
 	if err != nil {

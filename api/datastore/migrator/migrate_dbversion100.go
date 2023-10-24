@@ -2,8 +2,10 @@ package migrator
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	mk8s "github.com/portainer/portainer-ee/api/cloud/microk8s"
 	sshUtil "github.com/portainer/portainer-ee/api/cloud/util/ssh"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
 	"github.com/portainer/portainer-ee/api/internal/url"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
@@ -396,4 +399,81 @@ func (m *Migrator) fixPotentialUpdateScheduleDBCorruptionForDB100() error {
 	}
 
 	return nil
+}
+
+func (m *Migrator) moveEnvironmentPreviousVersionFromEdgeUpdatesDB100() error {
+	edgeUpdates, err := m.edgeUpdateService.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	previousVersions := getEdgeUpdatesPreviousVersions(edgeUpdates)
+	for environmentID, version := range previousVersions {
+		env, err := m.endpointService.Endpoint(environmentID)
+		if err != nil {
+			if dataservices.IsErrObjectNotFound(err) {
+				log.Warn().Int("environment id", int(environmentID)).Msg("environment not found, skipping")
+				continue
+			}
+
+			return fmt.Errorf("failed to retrieve environment %d: %w", environmentID, err)
+		}
+
+		env.Agent.PreviousVersion = version
+
+		err = m.endpointService.UpdateEndpoint(environmentID, env)
+		if err != nil {
+			return fmt.Errorf("failed to update environment %d: %w", environmentID, err)
+		}
+	}
+
+	return nil
+}
+
+// getEdgeUpdatesPreviousVersions returns the previous versions of the given schedules
+func getEdgeUpdatesPreviousVersions(
+	schedules []edgetypes.UpdateSchedule,
+) map[portainer.EndpointID]string {
+	type environmentVersionDetails struct {
+		version    string
+		skip       bool
+		skipReason string
+	}
+	sort.SliceStable(schedules, func(i, j int) bool {
+		return schedules[i].Created > schedules[j].Created
+	})
+
+	environmentMap := map[portainer.EndpointID]*environmentVersionDetails{}
+	// to all schedules[:schedule index -1].Created > schedule.Created
+	for _, schedule := range schedules {
+
+		for environmentId, version := range schedule.EnvironmentsPreviousVersions {
+			props, ok := environmentMap[environmentId]
+			if !ok {
+				environmentMap[environmentId] = &environmentVersionDetails{}
+				props = environmentMap[environmentId]
+			}
+
+			if props.version != "" || props.skip {
+				continue
+			}
+
+			if schedule.Type == edgetypes.UpdateScheduleRollback {
+				props.skip = true
+				props.skipReason = "has rollback"
+				continue
+			}
+
+			props.version = version
+		}
+	}
+
+	versionMap := map[portainer.EndpointID]string{}
+	for environmentId, props := range environmentMap {
+		if !props.skip {
+			versionMap[environmentId] = props.version
+		}
+	}
+
+	return versionMap
 }

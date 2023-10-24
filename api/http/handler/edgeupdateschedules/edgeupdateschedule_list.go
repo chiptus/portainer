@@ -3,6 +3,8 @@ package edgeupdateschedules
 import (
 	"net/http"
 
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/utils"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -19,26 +21,36 @@ import (
 // @failure 500
 // @router /edge_update_schedules [get]
 func (handler *Handler) list(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	list, err := handler.updateService.Schedules()
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
-	}
 
 	includeEdgeStacks, _ := request.RetrieveBooleanQueryParameter(r, "includeEdgeStacks", true)
 
 	if !includeEdgeStacks {
-		return response.JSON(w, list)
-
-	}
-
-	decoratedList := make([]decoratedUpdateSchedule, len(list))
-	for idx, item := range list {
-		decoratedItem, err := decorateSchedule(item, handler.dataStore.EdgeStack().EdgeStack, handler.dataStore.Endpoint().Endpoint)
+		list, err := handler.updateService.Schedules(handler.dataStore)
 		if err != nil {
-			return httperror.InternalServerError("Unable to decorate the edge update schedule", err)
+			return httperror.InternalServerError("Unable to retrieve the edge update schedules list", err)
 		}
 
-		decoratedList[idx] = *decoratedItem
+		return response.JSON(w, list)
 	}
-	return response.JSON(w, decoratedList)
+
+	var decoratedList []decoratedUpdateSchedule
+	err := handler.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		list, err := handler.updateService.Schedules(tx)
+		if err != nil {
+			return err
+		}
+
+		decoratedList = make([]decoratedUpdateSchedule, len(list))
+		for idx, item := range list {
+			decoratedItem, err := decorateSchedule(tx, item)
+			if err != nil {
+				return httperror.InternalServerError("Unable to decorate the edge update schedule", err)
+			}
+
+			decoratedList[idx] = *decoratedItem
+		}
+
+		return nil
+	})
+	return utils.TxResponse(w, decoratedList, err)
 }

@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/portainer/portainer-ee/api/http/middlewares"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	"github.com/portainer/portainer-ee/api/http/utils"
 	edgetypes "github.com/portainer/portainer-ee/api/internal/edge/types"
+	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
-	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
 type updatePayload struct {
@@ -52,53 +53,71 @@ func (payload *updatePayload) Validate(r *http.Request) error {
 // @produce json
 // @success 204
 // @failure 500
-// @router /edge_update_schedules [post]
+// @router /edge_update_schedules/{id} [post]
 func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	item, err := middlewares.FetchItem[edgetypes.UpdateSchedule](r, contextKey)
+	id, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
-		return httperror.InternalServerError(err.Error(), err)
+		return httperror.BadRequest("Invalid Edge Update identifier route variable", err)
 	}
 
-	var payload updatePayload
-	err = request.DecodeAndValidateJSONPayload(r, &payload)
+	payload, err := request.GetPayload[updatePayload](r)
 	if err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	if payload.Name != nil && *payload.Name != item.Name {
-		err = handler.validateUniqueName(*payload.Name, item.ID)
+	var item *edgetypes.UpdateSchedule
+	err = handler.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		schedule, err := tx.EdgeUpdateSchedule().Read(edgetypes.UpdateScheduleID(id))
 		if err != nil {
-			return httperror.Conflict("Edge update schedule name already in use", err)
+			status := http.StatusInternalServerError
+			if dataservices.IsErrObjectNotFound(err) {
+				status = http.StatusNotFound
+			}
+			return httperror.NewError(status, "Unable to find an Edge Update with the specified identifier inside the database", err)
 		}
 
-		item.Name = *payload.Name
-	}
+		item = schedule
 
-	stack, err := handler.dataStore.EdgeStack().EdgeStack(item.EdgeStackID)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve Edge stack", err)
-	}
+		if payload.Name != nil && *payload.Name != schedule.Name {
+			err = handler.validateUniqueName(tx, *payload.Name, schedule.ID)
+			if err != nil {
+				return httperror.NewError(http.StatusConflict, "Edge update schedule name already in use", err)
+			}
 
-	shouldUpdate := payload.GroupIDs != nil || payload.Type != nil || payload.Version != nil || payload.ScheduledTime != nil
+			schedule.Name = *payload.Name
+		}
 
-	if shouldUpdate {
+		shouldUpdateRelations := payload.GroupIDs != nil || payload.Type != nil || payload.Version != nil || payload.ScheduledTime != nil || payload.RegistryID != nil
+		if !shouldUpdateRelations {
+			err = tx.EdgeUpdateSchedule().Update(schedule.ID, schedule)
+			if err != nil {
+				return httperror.InternalServerError("Unable to persist the edge update schedule", err)
+			}
+
+			return nil
+		}
+
+		stack, err := tx.EdgeStack().EdgeStack(schedule.EdgeStackID)
+		if err != nil {
+			return httperror.InternalServerError("Unable to retrieve Edge stack", err)
+		}
+
 		isActive := isUpdateActive(stack)
 
 		if isActive {
 			return httperror.BadRequest("Unable to update Edge update schedule", errors.New("edge stack is not in pending state"))
 		}
 
-		newGroupIds := payload.GroupIDs
-		if newGroupIds == nil {
-			newGroupIds = stack.EdgeGroups
+		if payload.GroupIDs != nil {
+			schedule.EdgeGroupIDs = payload.GroupIDs
 		}
 
 		if payload.Type != nil {
-			item.Type = *payload.Type
+			schedule.Type = *payload.Type
 		}
 
 		if payload.Version != nil {
-			item.Version = *payload.Version
+			schedule.Version = *payload.Version
 		}
 
 		scheduledTime := stack.ScheduledTime
@@ -107,40 +126,25 @@ func (handler *Handler) update(w http.ResponseWriter, r *http.Request) *httperro
 		}
 
 		if payload.RegistryID != nil {
-			item.RegistryID = *payload.RegistryID
+			schedule.RegistryID = *payload.RegistryID
 		}
 
-		relatedEnvironmentsIDs, previousVersions, envType, err := handler.filterEnvironments(payload.GroupIDs, *payload.Version, *payload.Type == edgetypes.UpdateScheduleRollback, item.ID)
+		relatedEnvironmentsIDs, environmentType, err := handler.filterEnvironments(tx, payload.GroupIDs, *payload.Version, schedule.Type == edgetypes.UpdateScheduleRollback)
 		if err != nil {
 			return httperror.InternalServerError("Unable to fetch related environments", err)
 		}
 
-		err = handler.edgeStacksService.DeleteEdgeStack(handler.dataStore, item.EdgeStackID, stack.EdgeGroups)
+		err = handler.updateService.UpdateSchedule(tx, schedule.ID, schedule, updateschedules.CreateMetadata{
+			RelatedEnvironmentsIDs: relatedEnvironmentsIDs,
+			ScheduledTime:          scheduledTime,
+			EnvironmentType:        environmentType,
+		})
 		if err != nil {
-			return httperror.InternalServerError("Unable to delete Edge stack and its relations", err)
+			return httperror.InternalServerError("Unable to persist the edge update schedule", err)
 		}
 
-		if len(stack.EdgeGroups) > 0 {
-			err = handler.dataStore.EdgeGroup().Delete(stack.EdgeGroups[0])
-			if err != nil {
-				return httperror.InternalServerError("Unable to delete Edge group", err)
-			}
-		}
+		return nil
+	})
 
-		item.EnvironmentsPreviousVersions = previousVersions
-
-		stackID, err := handler.createUpdateEdgeStack(item.ID, relatedEnvironmentsIDs, *payload.RegistryID, item.Version, scheduledTime, envType)
-		if err != nil {
-			return httperror.InternalServerError("Unable to create Edge stack", err)
-		}
-
-		item.EdgeStackID = stackID
-	}
-
-	err = handler.updateService.UpdateSchedule(item.ID, item)
-	if err != nil {
-		return httperror.InternalServerError("Unable to persist the edge update schedule", err)
-	}
-
-	return response.JSON(w, item)
+	return utils.TxResponse(w, item, err)
 }

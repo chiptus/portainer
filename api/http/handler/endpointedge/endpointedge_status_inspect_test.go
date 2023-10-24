@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge/edgeasync"
+	"github.com/portainer/portainer-ee/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer-ee/api/internal/edge/updateschedules"
 	"github.com/portainer/portainer-ee/api/jwt"
 	portainer "github.com/portainer/portainer/api"
@@ -109,7 +110,8 @@ func mustSetupHandler(t *testing.T) *Handler {
 
 	edgeService := edgeasync.NewService(store, fs)
 
-	updateService, err := updateschedules.NewService(store)
+	edgeStacksService := edgestacks.NewService(store, edgeService)
+	edgeUpdateService, err := updateschedules.NewService(store, "", edgeStacksService, fs)
 	if err != nil {
 		t.Fatalf("could not create update service: %s", err)
 	}
@@ -121,7 +123,7 @@ func mustSetupHandler(t *testing.T) *Handler {
 		chisel.NewService(store, shutdownCtx, nil),
 		edgeService,
 		nil,
-		updateService,
+		edgeUpdateService,
 		nil,
 	)
 

@@ -8,36 +8,29 @@ import { buildUrl } from './urls';
 
 interface Options<T> {
   select?: (data: Record<EnvironmentId, string>) => T;
-  onSuccess?(data: T): void;
   enabled?: boolean;
-  skipScheduleID?: number;
 }
 
-export function usePreviousVersions<T = Record<EnvironmentId, string>>({
-  select,
-  onSuccess,
-  enabled,
-  skipScheduleID = 0,
-}: Options<T> = {}) {
+export function usePreviousVersions<T = Record<EnvironmentId, string>>(
+  environmentIds: EnvironmentId[],
+  { select, enabled }: Options<T> = {}
+) {
   return useQuery(
-    queryKeys.previousVersions(skipScheduleID),
-    () => getPreviousVersions(skipScheduleID),
+    queryKeys.previousVersions(environmentIds),
+    () => getPreviousVersions(environmentIds),
     {
       select,
-      onSuccess,
-      enabled,
+      enabled: enabled && environmentIds.length > 0,
     }
   );
 }
 
-async function getPreviousVersions(skipScheduleID: number) {
+async function getPreviousVersions(environmentIds: EnvironmentId[]) {
   try {
     const { data } = await axios.get<Record<EnvironmentId, string>>(
       buildUrl(undefined, 'previous_versions'),
       {
-        params: {
-          skipScheduleID,
-        },
+        params: { environmentIds },
       }
     );
     return data;
