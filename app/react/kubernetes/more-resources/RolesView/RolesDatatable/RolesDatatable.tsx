@@ -97,7 +97,7 @@ function TableActions({ selectedItems }: TableActionsProps) {
   async function handleRemoveClick(roles: SelectedRole[]) {
     const confirmed = await confirmDelete(
       <>
-        <p>Are you sure you want to delete the selected roles(s)?</p>
+        <p>Are you sure you want to delete the selected role(s)?</p>
         <ul className="mt-2 max-h-96 list-inside overflow-hidden overflow-y-auto text-sm">
           {roles.map((s, index) => (
             <li key={index}>

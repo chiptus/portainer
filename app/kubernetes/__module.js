@@ -617,7 +617,7 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
         },
       },
       data: {
-        docs: '/user/kubernetes/more-resources/roles',
+        docs: '/user/kubernetes/more-resources/namespace-roles',
       },
     };
 
