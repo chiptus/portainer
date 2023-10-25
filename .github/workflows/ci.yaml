@@ -81,14 +81,6 @@ jobs:
           git config --global url."ssh://git@github.com/".insteadOf https://github.com/
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      - name: "[preparation] execute client test"
-        run: |
-          make client-deps && make test-client
-      - name: "[preparation] execute server test"
-        run: |
-          make test-server
-        env:
-          GOPRIVATE: github.com/portainer/liblicense
       - name: "[preparation] set up qemu"
         uses: docker/setup-qemu-action@v2
       - name: "[preparation] set up docker context for buildx"

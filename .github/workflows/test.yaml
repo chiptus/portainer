@@ -3,7 +3,7 @@ on: push
 jobs:
   test-client:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -15,9 +15,16 @@ jobs:
       - name: Run tests
         run: make test-client ARGS="--maxWorkers=2"
   test-server:
+    strategy:
+      matrix:
+        config:
+          - { platform: linux, arch: amd64 }
+          - { platform: linux, arch: arm64 }
+          - { platform: windows, arch: amd64, version: 1809 }
+          - { platform: windows, arch: amd64, version: ltsc2022 }
     runs-on: ubuntu-latest
     env:
-      GOPRIVATE: "github.com/portainer/liblicense"
+      GOPRIVATE: 'github.com/portainer/liblicense'
     steps:
       - uses: actions/checkout@v3
       - uses: webfactory/ssh-agent@v0.5.4
@@ -30,4 +37,3 @@ jobs:
         run: git config --global url."git@github.com:".insteadOf "https://github.com"
       - name: Run tests
         run: make test-server
-
