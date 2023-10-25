@@ -578,7 +578,7 @@ type (
 		ExpiresAt int64                           `json:"expiresAt"`
 		Nodes     int                             `json:"nodes,omitempty"`
 		Type      liblicense.PortainerLicenseType `json:"type"`
-		Valid     bool                            `json:"valid,omitempty"`
+		Valid     bool                            `json:"valid"`
 		// unix timestamp when node usage exceeded avaiable license limit
 		OveruseStartedTimestamp int64 `json:"overuseStartedTimestamp"`
 	}

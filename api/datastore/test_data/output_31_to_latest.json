@@ -48,12 +48,7 @@
         "TenantID": ""
       },
       "ChangeWindow": {},
-      "Edge": {
-        "AsyncMode": false,
-        "CommandInterval": 0,
-        "PingInterval": 0,
-        "SnapshotInterval": 0
-      },
+      "Edge": {},
       "EdgeCheckinInterval": 0,
       "Gpus": [],
       "GroupId": 1,
@@ -66,11 +61,7 @@
           "ResourceOverCommitPercentage": 20,
           "StorageClasses": []
         },
-        "Flags": {
-          "IsServerIngressClassDetected": false,
-          "IsServerMetricsDetected": false,
-          "IsServerStorageDetected": false
-        },
+        "Flags": {},
         "Snapshots": []
       },
       "Name": "docker",
@@ -88,9 +79,7 @@
         "allowHostNamespaceForRegularUsers": true,
         "allowPrivilegedModeForRegularUsers": true,
         "allowStackManagementForRegularUsers": true,
-        "allowSysctlSettingForRegularUsers": true,
-        "allowVolumeBrowserForRegularUsers": false,
-        "enableHostManagementFeatures": false
+        "allowSysctlSettingForRegularUsers": true
       },
       "Snapshots": [],
       "Status": 1,
@@ -100,10 +89,7 @@
         "operationStatus": "",
         "summary": ""
       },
-      "TLSConfig": {
-        "TLS": false,
-        "TLSSkipVerify": false
-      },
+      "TLSConfig": {},
       "TagIds": [],
       "Tags": null,
       "TeamAccessPolicies": {},
@@ -141,8 +127,7 @@
       "Name": "canister.io",
       "Password": "!MjWbx8A6YK7cw7",
       "Quay": {
-        "OrganisationName": "",
-        "UseOrganisation": false
+        "OrganisationName": ""
       },
       "RegistryAccesses": {
         "1": {
@@ -838,8 +823,7 @@
       "AdminGroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": "",
-          "GroupFilter": ""
+          "GroupBaseDN": ""
         }
       ],
       "AdminGroups": null,
@@ -848,8 +832,7 @@
       "GroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": "",
-          "GroupFilter": ""
+          "GroupBaseDN": ""
         }
       ],
       "ReaderDN": "",
@@ -861,10 +844,7 @@
         }
       ],
       "ServerType": 0,
-      "TLSConfig": {
-        "TLS": false,
-        "TLSSkipVerify": false
-      },
+      "TLSConfig": {},
       "URLs": []
     },
     "OAuthSettings": {
@@ -2068,9 +2048,7 @@
   "tags": null,
   "team_membership": null,
   "teams": null,
-  "tunnel_server": {
-    "PrivateKeySeed": ""
-  },
+  "tunnel_server": {},
   "users": [
     {
       "EndpointAuthorizations": {},

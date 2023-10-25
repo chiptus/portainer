@@ -43,12 +43,7 @@
         "TenantID": ""
       },
       "ChangeWindow": {},
-      "Edge": {
-        "AsyncMode": false,
-        "CommandInterval": 0,
-        "PingInterval": 0,
-        "SnapshotInterval": 0
-      },
+      "Edge": {},
       "EdgeCheckinInterval": 0,
       "Gpus": [],
       "GroupId": 1,
@@ -60,11 +55,7 @@
           "ResourceOverCommitPercentage": 0,
           "StorageClasses": []
         },
-        "Flags": {
-          "IsServerIngressClassDetected": false,
-          "IsServerMetricsDetected": false,
-          "IsServerStorageDetected": false
-        },
+        "Flags": {},
         "Snapshots": []
       },
       "Name": "local",
@@ -82,9 +73,7 @@
         "allowHostNamespaceForRegularUsers": true,
         "allowPrivilegedModeForRegularUsers": true,
         "allowStackManagementForRegularUsers": true,
-        "allowSysctlSettingForRegularUsers": true,
-        "allowVolumeBrowserForRegularUsers": false,
-        "enableHostManagementFeatures": false
+        "allowSysctlSettingForRegularUsers": true
       },
       "Snapshots": [],
       "Status": 1,
@@ -94,10 +83,7 @@
         "operationStatus": "",
         "summary": ""
       },
-      "TLSConfig": {
-        "TLS": false,
-        "TLSSkipVerify": false
-      },
+      "TLSConfig": {},
       "TagIds": [],
       "Tags": null,
       "TeamAccessPolicies": {},
@@ -760,8 +746,7 @@
       "AdminGroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": "",
-          "GroupFilter": ""
+          "GroupBaseDN": ""
         }
       ],
       "AdminGroups": null,
@@ -770,8 +755,7 @@
       "GroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": "",
-          "GroupFilter": ""
+          "GroupBaseDN": ""
         }
       ],
       "ReaderDN": "",
@@ -783,10 +767,7 @@
         }
       ],
       "ServerType": 0,
-      "TLSConfig": {
-        "TLS": false,
-        "TLSSkipVerify": false
-      },
+      "TLSConfig": {},
       "URL": "kota.nz:389",
       "URLs": [
         "kota.nz:389"
@@ -1229,9 +1210,7 @@
   "tags": null,
   "team_membership": null,
   "teams": null,
-  "tunnel_server": {
-    "PrivateKeySeed": ""
-  },
+  "tunnel_server": {},
   "users": [
     {
       "EndpointAuthorizations": {},

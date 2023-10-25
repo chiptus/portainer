@@ -467,6 +467,8 @@ github.com/portainer/portainer v0.6.1-0.20231018222602-7c91780eb762 h1:jp1TPoN2S
 github.com/portainer/portainer v0.6.1-0.20231018222602-7c91780eb762/go.mod h1:uys7M2fkc88DwVYMMtWYZPjBLOjbog3d7wXO+rUE6xE=
 github.com/portainer/portainer v0.6.1-0.20231019002049-7e4d113fdadf h1:aUR7E9fuZHBbDHip16aaQpfiiNQjMPMqwE9P/Jh2gT4=
 github.com/portainer/portainer v0.6.1-0.20231019002049-7e4d113fdadf/go.mod h1:uys7M2fkc88DwVYMMtWYZPjBLOjbog3d7wXO+rUE6xE=
+github.com/portainer/portainer v0.6.1-0.20231025045204-09f9c0970612 h1:zdD/hleifGpUFReeAxMT0rXHhKziNvF7X1u6LM0kMz0=
+github.com/portainer/portainer v0.6.1-0.20231025045204-09f9c0970612/go.mod h1:bLF5xOQr5L3/laZCdEfKragaF2J+50XNZB/cLu6CAWo=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/robfig/cron/v3 v3.0.1 h1:WdRxkvbJztn8LMz/QEvLN5sBU+xKpSqwwUO1Pjr4qDs=
 github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
