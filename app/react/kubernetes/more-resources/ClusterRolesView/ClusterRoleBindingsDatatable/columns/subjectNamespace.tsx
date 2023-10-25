@@ -5,7 +5,7 @@ import { columnHelper } from './helper';
 export const subjectNamespace = columnHelper.accessor(
   (row) => row.subjects?.map((sub) => sub.namespace).join(' '),
   {
-    header: 'Namespace',
+    header: 'Subject Namespace',
     id: 'subjectNamespace',
     cell: ({ row }) =>
       row.original.subjects?.map((sub, index) => (

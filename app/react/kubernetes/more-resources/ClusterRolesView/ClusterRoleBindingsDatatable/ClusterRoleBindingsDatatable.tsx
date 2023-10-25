@@ -108,7 +108,7 @@ function TableActions({ selectedItems }: TableActionsProps) {
     const confirmed = await confirmDelete(
       <>
         <p>
-          Are you sure you want to delete the selected cluster roles binding(s)?
+          Are you sure you want to delete the selected cluster role binding(s)?
         </p>
         <ul className="mt-2 max-h-96 list-inside overflow-hidden overflow-y-auto text-sm">
           {roles.map((s, index) => (
