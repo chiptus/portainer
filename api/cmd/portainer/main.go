@@ -431,11 +431,15 @@ func updateLicenseKeyFromFlags(licenseService portaineree.LicenseService, licens
 	}
 
 	conflicts, err := licenseService.AddLicense(*licenseKey, false)
-	return fmt.Errorf(
-		"failed to add license: conflicts %s: %w",
-		strings.Join(conflicts, ", "),
-		err,
-	)
+	if err != nil {
+		return fmt.Errorf(
+			"failed to add license: conflicts %s: %w",
+			strings.Join(conflicts, ", "),
+			err,
+		)
+	}
+
+	return nil
 }
 
 func loadEncryptionSecretKey(keyfilename string) []byte {
