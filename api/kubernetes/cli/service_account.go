@@ -10,9 +10,9 @@ import (
 	"github.com/portainer/portainer-ee/api/internal/errorlist"
 	portainer "github.com/portainer/portainer/api"
 	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	labels "k8s.io/apimachinery/pkg/labels"
 )
 
 // GetServiceAccount returns the portainer ServiceAccount associated to the specified user.
@@ -48,6 +48,7 @@ func (kcl *KubeClient) GetServiceAccounts(namespace string) ([]models.K8sService
 			Namespace:    item.Namespace,
 			CreationDate: item.CreationTimestamp.Time,
 			UID:          string(item.UID),
+			IsUnused:     true,
 		}
 
 		serviceAccounts[i] = sa
@@ -84,53 +85,91 @@ func (kcl *KubeClient) lookupSystemResources(serviceAccountList *v1.ServiceAccou
 }
 
 func (kcl *KubeClient) lookupUnusedResources(serviceAccountList *v1.ServiceAccountList, serviceAccounts []models.K8sServiceAccount) {
-	isUnusedTask := func(sa *v1.ServiceAccount) concurrent.Func {
+
+	// TODO: Skip system namespaces if system variable is set by passing it in as a query param (i.e. system=true)
+	// TODO: Narrow to specific namespace if asked (namespace={namespace} in query string)
+
+	// 1. Get a list of all pods in the cluster then check the spec.serviceAccountName to see if it matches any of our resources
+	// 2. Next get a list of all clusterRoleBindings and do the same check
+	// 3. Finally get a list of all roleBindings for all namespaces and do the same check
+
+	// lets do all of the above concurrently
+	pods := func() concurrent.Func {
 		return func(ctx context.Context) (interface{}, error) {
-			result := kcl.isServiceAccountUnused(sa)
-			return result, nil
+			return kcl.cli.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 		}
 	}
 
-	// Create a slice of tasks by iterating over the ServiceAccount pointers
-	var tasks []concurrent.Func
-	for _, sa := range serviceAccountList.Items {
-		taskFunc := isUnusedTask(&sa)
-		tasks = append(tasks, taskFunc)
+	clusterRoleBindings := func() concurrent.Func {
+		return func(ctx context.Context) (interface{}, error) {
+			return kcl.cli.RbacV1().ClusterRoleBindings().List(context.TODO(), metav1.ListOptions{})
+		}
 	}
 
-	// Run the tasks concurrently
-	results, _ := concurrent.Run(context.Background(), maxConcurrency, tasks...)
+	roleBindings := func() concurrent.Func {
+		return func(ctx context.Context) (interface{}, error) {
+			return kcl.cli.RbacV1().RoleBindings("").List(context.TODO(), metav1.ListOptions{})
+		}
+	}
 
-	for i, result := range results {
-		// Update the ServiceAccount struct with the result
-		serviceAccounts[i].IsUnused = result.Result.(bool)
+	results, _ := concurrent.Run(context.Background(), maxConcurrency, pods(), clusterRoleBindings(), roleBindings())
+
+	var podList *v1.PodList
+	var clusterRoleBindingList *rbacv1.ClusterRoleBindingList
+	var roleBindingList *rbacv1.RoleBindingList
+
+	for _, r := range results {
+		switch v := r.Result.(type) {
+		case *v1.PodList:
+			podList = v
+		case *rbacv1.ClusterRoleBindingList:
+			clusterRoleBindingList = v
+		case *rbacv1.RoleBindingList:
+			roleBindingList = v
+		}
+	}
+
+	// Update unused labels, default value of isUnused == true.
+	// Once we determine if something is unused we set it false and stop looking further.
+	// break [label] is used to break out of the nested loops
+	// Using for loop here without range to reduce copies and improve performance (sacrifices some readability)
+podlist:
+	for podIndex := 0; podIndex < len(podList.Items); podIndex++ {
+		for saIndex := 0; saIndex < len(serviceAccounts); saIndex++ {
+			if podList.Items[podIndex].Spec.ServiceAccountName == serviceAccounts[saIndex].Name {
+				serviceAccounts[saIndex].IsUnused = false
+				break podlist // we're done
+			}
+		}
+	}
+
+crblist:
+	for crbIndex := 0; crbIndex < len(clusterRoleBindingList.Items); crbIndex++ {
+		for saIndex := 0; saIndex < len(serviceAccounts); saIndex++ {
+			for _, subject := range clusterRoleBindingList.Items[crbIndex].Subjects {
+				if subject.Name == serviceAccounts[saIndex].Name {
+					serviceAccounts[saIndex].IsUnused = false
+					break crblist
+				}
+			}
+		}
+	}
+
+rblist:
+	for rbIndex := 0; rbIndex < len(roleBindingList.Items); rbIndex++ {
+		for saIndex := 0; saIndex < len(serviceAccounts); saIndex++ {
+			for _, subject := range roleBindingList.Items[rbIndex].Subjects {
+				if subject.Name == serviceAccounts[saIndex].Name {
+					serviceAccounts[saIndex].IsUnused = false
+					break rblist
+				}
+			}
+		}
 	}
 }
 
 func (kcl *KubeClient) isSystemServiceAccount(sa *v1.ServiceAccount) bool {
 	return kcl.isSystemNamespace(sa.Namespace)
-}
-
-func (kcl *KubeClient) isServiceAccountUnused(sa *v1.ServiceAccount) bool {
-	selectors := map[string]string{
-		"spec.serviceAccountName": sa.Name,
-	}
-
-	selectorLabels := labels.SelectorFromSet(selectors).String()
-
-	// Check if service account is used by any pods
-	podList, err := kcl.cli.CoreV1().Pods(sa.Namespace).List(context.TODO(),
-		metav1.ListOptions{
-			FieldSelector: selectorLabels,
-			Limit:         1,
-		},
-	)
-
-	if err != nil {
-		return true
-	}
-
-	return len(podList.Items) == 0
 }
 
 // DeleteServices processes a K8sServiceDeleteRequest by deleting each service
