@@ -293,6 +293,7 @@ func getInstanceTypesInput() *ec2.DescribeInstanceTypesInput {
 func supportedVersions() []portainer.Pair {
 	return []portainer.Pair{
 		// display name, val
+		withValue("1.28", "1.28"),
 		withValue("1.27", "1.27"),
 		withValue("1.26", "1.26"),
 		withValue("1.25", "1.25"),

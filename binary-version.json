@@ -3,7 +3,7 @@
   "dockerCompose": "v2.20.3",
   "helm": "v3.12.3",
   "kubectl": "v1.28.1",
-  "eksctl": "v0.143.0",
+  "eksctl": "v0.162.0",
   "awsAuth": "v0.6.2",
   "mingit": "2.42.0.2"
 }
