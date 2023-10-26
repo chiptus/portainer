@@ -54,24 +54,23 @@ func (kcl *KubeClient) GetServiceAccounts(namespace string) ([]models.K8sService
 		serviceAccounts[i] = sa
 	}
 
-	kcl.lookupSystemResources(serviceAccountList, serviceAccounts)
-	kcl.lookupUnusedResources(serviceAccountList, serviceAccounts)
-
+	kcl.lookupSystemResources(serviceAccounts)
+	kcl.lookupUnusedResources(namespace, serviceAccounts)
 	return serviceAccounts, nil
 }
 
-func (kcl *KubeClient) lookupSystemResources(serviceAccountList *v1.ServiceAccountList, serviceAccounts []models.K8sServiceAccount) {
-	isSystemTask := func(sa *v1.ServiceAccount) concurrent.Func {
+func (kcl *KubeClient) lookupSystemResources(serviceAccounts []models.K8sServiceAccount) {
+	isSystemTask := func(namespace string) concurrent.Func {
 		return func(ctx context.Context) (interface{}, error) {
-			result := kcl.isSystemServiceAccount(sa)
+			result := kcl.isSystemServiceAccount(namespace)
 			return result, nil
 		}
 	}
 
 	// Create a slice of tasks by iterating over the ServiceAccount pointers
 	var tasks []concurrent.Func
-	for i := 0; i < len(serviceAccountList.Items); i++ {
-		taskFunc := isSystemTask(&serviceAccountList.Items[i])
+	for i := 0; i < len(serviceAccounts); i++ {
+		taskFunc := isSystemTask(serviceAccounts[i].Namespace)
 		tasks = append(tasks, taskFunc)
 	}
 
@@ -84,7 +83,9 @@ func (kcl *KubeClient) lookupSystemResources(serviceAccountList *v1.ServiceAccou
 	}
 }
 
-func (kcl *KubeClient) lookupUnusedResources(serviceAccountList *v1.ServiceAccountList, serviceAccounts []models.K8sServiceAccount) {
+// lookupUnusedResources will lookup all related resources for the provided service accounts in the cluster and
+// determine if they are unused.  Note: all the provided serviceAccounts are expected to be in the same namespace
+func (kcl *KubeClient) lookupUnusedResources(namespace string, serviceAccounts []models.K8sServiceAccount) {
 
 	// TODO: Skip system namespaces if system variable is set by passing it in as a query param (i.e. system=true)
 	// TODO: Narrow to specific namespace if asked (namespace={namespace} in query string)
@@ -96,7 +97,7 @@ func (kcl *KubeClient) lookupUnusedResources(serviceAccountList *v1.ServiceAccou
 	// lets do all of the above concurrently
 	pods := func() concurrent.Func {
 		return func(ctx context.Context) (interface{}, error) {
-			return kcl.cli.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+			return kcl.cli.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 		}
 	}
 
@@ -108,7 +109,7 @@ func (kcl *KubeClient) lookupUnusedResources(serviceAccountList *v1.ServiceAccou
 
 	roleBindings := func() concurrent.Func {
 		return func(ctx context.Context) (interface{}, error) {
-			return kcl.cli.RbacV1().RoleBindings("").List(context.TODO(), metav1.ListOptions{})
+			return kcl.cli.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
 		}
 	}
 
@@ -168,8 +169,8 @@ rblist:
 	}
 }
 
-func (kcl *KubeClient) isSystemServiceAccount(sa *v1.ServiceAccount) bool {
-	return kcl.isSystemNamespace(sa.Namespace)
+func (kcl *KubeClient) isSystemServiceAccount(namespace string) bool {
+	return kcl.isSystemNamespace(namespace)
 }
 
 // DeleteServices processes a K8sServiceDeleteRequest by deleting each service
@@ -188,7 +189,7 @@ func (kcl *KubeClient) DeleteServiceAccounts(reqs models.K8sServiceAccountDelete
 				return err
 			}
 
-			if kcl.isSystemServiceAccount(sa) {
+			if kcl.isSystemServiceAccount(sa.Namespace) {
 				return fmt.Errorf("cannot delete system service account %q", namespace+"/"+serviceName)
 			}
 
@@ -205,7 +206,6 @@ func (kcl *KubeClient) DeleteServiceAccounts(reqs models.K8sServiceAccountDelete
 // GetServiceAccountBearerToken returns the ServiceAccountToken associated to the specified user.
 func (kcl *KubeClient) GetServiceAccountBearerToken(userID int) (string, error) {
 	serviceAccountName := UserServiceAccountName(userID, kcl.instanceID)
-
 	return kcl.getServiceAccountToken(serviceAccountName)
 }
 
