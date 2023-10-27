@@ -22,7 +22,7 @@ func Test_DeleteLicense(t *testing.T) {
 		}
 		store.License().AddLicense(license1.LicenseKey, license2)
 
-		s := NewService(store, nil, nil, nil, nil, false)
+		s := NewService(store, nil, nil, false)
 		err := s.DeleteLicense(license1.LicenseKey)
 		assert.NoError(t, err)
 	})
