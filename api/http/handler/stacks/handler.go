@@ -79,6 +79,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackDelete)).Methods(http.MethodDelete)
+	authenticatedRouter.Handle("/stacks/name/{name}", httperror.LoggerHandler(h.stackDeleteKubernetesByName)).Methods(http.MethodDelete)
 	authenticatedRouter.Handle("/stacks/{id}", httperror.LoggerHandler(h.stackUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/stacks/{id}/git", httperror.LoggerHandler(h.stackUpdateGit)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks/{id}/git/redeploy", httperror.LoggerHandler(h.stackGitRedeploy)).Methods(http.MethodPut)
@@ -166,31 +167,6 @@ func (handler *Handler) checkUniqueStackName(endpoint *portaineree.Endpoint, nam
 	}
 
 	return true, nil
-}
-
-func (handler *Handler) checkUniqueStackNameInKubernetes(endpoint *portaineree.Endpoint, name string, stackID portainer.StackID, namespace string) (bool, error) {
-	isUniqueStackName, err := handler.checkUniqueStackName(endpoint, name, stackID)
-	if err != nil {
-		return false, err
-	}
-
-	if !isUniqueStackName {
-		// Check if this stack name is really used in the kubernetes.
-		// Because the stack with this name could be removed via kubectl cli outside and the datastore does not be informed of this action.
-		if namespace == "" {
-			namespace = "default"
-		}
-
-		kubeCli, err := handler.KubernetesClientFactory.GetKubeClient(endpoint)
-		if err != nil {
-			return false, err
-		}
-		isUniqueStackName, err = kubeCli.HasStackName(namespace, name)
-		if err != nil {
-			return false, err
-		}
-	}
-	return isUniqueStackName, nil
 }
 
 func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portaineree.Endpoint, name string, stackID portainer.StackID, swarmMode bool) (bool, error) {

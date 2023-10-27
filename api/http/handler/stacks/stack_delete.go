@@ -11,6 +11,7 @@ import (
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/middlewares"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/errorlist"
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	portainer "github.com/portainer/portainer/api"
@@ -263,4 +264,139 @@ func (handler *Handler) deleteStack(userID portainer.UserID, stack *portaineree.
 	}
 
 	return fmt.Errorf("unsupported stack type: %v", stack.Type)
+}
+
+// @id StackDeleteKubernetesByName
+// @summary Remove Kubernetes stacks by name
+// @description Remove a stack.
+// @description **Access policy**: restricted
+// @tags stacks
+// @security ApiKeyAuth
+// @security jwt
+// @param name path string true "Stack name"
+// @param external query boolean false "Set to true to delete an external stack. Only external Swarm stacks are supported"
+// @param endpointId query int true "Environment identifier"
+// @success 204 "Success"
+// @failure 400 "Invalid request"
+// @failure 403 "Permission denied"
+// @failure 404 "Not found"
+// @failure 500 "Server error"
+// @router /stacks/name/{name} [delete]
+func (handler *Handler) stackDeleteKubernetesByName(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	stackName, err := request.RetrieveRouteVariableValue(r, "name")
+	if err != nil {
+		return httperror.BadRequest("Invalid stack identifier route variable", err)
+	}
+
+	log.Debug().Msgf("Trying to delete Kubernetes stack `%s`", stackName)
+
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	if err != nil {
+		return httperror.InternalServerError("Unable to retrieve info from request context", err)
+	}
+
+	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", true)
+	if err != nil {
+		return httperror.BadRequest("Invalid query parameter: endpointId", err)
+	}
+
+	namespace, err := request.RetrieveQueryParameter(r, "namespace", false)
+	if err != nil {
+		return httperror.BadRequest("Invalid query parameter: namespace", err)
+	}
+
+	stacks, err := handler.DataStore.Stack().StacksByName(stackName)
+	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
+		return httperror.InternalServerError("Unable to check for stack existence inside the database", err)
+	}
+	if stacks == nil {
+		return httperror.InternalServerError("Unable to find a stacks with the specified identifier name the database", err)
+	}
+
+	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return httperror.NotFound("Unable to find the endpoint associated to the stack inside the database", err)
+	} else if err != nil {
+		return httperror.InternalServerError("Unable to find the endpoint associated to the stack inside the database", err)
+	}
+	middlewares.SetEndpoint(endpoint, r)
+
+	log.Debug().Msgf("Trying to delete Kubernetes stack %q for endpoint `%d`", stackName, endpointID)
+
+	// check authorizations on all the stacks one by one
+	stacksToDelete := make([]portaineree.Stack, 0)
+	for _, stack := range stacks {
+		// only delete stacks for the specified namespace
+		if stack.Namespace != namespace {
+			continue
+		}
+
+		isOrphaned := portainer.EndpointID(endpointID) != stack.EndpointID
+		if stack.Type != portaineree.KubernetesStack {
+			return httperror.BadRequest("Only Kubernetes stacks can be deleted by name", errors.New("Only Kubernetes stacks can be deleted by name"))
+		}
+
+		if isOrphaned && !securityContext.IsAdmin {
+			return httperror.Forbidden("Permission denied to remove orphaned stack", errors.New("Permission denied to remove orphaned stack"))
+		}
+
+		if !isOrphaned {
+			err = handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
+			if err != nil {
+				return httperror.Forbidden("Permission denied to access endpoint", err)
+			}
+		}
+
+		canManage, err := handler.userCanManageStacks(securityContext, endpoint)
+		if err != nil {
+			return httperror.InternalServerError("Unable to verify user authorizations to validate stack deletion", err)
+		}
+		if !canManage {
+			errMsg := "stack deletion is disabled for non-admin users"
+			return httperror.Forbidden(errMsg, fmt.Errorf(errMsg))
+		}
+
+		stacksToDelete = append(stacksToDelete, stack)
+	}
+
+	log.Debug().Msgf("Trying to delete Kubernetes stacks `%v` for endpoint `%d`", stacksToDelete, endpointID)
+
+	errors := make([]error, 0)
+	// Delete all the stacks one by one
+	for _, stack := range stacksToDelete {
+		log.Debug().Msgf("Trying to delete Kubernetes stack id `%d`", stack.ID)
+
+		// stop scheduler updates of the stack before removal
+		if stack.AutoUpdate != nil {
+			deployments.StopAutoupdate(stack.ID, stack.AutoUpdate.JobID, handler.Scheduler)
+		}
+
+		err = handler.deleteStack(securityContext.UserID, &stack, endpoint)
+		if err != nil {
+			log.Err(err).Msgf("Unable to delete Kubernetes stack `%d`", stack.ID)
+			errors = append(errors, err)
+			continue
+		}
+
+		err = handler.DataStore.Stack().Delete(stack.ID)
+		if err != nil {
+			errors = append(errors, err)
+			log.Err(err).Msgf("Unable to remove the stack `%d` from the database", stack.ID)
+			continue
+		}
+
+		err = handler.FileService.RemoveDirectory(stack.ProjectPath)
+		if err != nil {
+			errors = append(errors, err)
+			log.Warn().Err(err).Msg("Unable to remove stack files from disk")
+		}
+
+		log.Debug().Msgf("Kubernetes stack `%d` deleted", stack.ID)
+	}
+
+	if len(errors) > 0 {
+		return httperror.InternalServerError("errors occurred during  of Kubernetes stack. Check portainer logs for more details", errorlist.Combine(errors))
+	}
+
+	return response.Empty(w)
 }

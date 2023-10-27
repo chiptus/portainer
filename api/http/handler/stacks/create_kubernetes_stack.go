@@ -152,14 +152,6 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	isUnique, err := handler.checkUniqueStackNameInKubernetes(endpoint, payload.StackName, 0, payload.Namespace)
-	if err != nil {
-		return httperror.InternalServerError("Unable to check for name collision", err)
-	}
-	if !isUnique {
-		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
-	}
-
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return httperror.InternalServerError("unable to retrieve user details from authentication token", err)
@@ -218,14 +210,6 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 	var payload kubernetesGitDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
-	}
-
-	isUnique, err := handler.checkUniqueStackNameInKubernetes(endpoint, payload.StackName, 0, payload.Namespace)
-	if err != nil {
-		return httperror.InternalServerError("Unable to check for name collision", err)
-	}
-	if !isUnique {
-		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
@@ -301,14 +285,6 @@ func (handler *Handler) createKubernetesStackFromManifestURL(w http.ResponseWrit
 	var payload kubernetesManifestURLDeploymentPayload
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return httperror.BadRequest("Invalid request payload", err)
-	}
-
-	isUnique, err := handler.checkUniqueStackNameInKubernetes(endpoint, payload.StackName, 0, payload.Namespace)
-	if err != nil {
-		return httperror.InternalServerError("Unable to check for name collision", err)
-	}
-	if !isUnique {
-		return httperror.Conflict(fmt.Sprintf("A stack with the name '%s' already exists", payload.StackName), stackutils.ErrStackAlreadyExists)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
