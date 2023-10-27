@@ -22,6 +22,7 @@ const edgePropertiesFormInitialValues: ScriptFormValues = {
   edgeGroupsIds: [],
   group: 0,
   tagsIds: [],
+  edgeIdGenerator: '',
 };
 
 interface Props {
@@ -48,6 +49,7 @@ export function EdgeScriptForm({
         initialValues={edgePropertiesFormInitialValues}
         validationSchema={() => validationSchema(isNomadTokenVisible)}
         onSubmit={() => {}}
+        validateOnMount
       >
         {({ values, setFieldValue }) => (
           <>
