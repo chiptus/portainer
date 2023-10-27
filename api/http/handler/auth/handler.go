@@ -45,7 +45,7 @@ func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimit
 	h.Handle("/auth",
 		rateLimiter.LimitAccess(bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.authenticate, portaineree.AuthenticationActivitySuccess))))).Methods(http.MethodPost)
 	h.Handle("/auth/logout",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.logout, portaineree.AuthenticationActivityLogOut)))).Methods(http.MethodPost)
+		bouncer.PublicAccess(httperror.LoggerHandler(h.authActivityMiddleware(h.logout, portaineree.AuthenticationActivityLogOut)))).Methods(http.MethodPost)
 
 	return h
 }

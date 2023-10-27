@@ -13,7 +13,7 @@ import (
 
 // @id Logout
 // @summary Logout
-// @description **Access policy**: authenticated
+// @description **Access policy**: public
 // @security ApiKeyAuth
 // @security jwt
 // @tags auth
@@ -21,19 +21,21 @@ import (
 // @failure 500 "Server error"
 // @router /auth/logout [post]
 func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMiddlewareResponse, *httperror.HandlerError) {
-	tokenData, err := security.RetrieveTokenData(r)
 	resp := &authMiddlewareResponse{
-		Username: tokenData.Username,
+		Username: "Unauthenticated user",
 	}
+
+	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to retrieve user details from authentication token")
+		return resp, response.Empty(w)
 	}
 
 	if tokenData != nil {
+		resp.Username = tokenData.Username
 		handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
+		logoutcontext.Cancel(tokenData.Token)
 	}
-
-	logoutcontext.Cancel(tokenData.Token)
 
 	return resp, response.Empty(w)
 }
