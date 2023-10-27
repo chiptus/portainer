@@ -8,7 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// GetNodes get a list of all node names and ip addresses in the current k8s environment connection
+// GetNodes get a list of all node names and ip addresses in the current k8s
+// environment connection
 func (kcl *KubeClient) GetNodes() ([]models.K8sNodes, error) {
 	nodeList := make([]models.K8sNodes, 0)
 

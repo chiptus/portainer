@@ -23,7 +23,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Endpoint().Create(endpoint)
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
-		service := NewService(store, nil, nil, false)
+		service := NewService(store, nil, nil, nil, nil, false)
 
 		enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
 		assert.Equal(t, int64(0), enforcement.LicenseOveruseStartedTimestamp)
@@ -41,7 +41,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
 		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
-		service := NewService(store, nil, snapshotService, false)
+		service := NewService(store, nil, nil, nil, snapshotService, false)
 
 		enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
 		assert.Equal(t, int64(0), enforcement.LicenseOveruseStartedTimestamp)
@@ -59,7 +59,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
 		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
-		service := NewService(store, nil, snapshotService, false)
+		service := NewService(store, nil, nil, nil, snapshotService, false)
 		originalValue := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalValue)
 
@@ -76,7 +76,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
 		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
-		service := NewService(store, nil, snapshotService, false)
+		service := NewService(store, nil, nil, nil, snapshotService, false)
 		originalTimestamp := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalTimestamp)
 
@@ -93,7 +93,7 @@ func Test_getLicenseOveruseTimestamp(t *testing.T) {
 		store.Snapshot().Create(&portaineree.Snapshot{EndpointID: endpoint.ID, Docker: &portainer.DockerSnapshot{NodeCount: 10}})
 
 		snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
-		service := NewService(store, nil, snapshotService, false)
+		service := NewService(store, nil, nil, nil, snapshotService, false)
 		originalTimestamp := time.Now().Add(-time.Hour * 24).Unix()
 		service.dataStore.Enforcement().UpdateOveruseStartedTimestamp(originalTimestamp)
 
@@ -126,7 +126,7 @@ func Test_licenseIsOverused(t *testing.T) {
 }
 
 func Test_ShouldEnforceOveruse(t *testing.T) {
-	service := NewService(nil, nil, nil, false)
+	service := NewService(nil, nil, nil, nil, nil, false)
 
 	t.Run("should return false if licenseOveruseStartedTimestamp is empty", func(t *testing.T) {
 		service.licenses = []liblicense.PortainerLicense{}
@@ -164,7 +164,7 @@ func Test_NotOverused(t *testing.T) {
 	t.Run("should return http error if 5NF license is at capacity or over", func(t *testing.T) {
 		w := httptest.NewRecorder()
 
-		licenseService := NewService(store, nil, snapshotService, false)
+		licenseService := NewService(store, nil, nil, nil, snapshotService, false)
 		licenseService.licenses = []liblicense.PortainerLicense{
 			{
 				Type:  liblicense.PortainerLicenseFree,
@@ -179,7 +179,7 @@ func Test_NotOverused(t *testing.T) {
 	t.Run("should pass request through if NON-5NF license is at capacity or over", func(t *testing.T) {
 		w := httptest.NewRecorder()
 
-		licenseService := NewService(store, nil, snapshotService, false)
+		licenseService := NewService(store, nil, nil, nil, snapshotService, false)
 		licenseService.licenses = []liblicense.PortainerLicense{}
 
 		NotOverused(licenseService, store, nextHandler).ServeHTTP(w, r)
@@ -189,7 +189,7 @@ func Test_NotOverused(t *testing.T) {
 	t.Run("should pass request through if 5NF license is below capacity", func(t *testing.T) {
 		w := httptest.NewRecorder()
 
-		licenseService := NewService(store, nil, snapshotService, false)
+		licenseService := NewService(store, nil, nil, nil, snapshotService, false)
 		licenseService.licenses = []liblicense.PortainerLicense{}
 
 		NotOverused(licenseService, store, nextHandler).ServeHTTP(w, r)
