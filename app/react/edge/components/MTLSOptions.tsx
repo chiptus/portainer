@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { MTLSCertOptions } from '@/react/portainer/settings/EdgeComputeView/EdgeComputeSettings/types';
 
 import { FileUploadField } from '@@/form-components/FileUpload';
@@ -11,12 +13,28 @@ interface Props {
 }
 
 export function MTLSOptions({ onChange, values }: Props) {
+  const [valuesCache, setValuesCache] = useState(values);
+
   function onChangeField(key: string, newValue: unknown) {
     const newValues = {
       ...values,
       [key]: newValue,
     };
     onChange(newValues);
+  }
+
+  function onChangeUseSeparateCert(newValue: boolean) {
+    if (newValue) {
+      onChange({
+        ...valuesCache,
+        UseSeparateCert: true,
+      });
+    } else {
+      setValuesCache(values);
+      onChange({
+        UseSeparateCert: false,
+      });
+    }
   }
 
   return (
@@ -32,9 +50,7 @@ export function MTLSOptions({ onChange, values }: Props) {
           id="use_separete_cert"
           name="name_use_separate_cert"
           checked={!!values.UseSeparateCert}
-          onChange={() =>
-            onChangeField('UseSeparateCert', !values.UseSeparateCert)
-          }
+          onChange={() => onChangeUseSeparateCert(!values.UseSeparateCert)}
         />
       </FormControl>
 

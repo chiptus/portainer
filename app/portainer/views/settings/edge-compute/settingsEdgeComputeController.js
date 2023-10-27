@@ -1,3 +1,4 @@
+import _ from 'lodash-es';
 import angular from 'angular';
 import { buildDefaultValue as buildTunnelDefaultValue } from '@/react/portainer/common/PortainerTunnelAddrField';
 import { buildDefaultValue as buildApiUrlDefaultValue } from '@/react/portainer/common/PortainerUrlField';
@@ -73,11 +74,20 @@ export default function SettingsEdgeComputeController($q, $async, $state, Notifi
         const defaultTunnelServerAddress = buildTunnelDefaultValue();
 
         const settings = await SettingsService.settings();
+
+        const defaultMTLS = {
+          ..._.get(settings, 'Edge.MTLS', {}),
+          UseSeparateCert: _.get(settings, 'Edge.MTLS.UseSeparateCert', false),
+        };
+
         ctrl.settings = {
           ...settings,
+          EnableEdgeComputeFeatures: !!settings.EnableEdgeComputeFeatures,
+          EnforceEdgeID: !!settings.EnforceEdgeID,
           EdgePortainerUrl: settings.EdgePortainerUrl || defaultApiServerURL,
           Edge: {
             ...settings.Edge,
+            MTLS: defaultMTLS,
             TunnelServerAddress: settings.Edge.TunnelServerAddress || defaultTunnelServerAddress,
           },
         };
