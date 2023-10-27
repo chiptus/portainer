@@ -38,7 +38,7 @@ type snapshotInfo struct {
 
 type snapshotResponse struct {
 	Containers []portainer.DockerContainerSnapshot
-	Volumes    volume.VolumeListOKBody
+	Volumes    volume.ListResponse
 	Images     []types.ImageSummary
 	Info       snapshotInfo
 }

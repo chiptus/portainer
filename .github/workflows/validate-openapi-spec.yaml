@@ -7,30 +7,34 @@ on:
       - develop
       - 'release/*'
 
+env:
+  GO_VERSION: 1.21.3
+  NODE_VERSION: 18.x
+
 jobs:
   openapi-spec:
     runs-on: ubuntu-latest
     env:
       GOPRIVATE: github.com/portainer/liblicense
     steps:
-    - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
+      - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_LIBLICENSE }}
 
-    - uses: actions/setup-go@v3
-      with:
-        go-version: '1.21.0'
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Configure git for private modules
-      run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+      - name: Configure git for private modules
+        run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
-    - name: Download golang modules
-      run: cd ./api && go get -v -d ./...
-    - uses: actions/setup-node@v3
-      with:
-          node-version: '18'
+      - name: Download golang modules
+        run: cd ./api && go get -v -d ./...
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'yarn'
-    - run: yarn --frozen-lockfile
-    - name: Validate OpenAPI Spec
-      run: make docs-validate
+      - run: yarn --frozen-lockfile
+      - name: Validate OpenAPI Spec
+        run: make docs-validate
