@@ -272,7 +272,7 @@ class KubernetesApplicationHelper {
   /* #endregion */
 
   /* #region  SERVICES -> SERVICES FORM VALUES */
-  static generateServicesFormValuesFromServices(app) {
+  static generateServicesFormValuesFromServices(app, ingresses) {
     let services = [];
     if (app.Services) {
       app.Services.forEach(function (service) {
@@ -305,7 +305,7 @@ class KubernetesApplicationHelper {
             svcport.serviceName = service.metadata.name;
             svcport.ingressPaths = [];
 
-            app.Ingresses.value.forEach((ingress) => {
+            ingresses.forEach((ingress) => {
               const matchingIngressPaths = ingress.Paths.filter((ingPath) => ingPath.ServiceName === service.metadata.name && ingPath.Port === port.port);
               // only add ingress info to the port if the ingress serviceport and name matches
               const newPaths = matchingIngressPaths.map((ingPath) => ({
