@@ -47,7 +47,7 @@ type publicSettingsResponse struct {
 	IsAMTEnabled bool
 
 	DefaultRegistry struct {
-		Hide bool `json:"Hide,omitempty" example:"false"`
+		Hide bool `json:"Hide" example:"false"`
 	}
 
 	Edge struct {

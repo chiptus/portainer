@@ -7,7 +7,7 @@ import { Values } from './types';
 export function validation(): SchemaOf<Values> {
   return object({
     edgeAgentCheckinInterval: number().required(),
-    enableTelemetry: bool().default(false),
+    enableTelemetry: bool().required(),
     loginBannerEnabled: boolean().default(false),
     loginBanner: string()
       .default('')

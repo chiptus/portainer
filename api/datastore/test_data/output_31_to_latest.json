@@ -47,31 +47,61 @@
         "AuthenticationKey": "",
         "TenantID": ""
       },
-      "ChangeWindow": {},
-      "Edge": {},
+      "ChangeWindow": {
+        "Enabled": false,
+        "EndTime": "",
+        "StartTime": ""
+      },
+      "CloudProvider": null,
+      "ComposeSyntaxMaxVersion": "",
+      "DeploymentOptions": null,
+      "Edge": {
+        "AsyncMode": false,
+        "CommandInterval": 0,
+        "PingInterval": 0,
+        "SnapshotInterval": 0
+      },
       "EdgeCheckinInterval": 0,
+      "EdgeKey": "",
+      "EnableGPUManagement": false,
+      "EnableImageNotification": false,
       "Gpus": [],
       "GroupId": 1,
+      "Heartbeat": false,
       "Id": 1,
       "Kubernetes": {
         "Configuration": {
+          "AllowNoneIngressClass": false,
           "EnableResourceOverCommit": true,
           "IngressAvailabilityPerNamespace": true,
           "IngressClasses": [],
           "ResourceOverCommitPercentage": 20,
-          "StorageClasses": []
+          "RestrictDefaultNamespace": false,
+          "RestrictStandardUserIngressW": false,
+          "StorageClasses": [],
+          "UseLoadBalancer": false,
+          "UseServerMetrics": false
         },
-        "Flags": {},
+        "Flags": {
+          "IsServerIngressClassDetected": false,
+          "IsServerMetricsDetected": false,
+          "IsServerStorageDetected": false
+        },
         "Snapshots": []
       },
+      "LastCheckInDate": 0,
+      "LocalTimeZone": "",
       "Name": "docker",
       "Nomad": {
         "Snapshots": []
       },
       "PostInitMigrations": {
         "MigrateGPUs": true,
+        "MigrateGateKeeper": false,
         "MigrateIngresses": true
       },
+      "PublicURL": "",
+      "QueryDate": 0,
       "SecuritySettings": {
         "allowBindMountsForRegularUsers": true,
         "allowContainerCapabilitiesForRegularUsers": true,
@@ -79,7 +109,9 @@
         "allowHostNamespaceForRegularUsers": true,
         "allowPrivilegedModeForRegularUsers": true,
         "allowStackManagementForRegularUsers": true,
-        "allowSysctlSettingForRegularUsers": true
+        "allowSysctlSettingForRegularUsers": true,
+        "allowVolumeBrowserForRegularUsers": false,
+        "enableHostManagementFeatures": false
       },
       "Snapshots": [],
       "Status": 1,
@@ -89,13 +121,17 @@
         "operationStatus": "",
         "summary": ""
       },
-      "TLSConfig": {},
+      "TLSConfig": {
+        "TLS": false,
+        "TLSSkipVerify": false
+      },
       "TagIds": [],
       "Tags": null,
       "TeamAccessPolicies": {},
       "Type": 1,
       "URL": "unix:///var/run/docker.sock",
-      "UserAccessPolicies": {}
+      "UserAccessPolicies": {},
+      "UserTrusted": false
     }
   ],
   "enforcement": null,
@@ -111,11 +147,13 @@
       "Authentication": true,
       "AuthorizedTeams": null,
       "AuthorizedUsers": null,
+      "BaseURL": "",
       "Ecr": {
         "Region": ""
       },
       "Github": {
-        "OrganisationName": ""
+        "OrganisationName": "",
+        "UseOrganisation": false
       },
       "Gitlab": {
         "InstanceURL": "",
@@ -801,29 +839,61 @@
   "s3backup": null,
   "schedules": null,
   "settings": {
+    "AgentSecret": "",
     "AuthenticationMethod": 1,
     "BlackListedLabels": [],
-    "CloudApiKeys": {},
-    "DefaultRegistry": {},
+    "CloudApiKeys": {
+      "CivoApiKey": "",
+      "DigitalOceanToken": "",
+      "GKEApiKey": "",
+      "LinodeToken": ""
+    },
+    "CustomLoginBanner": "",
+    "DefaultRegistry": {
+      "Hide": false
+    },
     "Edge": {
-      "MTLS": {},
+      "CommandInterval": 0,
+      "MTLS": {
+        "CaCertFile": "",
+        "CertFile": "",
+        "KeyFile": "",
+        "UseSeparateCert": false
+      },
+      "PingInterval": 0,
+      "SnapshotInterval": 0,
       "TunnelServerAddress": ""
     },
     "EdgeAgentCheckinInterval": 5,
+    "EdgePortainerUrl": "",
+    "EnableEdgeComputeFeatures": false,
     "EnableTelemetry": true,
-    "ExperimentalFeatures": {},
-    "GlobalDeploymentOptions": {},
+    "EnforceEdgeID": false,
+    "ExperimentalFeatures": {
+      "OpenAIIntegration": false
+    },
+    "GlobalDeploymentOptions": {
+      "hideAddWithForm": false,
+      "hideFileUpload": false,
+      "hideWebEditor": false,
+      "minApplicationNoteLength": 0,
+      "perEnvOverride": false,
+      "requireNoteOnApplications": false
+    },
     "HelmRepositoryURL": "https://charts.bitnami.com/bitnami",
     "InternalAuthSettings": {
       "RequiredPasswordLength": 12
     },
+    "IsDockerDesktopExtension": false,
     "KubeconfigExpiry": "0",
     "KubectlShellImage": "portainer/kubectl-shell",
     "LDAPSettings": {
+      "AdminAutoPopulate": false,
       "AdminGroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": ""
+          "GroupBaseDN": "",
+          "GroupFilter": ""
         }
       ],
       "AdminGroups": null,
@@ -832,7 +902,8 @@
       "GroupSearchSettings": [
         {
           "GroupAttribute": "",
-          "GroupBaseDN": ""
+          "GroupBaseDN": "",
+          "GroupFilter": ""
         }
       ],
       "ReaderDN": "",
@@ -844,9 +915,14 @@
         }
       ],
       "ServerType": 0,
-      "TLSConfig": {},
+      "StartTLS": false,
+      "TLSConfig": {
+        "TLS": false,
+        "TLSSkipVerify": false
+      },
       "URLs": []
     },
+    "LogoURL": "",
     "OAuthSettings": {
       "AccessTokenURI": "",
       "AuthorizationURI": "",
@@ -863,14 +939,17 @@
       "SSO": true,
       "Scopes": "",
       "TeamMemberships": {
+        "AdminAutoPopulate": false,
         "AdminGroupClaimsRegexList": null,
         "OAuthClaimMappings": [],
         "OAuthClaimName": ""
       },
       "UserIdentifier": ""
     },
+    "ShowKomposeBuildOption": false,
     "SnapshotInterval": "5m",
     "TemplatesURL": "https://raw.githubusercontent.com/portainer/templates/master/templates-2.0.json",
+    "TrustOnFirstConnect": false,
     "UserSessionTimeout": "8h",
     "fdoConfiguration": {
       "enabled": false,
@@ -1998,18 +2077,23 @@
         "UnhealthyContainerCount": 0,
         "VolumeCount": 14
       },
-      "EndpointId": 1
+      "EndpointId": 1,
+      "Kubernetes": null,
+      "Nomad": null
     }
   ],
   "ssl": null,
   "stacks": [
     {
       "AdditionalFiles": null,
+      "AutoUpdate": null,
       "CreatedBy": "admin",
       "CreationDate": 1648695851,
       "EndpointId": 1,
       "EntryPoint": "docker/redis-compose.yml",
       "Env": [],
+      "FilesystemPath": "",
+      "FromAppTemplate": false,
       "GitConfig": {
         "Authentication": null,
         "ConfigFilePath": "docker/redis-compose.yml",
@@ -2019,13 +2103,22 @@
         "URL": "https://github.com/kheraprabhat/infra"
       },
       "Id": 2,
+      "IsComposeFormat": false,
+      "IsDetachedFromGit": false,
       "Name": "redis",
+      "Namespace": "",
+      "Option": null,
+      "PreviousDeploymentInfo": null,
       "ProjectPath": "/home/prabhat/portainer/data/ee2.7/compose/2",
+      "ResourceControl": null,
       "StackFileVersion": 0,
       "Status": 1,
+      "SupportRelativePath": false,
+      "SwarmId": "",
       "Type": 2,
       "UpdateDate": 0,
-      "UpdatedBy": ""
+      "UpdatedBy": "",
+      "Webhook": ""
     },
     {
       "CreatedBy": "admin",
@@ -2048,11 +2141,14 @@
   "tags": null,
   "team_membership": null,
   "teams": null,
-  "tunnel_server": {},
+  "tunnel_server": {
+    "PrivateKeySeed": ""
+  },
   "users": [
     {
       "EndpointAuthorizations": {},
       "Id": 1,
+      "OpenAIApiKey": "",
       "Password": "$2a$10$/0Vjytox0VUppqvRNZYO0uQmSZBphAwBAAWQOwv0XgREvWeLRFK9y",
       "PortainerAuthorizations": {
         "PortainerDockerHubInspect": true,
@@ -2078,7 +2174,10 @@
         "PortainerUserUpdateGitCredential": true
       },
       "Role": 1,
-      "ThemeSettings": {},
+      "ThemeSettings": {
+        "color": "",
+        "subtleUpgradeButton": false
+      },
       "TokenIssueAt": 0,
       "Username": "admin"
     }
