@@ -102,7 +102,6 @@ func testCreateStackFromAppTemplate(store *datastore.Store, gitService portainer
 		FromAppTemplate: true,
 		GitConfig: &gittypes.RepoConfig{
 			ConfigFilePath: "stacks/wordpress/docker-compose.yml",
-			ConfigHash:     "f94735d43bc9a046bc0f6a794f588140db860742",
 			URL:            "https://github.com/portainer/templates",
 		},
 		ProjectPath:      fmt.Sprintf("%s/compose/1", fileService.GetDatastorePath()),
@@ -128,7 +127,6 @@ func testCreateStackByGitRepo(store *datastore.Store, gitService portainer.GitSe
 		EntryPoint: "docker-compose.yml",
 		GitConfig: &gittypes.RepoConfig{
 			ConfigFilePath: "docker-compose.yml",
-			ConfigHash:     "dc04597399c9da00895cbd791ea2ca6d1702c35f",
 			ReferenceName:  "refs/heads/archive",
 			URL:            "https://github.com/oscarzhou-portainer/repo-httpd",
 		},
@@ -164,7 +162,6 @@ func testCreateStackByFileContent(store *datastore.Store, fileService portainer.
 	}
 
 	fileContent := []byte(testGetYAMLContentDeployedByFileContent(""))
-
 	_, err = fileService.StoreStackFileFromBytesByVersion(strconv.Itoa(int(stack.ID)), stack.EntryPoint, stack.StackFileVersion, fileContent)
 
 	return stack, err
@@ -194,8 +191,8 @@ func testCloneGitRepo(store *datastore.Store, gitService portainer.GitService, f
 		return fileService.GetStackProjectPath(stackFolder)
 	}
 
-	_, err := stackutils.DownloadGitRepository(*stack.GitConfig, gitService, true, getProjectPath)
-
+	commitID, err := stackutils.DownloadGitRepository(*stack.GitConfig, gitService, true, getProjectPath)
+	stack.GitConfig.ConfigHash = commitID
 	return err
 }
 
@@ -369,5 +366,4 @@ func TestHandler_updateSwarmOrComposeStack(t *testing.T) {
 
 		is.Nil(stackDeployedByFileContent.PreviousDeploymentInfo, "previous deployment info should be nil")
 	})
-
 }
