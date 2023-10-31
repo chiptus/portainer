@@ -6,7 +6,6 @@ import { Cloud } from 'lucide-react';
 import Kube from '@/assets/ico/kube.svg?c';
 import DockerIcon from '@/assets/ico/vendor/docker-icon.svg?c';
 import MicrosoftIcon from '@/assets/ico/vendor/microsoft-icon.svg?c';
-import NomadIcon from '@/assets/ico/vendor/nomad-icon.svg?c';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 
 export function truncateLeftRight(text, max, left, right) {
@@ -105,7 +104,6 @@ export function endpointTypeName(type) {
       return 'Kubernetes';
     case EnvironmentType.EdgeAgentOnDocker:
     case EnvironmentType.EdgeAgentOnKubernetes:
-    case EnvironmentType.EdgeAgentOnNomad:
       return 'Edge Agent';
     default:
       throw new Error(`type ${type}-${EnvironmentType[type]} is not supported`);
@@ -125,8 +123,6 @@ export function environmentTypeIcon(type) {
     case EnvironmentType.AgentOnDocker:
     case EnvironmentType.Docker:
       return DockerIcon;
-    case EnvironmentType.EdgeAgentOnNomad:
-      return NomadIcon;
     default:
       throw new Error(`type ${type}-${EnvironmentType[type]} is not supported`);
   }

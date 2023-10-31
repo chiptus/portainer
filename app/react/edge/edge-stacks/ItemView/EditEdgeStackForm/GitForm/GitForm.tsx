@@ -57,7 +57,6 @@ import {
   StaggerFieldset,
 } from '../../../components/StaggerFieldset';
 import { useValidateEnvironmentTypes } from '../useEdgeGroupHasType';
-import { atLeastTwo } from '../atLeastTwo';
 import { PrivateRegistryFieldset } from '../../../components/PrivateRegistryFieldset';
 import { useStaggerUpdateStatus } from '../useStaggerUpdateStatus';
 
@@ -237,7 +236,6 @@ function InnerForm({
 
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
-  const hasNomadEndpoint = hasType(EnvironmentType.EdgeAgentOnNomad);
   const [selectedParallelOption, setSelectedParallelOption] = useState(
     values.staggerConfig.StaggerOption === StaggerOption.Parallel
   );
@@ -257,7 +255,7 @@ function InnerForm({
         error={errors.groupIds}
       />
 
-      {atLeastTwo(hasKubeEndpoint, hasDockerEndpoint, hasNomadEndpoint) && (
+      {hasKubeEndpoint && hasDockerEndpoint && (
         <TextTip>
           There are no available deployment types when there is more than one
           type of environment in your edge group selection (e.g. Kubernetes and
@@ -277,7 +275,6 @@ function InnerForm({
         value={values.deploymentType}
         hasDockerEndpoint={hasType(EnvironmentType.EdgeAgentOnDocker)}
         hasKubeEndpoint={hasType(EnvironmentType.EdgeAgentOnKubernetes)}
-        hasNomadEndpoint={hasType(EnvironmentType.EdgeAgentOnNomad)}
         onChange={(value) => {
           setFieldValue('deploymentType', value);
         }}

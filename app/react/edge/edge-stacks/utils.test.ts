@@ -22,11 +22,6 @@ describe('getValidEditorTypes', () => {
       title: 'should return kubernetes for kubernetes envs',
     },
     {
-      endpointTypes: [EnvironmentType.EdgeAgentOnNomad],
-      expected: [EditorType.Nomad],
-      title: 'should return nomad for nomad envs',
-    },
-    {
       endpointTypes: [
         EnvironmentType.EdgeAgentOnDocker,
         EnvironmentType.EdgeAgentOnKubernetes,
@@ -37,24 +32,7 @@ describe('getValidEditorTypes', () => {
     {
       endpointTypes: [
         EnvironmentType.EdgeAgentOnDocker,
-        EnvironmentType.EdgeAgentOnNomad,
-      ],
-      expected: [],
-      title: 'should return empty for docker and nomad envs',
-    },
-    {
-      endpointTypes: [
         EnvironmentType.EdgeAgentOnKubernetes,
-        EnvironmentType.EdgeAgentOnNomad,
-      ],
-      expected: [],
-      title: 'should return empty for kubernetes and nomad envs',
-    },
-    {
-      endpointTypes: [
-        EnvironmentType.EdgeAgentOnDocker,
-        EnvironmentType.EdgeAgentOnKubernetes,
-        EnvironmentType.EdgeAgentOnNomad,
       ],
       expected: [],
       title: 'should return empty for all envs',

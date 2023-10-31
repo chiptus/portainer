@@ -23,8 +23,6 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
   $scope.onChangeTLSConfigFormValues = onChangeTLSConfigFormValues;
   $scope.k8sInstallTitles = k8sInstallTitles;
 
-  const isBE = process.env.PORTAINER_EDITION === 'BE';
-
   $scope.state = {
     platformName: '',
     selectAll: false,
@@ -42,10 +40,9 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     allowCreate: Authentication.isAdmin(),
     allowSelfSignedCerts: true,
     showAMTInfo: false,
-    showNomad: isBE,
     showTLSConfig: false,
     edgeScriptCommands: {
-      linux: _.compact([commandsTabs.k8sLinux, commandsTabs.swarmLinux, commandsTabs.standaloneLinux, isBE && commandsTabs.nomadLinux]),
+      linux: _.compact([commandsTabs.k8sLinux, commandsTabs.swarmLinux, commandsTabs.standaloneLinux]),
       win: [commandsTabs.swarmWindows, commandsTabs.standaloneWindow],
     },
   };
@@ -320,11 +317,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
 
         endpoint.URL = $filter('stripprotocol')(endpoint.URL);
 
-        if (
-          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment ||
-          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment ||
-          endpoint.Type === PortainerEndpointTypes.EdgeAgentOnNomadEnvironment
-        ) {
+        if (endpoint.Type === PortainerEndpointTypes.EdgeAgentOnDockerEnvironment || endpoint.Type === PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment) {
           $scope.edgeKeyDetails = decodeEdgeKey(endpoint.EdgeKey);
 
           $scope.state.edgeAssociated = !!endpoint.EdgeID;

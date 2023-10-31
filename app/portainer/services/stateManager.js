@@ -195,12 +195,6 @@ function StateManagerFactory(
       LocalStorage.storeEndpointState(state.endpoint);
       deferred.resolve();
       return deferred.promise;
-    } else if (endpoint.Type === 8) {
-      state.endpoint.name = endpoint.Name;
-      state.endpoint.mode = { provider: 'NOMAD' };
-      LocalStorage.storeEndpointState(state.endpoint);
-      deferred.resolve();
-      return deferred.promise;
     }
 
     $q.all({

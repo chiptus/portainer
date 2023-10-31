@@ -14,10 +14,9 @@ export function getValidEditorTypes(
     [EnvironmentType.EdgeAgentOnKubernetes]: allowKubeToSelectCompose
       ? [EditorType.Kubernetes, EditorType.Compose]
       : [EditorType.Kubernetes],
-    [EnvironmentType.EdgeAgentOnNomad]: [EditorType.Nomad],
   };
 
   return endpointTypes.length
     ? _.intersection(...endpointTypes.map((type) => right[type]))
-    : [EditorType.Compose, EditorType.Kubernetes, EditorType.Nomad];
+    : [EditorType.Compose, EditorType.Kubernetes];
 }

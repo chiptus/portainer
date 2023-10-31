@@ -27,7 +27,6 @@ import {
 import { WizardDocker } from './WizardDocker';
 import { WizardAzure } from './WizardAzure';
 import { WizardKubernetes } from './WizardKubernetes';
-import { WizardNomad } from './WizardNomad';
 import { AnalyticsState, AnalyticsStateKey } from './types';
 import { WizardEndpointsList } from './WizardEndpointsList';
 import { WizardKaaS } from './WizardKaaS';
@@ -199,8 +198,6 @@ function useStepper(
         return WizardKubernetes;
       case 'kaas':
         return WizardKaaS;
-      case 'nomad':
-        return WizardNomad;
       case 'k8sInstall':
         return WizardK8sInstall;
       default:
@@ -220,8 +217,6 @@ function useAnalyticsState() {
     k8sInstallAgent: 0,
     aciApi: 0,
     localEndpoint: 0,
-    nomadEdgeAgentStandard: 0,
-    nomadEdgeAgentAsync: 0,
     dockerEdgeAgentAsync: 0,
     dockerEdgeAgentStandard: 0,
   });

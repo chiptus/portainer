@@ -14,7 +14,6 @@ import {
   isEdgeAsync,
 } from '@/react/portainer/environments/utils';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
-import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { environmentStore } from '@/react/hooks/current-environment-store';
 
 import { Icon } from '@@/Icon';
@@ -26,7 +25,6 @@ import { AzureSidebar } from './AzureSidebar';
 import { DockerSidebar } from './DockerSidebar';
 import { KubernetesSidebar } from './KubernetesSidebar';
 import { SidebarSection, SidebarSectionTitle } from './SidebarSection';
-import { NomadSidebar } from './NomadSidebar';
 import { useSidebarState } from './useSidebarState';
 import { EdgeDeviceAsyncSidebar } from './EdgeDeviceAsyncSidebar';
 
@@ -117,7 +115,6 @@ function Content({ environment, onClear, isBrowsingSnapshot }: ContentProps) {
         ? EdgeDeviceAsyncSidebar
         : DockerSidebar,
       [PlatformType.Kubernetes]: KubernetesSidebar,
-      [PlatformType.Nomad]: isBE ? NomadSidebar : null,
     };
 
     return sidebar[platform];

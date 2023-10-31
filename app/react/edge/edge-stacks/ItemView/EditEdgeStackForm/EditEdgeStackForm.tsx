@@ -36,10 +36,8 @@ import { PrivateRegistryFieldsetWrapper } from './PrivateRegistryFieldsetWrapper
 import { FormValues } from './types';
 import { ComposeForm } from './ComposeForm';
 import { KubernetesForm } from './KubernetesForm';
-import { NomadForm } from './NomadForm';
 import { GitForm } from './GitForm';
 import { useValidateEnvironmentTypes } from './useEdgeGroupHasType';
-import { atLeastTwo } from './atLeastTwo';
 import { useStaggerUpdateStatus } from './useStaggerUpdateStatus';
 
 interface Props {
@@ -54,7 +52,6 @@ interface Props {
 const forms = {
   [DeploymentType.Compose]: ComposeForm,
   [DeploymentType.Kubernetes]: KubernetesForm,
-  [DeploymentType.Nomad]: NomadForm,
 };
 
 export function EditEdgeStackForm({
@@ -148,7 +145,6 @@ function InnerForm({
 
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
-  const hasNomadEndpoint = hasType(EnvironmentType.EdgeAgentOnNomad);
 
   if (staggerUpdateStatus && !staggerUpdateStatus.isSuccess) {
     return null;
@@ -167,7 +163,7 @@ function InnerForm({
         error={errors.edgeGroups}
       />
 
-      {atLeastTwo(hasKubeEndpoint, hasDockerEndpoint, hasNomadEndpoint) && (
+      {hasKubeEndpoint && hasDockerEndpoint && (
         <TextTip>
           There are no available deployment types when there is more than one
           type of environment in your edge group selection (e.g. Kubernetes and
@@ -189,7 +185,6 @@ function InnerForm({
         value={values.deploymentType}
         hasDockerEndpoint={hasType(EnvironmentType.EdgeAgentOnDocker)}
         hasKubeEndpoint={hasType(EnvironmentType.EdgeAgentOnKubernetes)}
-        hasNomadEndpoint={hasType(EnvironmentType.EdgeAgentOnNomad)}
         onChange={(value) => {
           setFieldValue('content', getCachedContent(value));
           setFieldValue('deploymentType', value);
@@ -350,7 +345,6 @@ function useCachedContent() {
   const [cachedContent, setCachedContent] = useState({
     [DeploymentType.Compose]: '',
     [DeploymentType.Kubernetes]: '',
-    [DeploymentType.Nomad]: '',
   });
 
   function handleChangeContent(type: DeploymentType, content: string) {

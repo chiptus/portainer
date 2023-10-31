@@ -7,11 +7,7 @@ import { PageHeader } from '@@/PageHeader';
 
 import { Environment } from '../types';
 import { useEnvironmentList } from '../queries';
-import {
-  isDockerEnvironment,
-  isKubernetesEnvironment,
-  isNomadEnvironment,
-} from '../utils';
+import { isDockerEnvironment, isKubernetesEnvironment } from '../utils';
 
 import { EnvironmentsDatatable } from './EnvironmentsDatatable';
 import { useDeleteEnvironmentsMutation } from './useDeleteEnvironmentsMutation';
@@ -77,8 +73,6 @@ export function ListView() {
           kubernetes: environmentsToDelete.filter((e) =>
             isKubernetesEnvironment(e.Type)
           ).length,
-          nomad: environmentsToDelete.filter((e) => isNomadEnvironment(e.Type))
-            .length,
         },
       },
     });

@@ -26,7 +26,6 @@ export default class EndpointHelper {
       PortainerEndpointTypes.EdgeAgentOnDockerEnvironment,
       PortainerEndpointTypes.AgentOnKubernetesEnvironment,
       PortainerEndpointTypes.EdgeAgentOnKubernetesEnvironment,
-      PortainerEndpointTypes.EdgeAgentOnNomadEnvironment,
     ].includes(endpoint.Type);
   }
 

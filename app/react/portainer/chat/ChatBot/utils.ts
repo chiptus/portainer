@@ -7,8 +7,6 @@ export function getPlatformTypeForAnalytics(environmentType?: EnvironmentType) {
       return 'kubernetes';
     case PlatformType.Docker:
       return 'docker';
-    case PlatformType.Nomad:
-      return 'nomad';
     case PlatformType.Azure:
       return 'azure';
     default:

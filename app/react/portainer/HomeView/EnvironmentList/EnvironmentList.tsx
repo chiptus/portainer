@@ -267,7 +267,6 @@ export function EnvironmentList({ onClickBrowse, onRefresh }: Props) {
         EnvironmentType.AgentOnKubernetes,
         EnvironmentType.EdgeAgentOnKubernetes,
       ],
-      [PlatformType.Nomad]: [EnvironmentType.EdgeAgentOnNomad],
     };
 
     const typesByConnection = {

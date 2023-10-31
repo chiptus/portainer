@@ -3,7 +3,6 @@ import dockerEdge from '@/assets/images/edge_endpoint.png';
 import kube from '@/assets/images/kubernetes_endpoint.png';
 import kubeEdge from '@/assets/images/kubernetes_edge_endpoint.png';
 import { EnvironmentType } from '@/react/portainer/environments/types';
-import nomad from '@/assets/images/nomad_edge_endpoint.png';
 import azure from '@/assets/ico/vendor/azure.svg';
 import docker from '@/assets/ico/vendor/docker.svg';
 
@@ -34,15 +33,6 @@ export function EnvironmentIcon({ type }: Props) {
     case EnvironmentType.EdgeAgentOnKubernetes:
       return (
         <img src={kubeEdge} alt="kubernetes edge endpoint" aria-hidden="true" />
-      );
-    case EnvironmentType.EdgeAgentOnNomad:
-      return (
-        <img
-          width="60"
-          src={nomad}
-          alt="Nomad edge endpoint"
-          aria-hidden="true"
-        />
       );
     default:
       return (

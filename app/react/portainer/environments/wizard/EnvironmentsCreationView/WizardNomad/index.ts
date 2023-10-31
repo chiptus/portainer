@@ -1,1 +1,0 @@
-export { WizardNomad } from './WizardNomad';

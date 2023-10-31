@@ -1,5 +1,4 @@
 import { EditorType } from '@/react/edge/edge-stacks/types';
-import NomadIcon from '@/assets/ico/vendor/nomad.svg?c';
 
 import { BoxSelector } from '@@/BoxSelector';
 import { BoxSelectorOption } from '@@/BoxSelector/types';
@@ -13,7 +12,6 @@ interface Props {
   onChange(value: number): void;
   hasDockerEndpoint: boolean;
   hasKubeEndpoint: boolean;
-  hasNomadEndpoint: boolean;
   allowKubeToSelectCompose?: boolean;
 }
 
@@ -22,43 +20,22 @@ export function EdgeStackDeploymentTypeSelector({
   onChange,
   hasDockerEndpoint,
   hasKubeEndpoint,
-  hasNomadEndpoint,
   allowKubeToSelectCompose,
 }: Props) {
   const deploymentOptions: BoxSelectorOption<number>[] = [
     {
       ...compose,
       value: EditorType.Compose,
-      disabled: () =>
-        allowKubeToSelectCompose
-          ? hasNomadEndpoint
-          : hasNomadEndpoint || hasKubeEndpoint,
+      disabled: () => !allowKubeToSelectCompose && hasKubeEndpoint,
       tooltip: () =>
-        hasNomadEndpoint || hasKubeEndpoint
-          ? 'Cannot use this option with Edge Kubernetes or Edge Nomad environments'
-          : '',
+        hasKubeEndpoint ? 'Cannot use this option with Edge Kubernetes' : '',
     },
     {
       ...kubernetes,
       value: EditorType.Kubernetes,
-      disabled: () => hasDockerEndpoint || hasNomadEndpoint,
+      disabled: () => hasDockerEndpoint,
       tooltip: () =>
-        hasDockerEndpoint || hasNomadEndpoint
-          ? 'Cannot use this option with Edge Docker or Edge Nomad environments'
-          : '',
-    },
-    {
-      id: 'deployment_nomad',
-      icon: NomadIcon,
-      label: 'Nomad',
-      description: 'Nomad HCL format',
-      value: EditorType.Nomad,
-      disabled: () => hasDockerEndpoint || hasKubeEndpoint,
-      tooltip: () =>
-        hasDockerEndpoint || hasKubeEndpoint
-          ? 'Cannot use this option with Edge Docker or Edge Kubernetes environments'
-          : '',
-      iconType: 'logo',
+        hasDockerEndpoint ? 'Cannot use this option with Edge Docker' : '',
     },
   ];
 

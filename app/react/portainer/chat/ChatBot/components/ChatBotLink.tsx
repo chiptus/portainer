@@ -17,7 +17,6 @@ import { ChatBotResponse } from './ChatBotResponse';
 const routerStateFromEnvType: { [k in PlatformType]: string } = {
   [PlatformType.Docker]: 'docker.stacks.newstack',
   [PlatformType.Kubernetes]: 'kubernetes.deploy',
-  [PlatformType.Nomad]: '',
   [PlatformType.Azure]: '',
 };
 

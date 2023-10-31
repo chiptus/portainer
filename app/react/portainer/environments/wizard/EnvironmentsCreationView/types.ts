@@ -10,8 +10,6 @@ export interface AnalyticsState {
   k8sInstallAgent: number;
   aciApi: number;
   localEndpoint: number;
-  nomadEdgeAgentStandard: number;
-  nomadEdgeAgentAsync: number;
 }
 
 export type AnalyticsStateKey = keyof AnalyticsState;

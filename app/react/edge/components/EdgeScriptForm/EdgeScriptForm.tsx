@@ -1,8 +1,5 @@
 import { Formik } from 'formik';
 import { PropsWithChildren } from 'react';
-import { FlaskConical } from 'lucide-react';
-
-import { TextTip } from '@@/Tip/TextTip';
 
 import { OsSelector } from './OsSelector';
 import { CommandTab } from './scripts';
@@ -16,7 +13,6 @@ const edgePropertiesFormInitialValues: ScriptFormValues = {
   envVars: '',
   os: 'linux' as OS,
   platform: 'k8s' as Platform,
-  nomadToken: '',
   authEnabled: true,
   tlsEnabled: false,
   edgeGroupsIds: [],
@@ -28,7 +24,6 @@ const edgePropertiesFormInitialValues: ScriptFormValues = {
 interface Props {
   edgeInfo: EdgeInfo;
   commands: CommandTab[] | Partial<Record<OS, CommandTab[]>>;
-  isNomadTokenVisible?: boolean;
   asyncMode?: boolean;
   showMetaFields?: boolean;
 }
@@ -36,7 +31,6 @@ interface Props {
 export function EdgeScriptForm({
   edgeInfo,
   commands,
-  isNomadTokenVisible,
   asyncMode,
   showMetaFields,
   children,
@@ -47,7 +41,7 @@ export function EdgeScriptForm({
     <div className="form-horizontal">
       <Formik
         initialValues={edgePropertiesFormInitialValues}
-        validationSchema={() => validationSchema(isNomadTokenVisible)}
+        validationSchema={() => validationSchema()}
         onSubmit={() => {}}
         validateOnMount
       >
@@ -56,9 +50,6 @@ export function EdgeScriptForm({
             {children}
 
             <EdgeScriptSettingsFieldset
-              isNomadTokenVisible={
-                isNomadTokenVisible && values.platform === 'nomad'
-              }
               hideIdGetter={edgeInfo.id !== undefined}
               showMetaFields={showMetaFields}
             />
@@ -80,12 +71,6 @@ export function EdgeScriptForm({
                 }
                 asyncMode={asyncMode}
               />
-              {isNomadTokenVisible && asyncMode && (
-                <TextTip color="blue" className="mt-1" icon={FlaskConical}>
-                  Please note that Edge Agent Async in Nomad environment is
-                  currently in the experimental stage.
-                </TextTip>
-              )}
             </div>
           </>
         )}
