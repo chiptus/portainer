@@ -30,7 +30,7 @@ export default class KubeCustomTemplatesViewController {
       return;
     }
 
-    this.$state.go('kubernetes.deploy', { templateId: template.Id });
+    this.$state.go('kubernetes.deploy', { templateId: template });
   }
 
   isEditAllowed(template) {
