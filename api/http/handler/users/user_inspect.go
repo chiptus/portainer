@@ -49,6 +49,10 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
 
+	if securityContext.IsTeamLeader && user.Role == portainer.AdministratorRole {
+		return httperror.Forbidden("Permission denied inspect user", nil)
+	}
+
 	hideFields(user)
 	return response.JSON(w, user)
 }

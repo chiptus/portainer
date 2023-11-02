@@ -110,6 +110,10 @@ angular.module('portainer.app').controller('UserController', [
     }
 
     function initView() {
+      if (!Authentication.isAdmin()) {
+        return $state.go('portainer.home');
+      }
+
       $scope.isAdmin = Authentication.isAdmin();
 
       $q.all({
