@@ -5,8 +5,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/internal/edge/cache"
 	portainer "github.com/portainer/portainer/api"
-
-	"github.com/rs/zerolog/log"
 )
 
 // BucketName represents the name of the bucket where this service stores data.
@@ -114,22 +112,6 @@ func (service *Service) DeleteEndpointRelation(endpointID portainer.EndpointID) 
 	service.updateEdgeStacksAfterRelationChange(deletedRelation, nil)
 
 	return nil
-}
-
-func (service *Service) InvalidateEdgeCacheForEdgeStack(edgeStackID portainer.EdgeStackID) {
-	rels, err := service.EndpointRelations()
-	if err != nil {
-		log.Error().Err(err).Msg("cannot retrieve endpoint relations")
-		return
-	}
-
-	for _, rel := range rels {
-		for id := range rel.EdgeStacks {
-			if edgeStackID == id {
-				cache.Del(rel.EndpointID)
-			}
-		}
-	}
 }
 
 func (service *Service) updateEdgeStacksAfterRelationChange(previousRelationState *portainer.EndpointRelation, updatedRelationState *portainer.EndpointRelation) {

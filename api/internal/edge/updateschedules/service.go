@@ -187,7 +187,9 @@ func (service *Service) EdgeStackDeployed(environmentID portainer.EndpointID, up
 	go func() {
 		time.Sleep(3 * time.Minute)
 
-		err := service.markStackAsFailed(environmentID, updateID)
+		err := service.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return service.markStackAsFailed(tx, environmentID, updateID)
+		})
 		if err != nil {
 			log.Error().
 				Int("schedule-id", int(updateID)).
@@ -201,7 +203,7 @@ func (service *Service) EdgeStackDeployed(environmentID portainer.EndpointID, up
 }
 
 // markStackAsFailed checks if the update is still active and marks the stack as failed and deletes the active schedule
-func (service *Service) markStackAsFailed(environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) error {
+func (service *Service) markStackAsFailed(tx dataservices.DataStoreTx, environmentID portainer.EndpointID, updateID edgetypes.UpdateScheduleID) error {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
@@ -210,7 +212,7 @@ func (service *Service) markStackAsFailed(environmentID portainer.EndpointID, up
 		return nil
 	}
 
-	err := service.dataStore.EdgeStack().UpdateEdgeStackFunc(schedule.EdgeStackID, func(stack *portaineree.EdgeStack) {
+	err := tx.EdgeStack().UpdateEdgeStackFunc(schedule.EdgeStackID, func(stack *portaineree.EdgeStack) {
 		envStatus, ok := stack.Status[environmentID]
 		if !ok {
 			envStatus = portainer.EdgeStackStatus{

@@ -16,7 +16,7 @@ type Service struct {
 	connection          portainer.Connection
 	idxVersion          map[portainer.EdgeStackID]int
 	mu                  sync.RWMutex
-	cacheInvalidationFn func(portainer.EdgeStackID)
+	cacheInvalidationFn func(portainer.Transaction, portainer.EdgeStackID)
 }
 
 func (service *Service) BucketName() string {
@@ -24,7 +24,7 @@ func (service *Service) BucketName() string {
 }
 
 // NewService creates a new instance of a service.
-func NewService(connection portainer.Connection, cacheInvalidationFn func(portainer.EdgeStackID)) (*Service, error) {
+func NewService(connection portainer.Connection, cacheInvalidationFn func(portainer.Transaction, portainer.EdgeStackID)) (*Service, error) {
 	err := connection.SetServiceName(BucketName)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func NewService(connection portainer.Connection, cacheInvalidationFn func(portai
 	}
 
 	if s.cacheInvalidationFn == nil {
-		s.cacheInvalidationFn = func(portainer.EdgeStackID) {}
+		s.cacheInvalidationFn = func(portainer.Transaction, portainer.EdgeStackID) {}
 	}
 
 	es, err := s.EdgeStacks()
@@ -107,7 +107,7 @@ func (service *Service) Create(id portainer.EdgeStackID, edgeStack *portaineree.
 
 	service.mu.Lock()
 	service.idxVersion[id] = edgeStack.Version
-	service.cacheInvalidationFn(id)
+	service.cacheInvalidationFn(service.connection, id)
 	service.mu.Unlock()
 
 	return nil
@@ -128,7 +128,7 @@ func (service *Service) UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *por
 	service.idxVersion[ID] = edgeStack.Version
 
 	if cleanupCache {
-		service.cacheInvalidationFn(ID)
+		service.cacheInvalidationFn(service.connection, ID)
 	}
 
 	return nil
@@ -146,7 +146,7 @@ func (service *Service) UpdateEdgeStackFunc(ID portainer.EdgeStackID, updateFunc
 		updateFunc(edgeStack)
 
 		service.idxVersion[ID] = edgeStack.Version
-		service.cacheInvalidationFn(ID)
+		service.cacheInvalidationFn(service.connection, ID)
 	})
 }
 
@@ -169,7 +169,7 @@ func (service *Service) DeleteEdgeStack(ID portainer.EdgeStackID) error {
 
 	delete(service.idxVersion, ID)
 
-	service.cacheInvalidationFn(ID)
+	service.cacheInvalidationFn(service.connection, ID)
 
 	return nil
 }

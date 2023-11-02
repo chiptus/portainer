@@ -77,7 +77,7 @@ func (service ServiceTx) Create(id portainer.EdgeStackID, edgeStack *portaineree
 
 	service.service.mu.Lock()
 	service.service.idxVersion[id] = edgeStack.Version
-	service.service.cacheInvalidationFn(id)
+	service.service.cacheInvalidationFn(service.tx, id)
 	service.service.mu.Unlock()
 
 	return nil
@@ -98,7 +98,7 @@ func (service ServiceTx) UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *po
 	service.service.idxVersion[ID] = edgeStack.Version
 
 	if cleanupCache {
-		service.service.cacheInvalidationFn(ID)
+		service.service.cacheInvalidationFn(service.tx, ID)
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func (service ServiceTx) DeleteEdgeStack(ID portainer.EdgeStackID) error {
 
 	delete(service.service.idxVersion, ID)
 
-	service.service.cacheInvalidationFn(ID)
+	service.service.cacheInvalidationFn(service.tx, ID)
 
 	return nil
 }
