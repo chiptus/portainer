@@ -1332,9 +1332,9 @@ class KubernetesCreateApplicationController {
         });
 
         var namespace = '';
-        if (this.resourcePools.length) {
-          this.formValues.ResourcePool = this.resourcePools[0];
+        this.formValues.ResourcePool = this.resourcePools[0];
 
+        if (this.resourcePools.length) {
           if (this.state.isEdit) {
             namespace = this.$state.params.namespace;
             this.formValues.ResourcePool = _.find(this.resourcePools, ['Namespace.Name', namespace]);
