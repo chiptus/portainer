@@ -96,14 +96,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
               isSubMenu
               data-cy="portainerSidebar-environmentTags"
             />
-            {isBE && (
-              <SidebarItem
-                to="portainer.endpoints.updateSchedules"
-                label="Update & Rollback"
-                isSubMenu
-                data-cy="portainerSidebar-updateSchedules"
-              />
-            )}
+            <EdgeUpdatesSidebarItem />
           </SidebarParent>
 
           <SidebarItem
@@ -211,5 +204,22 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
         </SidebarParent>
       )}
     </SidebarSection>
+  );
+}
+
+function EdgeUpdatesSidebarItem() {
+  const settingsQuery = usePublicSettings();
+
+  if (!isBE || !settingsQuery.data?.EnableEdgeComputeFeatures) {
+    return null;
+  }
+
+  return (
+    <SidebarItem
+      to="portainer.endpoints.updateSchedules"
+      label="Update & Rollback"
+      isSubMenu
+      data-cy="portainerSidebar-updateSchedules"
+    />
   );
 }
