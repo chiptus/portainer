@@ -19,7 +19,7 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"

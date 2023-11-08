@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/rs/zerolog/log"
@@ -48,7 +48,7 @@ func (m *Migrator) Migrate() error {
 		// regular path when major/minor/patch versions differ
 		for _, migration := range m.migrations {
 			if schemaVersion.LessThan(migration.Version) {
-				log.Info().Msgf("migrating data to %s", migration.Version.String())
+				log.Info().Msgf("migrating data to %s", shortVersion(migration.Version, portaineree.APIVersion))
 				err := runMigrations(migration.MigrationFuncs)
 				if err != nil {
 					return err
@@ -74,7 +74,7 @@ func (m *Migrator) Migrate() error {
 		return migrationError(err, "StoreDBVersion")
 	}
 
-	log.Info().Msgf("db migrated to %s", portaineree.APIVersion)
+	log.Info().Msgf("db migrated to %s", shortVersion(apiVersion, portaineree.APIVersion))
 
 	return nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer/api/database/models"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/rs/zerolog/log"
