@@ -9,6 +9,7 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
+	"github.com/rs/zerolog/log"
 )
 
 type User struct {
@@ -39,8 +40,23 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin && !securityContext.IsTeamLeader {
-		return httperror.Forbidden("Permission denied to access users list", err)
+	// environment (endpoint) admins have access to users in the same environment
+	endpointID, _ := request.RetrieveNumericQueryParameter(r, "environmentId", true)
+	permissionDeniedErr := "Permission denied to access users list"
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return httperror.Forbidden(permissionDeniedErr, err)
+	}
+	endpointRole, err := handler.AuthorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpointID))
+
+	canUserUpdateNamespaceAccess := endpointRole != nil &&
+		err == nil &&
+		// only endpoint admins can update role bindings (K8sRoleBindingsW) for users linked to a service account
+		endpointRole.Authorizations["K8sRoleBindingsW"] == true
+
+	log.Debug().Bool("IsAdmin", securityContext.IsAdmin).Bool("IsTeamLeader", securityContext.IsTeamLeader).Bool("canUserUpdateNamespaceAccess", canUserUpdateNamespaceAccess).Msg("User list access")
+	if !(securityContext.IsAdmin || securityContext.IsTeamLeader || canUserUpdateNamespaceAccess) {
+		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
 	allUsers, err := handler.DataStore.User().ReadAll()
@@ -50,7 +66,6 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 
 	users := security.FilterUsers(allUsers, securityContext)
 
-	endpointID, _ := request.RetrieveNumericQueryParameter(r, "environmentId", true)
 	if endpointID == 0 {
 		return response.JSON(w, sanitizeUsers(users))
 	}

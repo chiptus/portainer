@@ -74,7 +74,7 @@ class KubernetesResourcePoolAccessController {
       this.isRBACEnabled = await getIsRBACEnabled(this.EndpointProvider.endpointID());
       const group = await this.GroupService.group(endpoint.GroupId);
       const roles = await this.RoleService.roles();
-      const endpointAccesses = await this.AccessService.accesses(endpoint, group, roles);
+      const endpointAccesses = await this.AccessService.accesses(endpoint, group, roles, endpoint.Id);
       this.pool = pool;
       if (configMap.Id === 0) {
         configMap = this.initAccessConfigMap(configMap);

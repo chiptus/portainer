@@ -55,11 +55,11 @@ angular.module('portainer.app').factory('AccessService', [
       };
     }
 
-    function getAccesses(authorizedUserPolicies, authorizedTeamPolicies, inheritedUserPolicies, inheritedTeamPolicies, roles) {
+    function getAccesses(authorizedUserPolicies, authorizedTeamPolicies, inheritedUserPolicies, inheritedTeamPolicies, roles, environmentId) {
       var deferred = $q.defer();
 
       $q.all({
-        users: UserService.users(false),
+        users: UserService.users(false, environmentId),
         teams: TeamService.teams(),
       })
         .then(function success(data) {
@@ -87,7 +87,7 @@ angular.module('portainer.app').factory('AccessService', [
       return deferred.promise;
     }
 
-    async function accessesAsync(entity, parent, roles) {
+    async function accessesAsync(entity, parent, roles, environmentId) {
       if (!entity) {
         throw new Error('Unable to retrieve accesses');
       }
@@ -103,11 +103,21 @@ angular.module('portainer.app').factory('AccessService', [
       if (parent && !parent.TeamAccessPolicies) {
         parent.TeamAccessPolicies = {};
       }
+      if (environmentId) {
+        return await getAccesses(
+          entity.UserAccessPolicies,
+          entity.TeamAccessPolicies,
+          parent ? parent.UserAccessPolicies : {},
+          parent ? parent.TeamAccessPolicies : {},
+          roles,
+          environmentId
+        );
+      }
       return await getAccesses(entity.UserAccessPolicies, entity.TeamAccessPolicies, parent ? parent.UserAccessPolicies : {}, parent ? parent.TeamAccessPolicies : {}, roles);
     }
 
-    function accesses(entity, parent, roles) {
-      return $async(accessesAsync, entity, parent, roles);
+    function accesses(entity, parent, roles, environmentId) {
+      return $async(accessesAsync, entity, parent, roles, environmentId);
     }
 
     function generateAccessPolicies(userAccessPolicies, teamAccessPolicies, selectedUserAccesses, selectedTeamAccesses, selectedRoleId) {
