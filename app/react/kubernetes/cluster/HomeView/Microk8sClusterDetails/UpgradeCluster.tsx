@@ -49,7 +49,7 @@ export function UpgradeCluster() {
   return (
     <Card>
       {statusQuery.isError && (
-        <TextTip color="red">Unable to Kubernetes version</TextTip>
+        <TextTip color="red">Unable to get Kubernetes version</TextTip>
       )}
       {environmentQuery.isError && (
         <TextTip color="red">Unable to load environment</TextTip>
