@@ -31,6 +31,7 @@ type Handler struct {
 	AuthorizationService        *authorization.Service
 	UserActivityService         portaineree.UserActivityService
 	passwordStrengthChecker     security.PasswordStrengthChecker
+	bouncer                     security.BouncerService
 }
 
 // NewHandler creates a handler to manage authentication operations.
@@ -38,6 +39,7 @@ func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimit
 	h := &Handler{
 		Router:                  mux.NewRouter(),
 		passwordStrengthChecker: passwordStrengthChecker,
+		bouncer:                 bouncer,
 	}
 
 	h.Handle("/auth/oauth/validate",

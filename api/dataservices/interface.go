@@ -150,6 +150,7 @@ type (
 	EndpointService interface {
 		Endpoint(ID portainer.EndpointID) (*portaineree.Endpoint, error)
 		EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool)
+		EndpointsByTeamID(teamID portainer.TeamID) ([]portaineree.Endpoint, error)
 		Heartbeat(endpointID portainer.EndpointID) (int64, bool)
 		UpdateHeartbeat(endpointID portainer.EndpointID)
 		Endpoints() ([]portaineree.Endpoint, error)

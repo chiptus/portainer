@@ -3,12 +3,9 @@ package auth
 import (
 	"net/http"
 
-	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/logoutcontext"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
-
-	"github.com/rs/zerolog/log"
 )
 
 // @id Logout
@@ -25,11 +22,7 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 		Username: "Unauthenticated user",
 	}
 
-	tokenData, err := security.RetrieveTokenData(r)
-	if err != nil {
-		log.Warn().Err(err).Msg("unable to retrieve user details from authentication token")
-		return resp, response.Empty(w)
-	}
+	tokenData := handler.bouncer.JWTAuthLookup(r)
 
 	if tokenData != nil {
 		resp.Username = tokenData.Username

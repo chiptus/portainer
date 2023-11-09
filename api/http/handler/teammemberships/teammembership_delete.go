@@ -59,5 +59,7 @@ func (handler *Handler) teamMembershipDelete(w http.ResponseWriter, r *http.Requ
 
 	handler.AuthorizationService.TriggerUserAuthUpdate(int(membership.UserID))
 
+	defer handler.updateUserServiceAccounts(membership)
+
 	return response.Empty(w)
 }

@@ -94,5 +94,7 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 	handler.AuthorizationService.TriggerUserAuthUpdate(payload.UserID)
 	handler.AuthorizationService.TriggerUserAuthUpdate(previousUserID)
 
+	defer handler.updateUserServiceAccounts(membership)
+
 	return response.JSON(w, membership)
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/dataservices"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -130,6 +131,23 @@ func (service *Service) EndpointIDByEdgeID(edgeID string) (portainer.EndpointID,
 	service.mu.RUnlock()
 
 	return endpointID, ok
+}
+
+func (service *Service) EndpointsByTeamID(teamID portainer.TeamID) ([]portaineree.Endpoint, error) {
+	var endpoints = make([]portaineree.Endpoint, 0)
+
+	return endpoints, service.connection.GetAll(
+		BucketName,
+		&portaineree.Endpoint{},
+		dataservices.FilterFn(&endpoints, func(e portaineree.Endpoint) bool {
+			for t := range e.TeamAccessPolicies {
+				if t == teamID {
+					return true
+				}
+			}
+			return false
+		}),
+	)
 }
 
 func (service *Service) Heartbeat(endpointID portainer.EndpointID) (int64, bool) {

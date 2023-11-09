@@ -113,6 +113,23 @@ func (service ServiceTx) Heartbeat(endpointID portainer.EndpointID) (int64, bool
 	return 0, false
 }
 
+func (service ServiceTx) EndpointsByTeamID(teamID portainer.TeamID) ([]portaineree.Endpoint, error) {
+	var endpoints = make([]portaineree.Endpoint, 0)
+
+	return endpoints, service.tx.GetAll(
+		BucketName,
+		&portaineree.Endpoint{},
+		dataservices.FilterFn(&endpoints, func(e portaineree.Endpoint) bool {
+			for t := range e.TeamAccessPolicies {
+				if t == teamID {
+					return true
+				}
+			}
+			return false
+		}),
+	)
+}
+
 func (service ServiceTx) UpdateHeartbeat(endpointID portainer.EndpointID) {
 	log.Error().Str("func", "UpdateHeartbeat").Msg("cannot be called inside a transaction")
 }

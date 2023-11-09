@@ -384,6 +384,19 @@ func (s *stubEndpointService) SetMessage(id portainer.EndpointID, statusMessage 
 	return s.UpdateEndpoint(id, endpoint)
 }
 
+func (s *stubEndpointService) EndpointsByTeamID(teamID portainer.TeamID) ([]portaineree.Endpoint, error) {
+	var endpoints = make([]portaineree.Endpoint, 0)
+
+	for _, e := range s.endpoints {
+		for t := range e.TeamAccessPolicies {
+			if t == teamID {
+				endpoints = append(endpoints, e)
+			}
+		}
+	}
+	return endpoints, nil
+}
+
 // WithEndpoints option will instruct testDatastore to return provided environments(endpoints)
 func WithEndpoints(endpoints []portaineree.Endpoint) datastoreOption {
 	return func(d *testDatastore) {
