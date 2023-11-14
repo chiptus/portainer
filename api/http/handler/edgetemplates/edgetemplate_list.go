@@ -2,8 +2,8 @@ package edgetemplates
 
 import (
 	"net/http"
+	"slices"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/http/client"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -34,7 +34,7 @@ func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable to retrieve settings from the database", err)
 	}
 
-	url := portaineree.DefaultTemplatesURL
+	url := portainer.DefaultTemplatesURL
 	if settings.TemplatesURL != "" {
 		url = settings.TemplatesURL
 	}
@@ -52,10 +52,16 @@ func (handler *Handler) edgeTemplateList(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable to parse template file", err)
 	}
 
+	// We only support version 3 of the template format
+	// this is only a temporary fix until we have custom edge templates
+	if templateFile.Version != "3" {
+		return httperror.InternalServerError("Unsupported template version", nil)
+	}
+
 	filteredTemplates := make([]portainer.Template, 0)
 
 	for _, template := range templateFile.Templates {
-		if template.Type == portaineree.EdgeStackTemplate {
+		if slices.Contains(template.Categories, "edge") && slices.Contains([]portainer.TemplateType{portainer.ComposeStackTemplate, portainer.SwarmStackTemplate}, template.Type) {
 			filteredTemplates = append(filteredTemplates, template)
 		}
 	}

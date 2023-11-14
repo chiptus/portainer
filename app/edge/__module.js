@@ -237,6 +237,16 @@ angular
       },
     });
 
+    $stateRegistryProvider.register({
+      name: 'edge.templates',
+      url: '/templates?template',
+      views: {
+        'content@': {
+          component: 'edgeAppTemplatesView',
+        },
+      },
+    });
+
     $stateRegistryProvider.register(edge);
 
     $stateRegistryProvider.register(groups);

@@ -61,7 +61,7 @@ func (store *Store) checkOrCreateDefaultSettings() error {
 			},
 			SnapshotInterval:         portaineree.DefaultSnapshotInterval,
 			EdgeAgentCheckinInterval: portaineree.DefaultEdgeAgentCheckinIntervalInSeconds,
-			TemplatesURL:             portaineree.DefaultTemplatesURL,
+			TemplatesURL:             "",
 			HelmRepositoryURL:        portaineree.DefaultHelmRepositoryURL,
 			UserSessionTimeout:       portaineree.DefaultUserSessionTimeout,
 			KubeconfigExpiry:         portaineree.DefaultKubeconfigExpiry,

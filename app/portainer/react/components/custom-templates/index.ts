@@ -45,7 +45,9 @@ export const ngModule = angular
       'onSelect',
       'templates',
       'selectedId',
-      'showSwarmStacks',
+      'disabledTypes',
+      'fixedCategories',
+      'hideDuplicate',
     ])
   )
   .component(

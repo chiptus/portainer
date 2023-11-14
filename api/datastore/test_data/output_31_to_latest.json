@@ -948,7 +948,7 @@
     },
     "ShowKomposeBuildOption": false,
     "SnapshotInterval": "5m",
-    "TemplatesURL": "https://raw.githubusercontent.com/portainer/templates/master/templates-2.0.json",
+    "TemplatesURL": "",
     "TrustOnFirstConnect": false,
     "UserSessionTimeout": "8h",
     "fdoConfiguration": {

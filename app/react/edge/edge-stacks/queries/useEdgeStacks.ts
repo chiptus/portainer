@@ -16,22 +16,22 @@ export function useEdgeStacks<T = Array<EdgeStack>>({
    * Defaults to `false`.
    */
   refetchInterval,
-  edgeComputEnabled = true,
+  edgeComputeEnabled = true,
 }: {
   select?: (stacks: EdgeStack[]) => T;
   refetchInterval?: number | false | ((data?: T) => false | number);
-  edgeComputEnabled?: boolean;
+  edgeComputeEnabled?: boolean;
 } = {}) {
-  return useQuery(queryKeys.base(), () => getEdgeStacks(edgeComputEnabled), {
+  return useQuery(queryKeys.base(), () => getEdgeStacks(edgeComputeEnabled), {
     ...withError('Failed loading Edge stack'),
     select,
     refetchInterval,
   });
 }
 
-export async function getEdgeStacks(edgeComputEnabled: boolean) {
+export async function getEdgeStacks(edgeComputeEnabled: boolean) {
   try {
-    if (edgeComputEnabled) {
+    if (edgeComputeEnabled) {
       const { data } = await axios.get<EdgeStack[]>(buildUrl());
       return data;
     }

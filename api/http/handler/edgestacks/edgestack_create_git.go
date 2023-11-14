@@ -39,7 +39,7 @@ type edgeStackFromGitRepositoryPayload struct {
 	// Path to the Stack file inside the Git repository
 	FilePathInRepository string `example:"docker-compose.yml" default:"docker-compose.yml"`
 	// List of identifiers of EdgeGroups
-	EdgeGroups []portainer.EdgeGroupID `example:"1"`
+	EdgeGroups []portainer.EdgeGroupID `example:"1" validate:"required"`
 	// Deployment type to deploy this stack
 	// Valid values are: 0 - 'compose', 1 - 'kubernetes', 2 - 'nomad'
 	// compose is enabled only for docker environments
@@ -122,7 +122,6 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param method query string true "Creation Method" Enums(file,string,repository)
 // @param body body edgeStackFromGitRepositoryPayload true "stack config"
 // @param dryrun query string false "if true, will not create an edge stack, but just will check the settings and return a non-persisted edge stack object"
 // @success 200 {object} portaineree.EdgeStack

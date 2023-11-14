@@ -285,6 +285,7 @@ func (m *Migrator) initMigrations() {
 	)
 	m.addMigrations("2.20.0-beta.1",
 		m.setDefaultCategoryForEdgeConfigForDB110,
+		m.updateAppTemplatesVersionForDB110,
 	)
 
 	// Add new migrations above...

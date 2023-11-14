@@ -30,7 +30,11 @@ export function validation(): SchemaOf<Values> {
       }),
     snapshotInterval: string().required('Snapshot interval is required'),
     templatesUrl: string()
-      .required('Templates URL is required')
-      .test('valid-url', 'Must be a valid URL', (value) => isValidUrl(value)),
+      .default('')
+      .test(
+        'valid-url',
+        'Must be a valid URL',
+        (value) => !value || isValidUrl(value)
+      ),
   });
 }

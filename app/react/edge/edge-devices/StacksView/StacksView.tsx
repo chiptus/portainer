@@ -33,12 +33,12 @@ export function StacksView() {
 
   const tableState = useTableState(settingsStore, storageKey);
 
-  const edgeComputEnabledQuery = useSettings(
+  const edgeComputeEnabledQuery = useSettings(
     (settings) => settings.EnableEdgeComputeFeatures
   );
 
   const edgeStackQuery = useEdgeStacks({
-    edgeComputEnabled: edgeComputEnabledQuery.data,
+    edgeComputeEnabled: edgeComputeEnabledQuery.data,
   });
 
   const stackQuery = useStacks();

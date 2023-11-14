@@ -7,6 +7,7 @@ import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
+import { fetchFilePreview } from '@/react/portainer/templates/app-templates/queries/useFetchTemplateInfoMutation';
 
 class CreateCustomTemplateViewController {
   /* @ngInject */
@@ -261,60 +262,65 @@ class CreateCustomTemplateViewController {
   }
 
   async $onInit() {
-    const applicationState = this.StateManager.getState();
+    return this.$async(async () => {
+      const applicationState = this.StateManager.getState();
 
-    this.state.endpointMode = applicationState.endpoint.mode;
-    let stackType = 0;
-    if (this.state.endpointMode.provider === 'DOCKER_STANDALONE') {
-      this.isDockerStandalone = true;
-      stackType = 2;
-    } else if (this.state.endpointMode.provider === 'DOCKER_SWARM_MODE') {
-      stackType = 1;
-    }
-    this.formValues.Type = stackType;
-
-    const { fileContent, type } = this.$state.params;
-
-    this.formValues.FileContent = fileContent;
-    if (type) {
-      this.formValues.Type = +type;
-    }
-
-    try {
-      this.templates = await this.CustomTemplateService.customTemplates([1, 2]);
-    } catch (err) {
-      this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
-    }
-
-    try {
-      const endpoint = this.EndpointProvider.currentEndpoint();
-      if (endpoint.Type === EnvironmentType.AgentOnKubernetes || endpoint.Type === EnvironmentType.EdgeAgentOnKubernetes || endpoint.Type === EnvironmentType.KubernetesLocal) {
-        this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
-        this.methodOptions = [git];
-        if (!this.deploymentOptions.hideWebEditor) {
-          this.methodOptions.push(editor);
-        }
-        if (!this.deploymentOptions.hideFileUpload) {
-          this.methodOptions.push(upload);
-        }
-        // the selected method must be available
-        if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {
-          this.state.Method = this.methodOptions[0].value;
-        }
-      } else {
-        this.methodOptions = [git, editor, upload];
+      this.state.endpointMode = applicationState.endpoint.mode;
+      let stackType = 0;
+      if (this.state.endpointMode.provider === 'DOCKER_STANDALONE') {
+        this.isDockerStandalone = true;
+        stackType = 2;
+      } else if (this.state.endpointMode.provider === 'DOCKER_SWARM_MODE') {
+        stackType = 1;
       }
-    } catch (err) {
-      this.Notifications.error('Failure', err, 'Unable to get deployment options');
-    }
+      this.formValues.Type = stackType;
 
-    this.state.loading = false;
+      const { appTemplateId, type } = this.$state.params;
 
-    this.$window.onbeforeunload = () => {
-      if (this.state.Method === 'editor' && this.formValues.FileContent && this.state.isEditorDirty) {
-        return '';
+      if (type) {
+        this.formValues.Type = +type;
       }
-    };
+
+      if (appTemplateId) {
+        this.formValues.FileContent = await fetchFilePreview(appTemplateId);
+      }
+
+      try {
+        this.templates = await this.CustomTemplateService.customTemplates([1, 2]);
+      } catch (err) {
+        this.Notifications.error('Failure loading', err, 'Failed loading custom templates');
+      }
+
+      try {
+        const endpoint = this.EndpointProvider.currentEndpoint();
+        if (endpoint.Type === EnvironmentType.AgentOnKubernetes || endpoint.Type === EnvironmentType.EdgeAgentOnKubernetes || endpoint.Type === EnvironmentType.KubernetesLocal) {
+          this.deploymentOptions = await getDeploymentOptions(endpoint.Id);
+          this.methodOptions = [git];
+          if (!this.deploymentOptions.hideWebEditor) {
+            this.methodOptions.push(editor);
+          }
+          if (!this.deploymentOptions.hideFileUpload) {
+            this.methodOptions.push(upload);
+          }
+          // the selected method must be available
+          if (!this.methodOptions.map((option) => option.value).includes(this.state.Method)) {
+            this.state.Method = this.methodOptions[0].value;
+          }
+        } else {
+          this.methodOptions = [git, editor, upload];
+        }
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to get deployment options');
+      }
+
+      this.state.loading = false;
+
+      this.$window.onbeforeunload = () => {
+        if (this.state.Method === 'editor' && this.formValues.FileContent && this.state.isEditorDirty) {
+          return '';
+        }
+      };
+    });
   }
 
   $onDestroy() {

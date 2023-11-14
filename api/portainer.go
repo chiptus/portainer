@@ -909,7 +909,7 @@ type (
 		// The interval in which environment(endpoint) snapshots are created
 		SnapshotInterval string `json:"SnapshotInterval" example:"5m"`
 		// URL to the templates that will be displayed in the UI when navigating to App Templates
-		TemplatesURL string `json:"TemplatesURL" example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
+		TemplatesURL string `json:"TemplatesURL" example:"https://raw.githubusercontent.com/portainer/templates/v3/templates.json"`
 		// Deployment options for encouraging git ops workflows
 		GlobalDeploymentOptions GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
 		// Show the Kompose build option (discontinued in 2.18)
@@ -1397,8 +1397,6 @@ const (
 	DefaultSnapshotInterval = "5m"
 	// DefaultEdgeAgentCheckinIntervalInSeconds represents the default interval (in seconds) used by Edge agents to checkin with the Portainer instance
 	DefaultEdgeAgentCheckinIntervalInSeconds = 5
-	// DefaultTemplatesURL represents the URL to the official templates supported by Portainer
-	DefaultTemplatesURL = "https://raw.githubusercontent.com/portainer/templates/master/templates-2.0.json"
 	// DefaultHelmrepositoryURL represents the URL to the official templates supported by Bitnami
 	DefaultHelmRepositoryURL = "https://charts.bitnami.com/bitnami"
 	// DefaultUserSessionTimeout represents the default timeout after which the user session is cleared
@@ -1650,18 +1648,6 @@ const (
 	_ portainer.StackStatus = iota
 	StackStatusActive
 	StackStatusInactive
-)
-
-const (
-	_ portainer.TemplateType = iota
-	// ContainerTemplate represents a container template
-	ContainerTemplate
-	// SwarmStackTemplate represents a template used to deploy a Swarm stack
-	SwarmStackTemplate
-	// ComposeStackTemplate represents a template used to deploy a Compose stack
-	ComposeStackTemplate
-	// EdgeStackTemplate represents a template used to deploy an Edge stack
-	EdgeStackTemplate
 )
 
 const (
