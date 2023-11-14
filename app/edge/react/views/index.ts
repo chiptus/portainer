@@ -11,7 +11,8 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { WaitingRoomView } from '@/react/edge/edge-devices/WaitingRoomView';
-import { ListView } from '@/react/edge/edge-stacks/ListView';
+import { ListView as EdgeStacksListView } from '@/react/edge/edge-stacks/ListView';
+import { ListView as EdgeGroupsListView } from '@/react/edge/edge-groups/ListView';
 
 import { configurationsModule } from './configurations';
 
@@ -47,5 +48,9 @@ export const viewsModule = angular
   )
   .component(
     'edgeStacksView',
-    r2a(withUIRouter(withCurrentUser(ListView)), [])
+    r2a(withUIRouter(withCurrentUser(EdgeStacksListView)), [])
+  )
+  .component(
+    'edgeGroupsView',
+    r2a(withUIRouter(withCurrentUser(EdgeGroupsListView)), [])
   ).name;
