@@ -11,7 +11,7 @@ class KubernetesResourceReservationHelper {
       (acc, container) => {
         if (container.Requests) {
           if (container.Requests.memory) {
-            acc.Memory += filesizeParser(container.Requests.memory, { base: 10 });
+            acc.Memory += safeFilesizeParser(container.Requests.memory, { base: 10 });
           }
 
           if (container.Requests.cpu) {
@@ -36,18 +36,18 @@ class KubernetesResourceReservationHelper {
   }
 
   static megaBytesValue(value) {
-    return Math.floor(filesizeParser(value) / 1000 / 1000);
+    return Math.floor(safeFilesizeParser(value) / 1000 / 1000);
   }
 
   static bytesValue(mem) {
-    return filesizeParser(mem) * 1000 * 1000;
+    return safeFilesizeParser(mem) * 1000 * 1000;
   }
 
   static computeSliderMaxResources(nodes, pools, name, resourceOverCommitEnabled, resourceOverCommitPercent) {
     let maxResources = { CPU: 0, Memory: 0 };
     _.forEach(nodes, (item) => {
       maxResources.CPU += item.CPU;
-      maxResources.Memory += filesizeParser(item.Memory);
+      maxResources.Memory += safeFilesizeParser(item.Memory);
     });
     maxResources.CPU = Math.trunc(maxResources.CPU * 10) / 10;
     maxResources.Memory = KubernetesResourceReservationHelper.megaBytesValue(maxResources.Memory);
@@ -74,3 +74,11 @@ class KubernetesResourceReservationHelper {
   }
 }
 export default KubernetesResourceReservationHelper;
+
+function safeFilesizeParser(value, options) {
+  if (!value || Number.isNaN(value)) {
+    return 0;
+  }
+
+  return filesizeParser(value, options);
+}
