@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer-ee/api/http/client"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	str "github.com/portainer/portainer-ee/api/internal/string"
@@ -97,11 +96,6 @@ func (handler *Handler) chatQuery(w http.ResponseWriter, r *http.Request) *httpe
 
 	if !settings.ExperimentalFeatures.OpenAIIntegration {
 		return httperror.Forbidden("OpenAI integration is not enabled", httperrors.ErrNotAvailable)
-	}
-
-	featAvailable := client.CheckCircuitBreakerForOpenAIIntegration()
-	if !featAvailable {
-		return httperror.Forbidden("OpenAI integration has been disabled", httperrors.ErrDisabled)
 	}
 
 	tokenData, err := security.RetrieveTokenData(r)
