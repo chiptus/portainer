@@ -10,8 +10,8 @@ import EdgeAgentAsyncIcon from '@/react/edge/components/edge-agent-async.svg?c';
 import {
   CustomTemplate,
   CustomTemplateKubernetesType,
-} from '@/react/portainer/custom-templates/types';
-import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
+} from '@/react/portainer/templates/custom-templates/types';
+import { useCustomTemplates } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplates';
 
 import { BoxSelector } from '@@/BoxSelector';
 import { BoxSelectorOption } from '@@/BoxSelector/types';

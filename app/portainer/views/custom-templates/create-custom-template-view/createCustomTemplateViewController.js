@@ -1,13 +1,12 @@
 import _ from 'lodash';
 import { AccessControlFormData } from 'Portainer/components/accessControlForm/porAccessControlFormModel';
 import { TEMPLATE_NAME_VALIDATION_REGEX } from '@/constants';
-import { getTemplateVariables, intersectVariables } from '@/react/portainer/custom-templates/components/utils';
+import { getTemplateVariables, intersectVariables, isTemplateVariablesEnabled } from '@/react/portainer/custom-templates/components/utils';
 import { getDeploymentOptions } from '@/react/portainer/environments/environment.service';
-import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { editor, upload, git } from '@@/BoxSelector/common-options/build-methods';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
-import { fetchFilePreview } from '@/react/portainer/templates/app-templates/queries/useFetchTemplateInfoMutation';
+import { fetchFilePreview } from '@/react/portainer/templates/app-templates/queries/useFetchTemplateFile';
 
 class CreateCustomTemplateViewController {
   /* @ngInject */
@@ -44,7 +43,7 @@ class CreateCustomTemplateViewController {
 
     this.buildMethods = [editor, upload, git];
 
-    this.isTemplateVariablesEnabled = isBE;
+    this.isTemplateVariablesEnabled = isTemplateVariablesEnabled;
 
     this.formValues = {
       Title: '',
@@ -250,7 +249,7 @@ class CreateCustomTemplateViewController {
       return;
     }
 
-    const variables = getTemplateVariables(templateStr);
+    const [variables] = getTemplateVariables(templateStr);
 
     const isValid = !!variables;
 

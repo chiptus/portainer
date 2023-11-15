@@ -6,6 +6,9 @@ import { baseEdgeStackWebhookUrl, createWebhookId } from '@/portainer/helpers/we
 import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { StaggerOption, StaggerParallelOption, UpdateFailureAction } from '@/react/edge/edge-stacks/types';
+import { getCustomTemplate } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplate';
+import { notifyError } from '@/portainer/services/notifications';
+import { getCustomTemplateFile } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplateFile';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
@@ -65,6 +68,7 @@ export default class CreateEdgeStackViewController {
       baseWebhookUrl: baseEdgeStackWebhookUrl(),
       webhookId: createWebhookId(),
       isEdit: false,
+      selectedTemplate: null,
     };
 
     this.edgeGroups = null;
@@ -88,6 +92,16 @@ export default class CreateEdgeStackViewController {
     this.onChangeWebhookState = this.onChangeWebhookState.bind(this);
     this.onEnvVarChange = this.onEnvVarChange.bind(this);
     this.onChangeStaggerConfig = this.onChangeStaggerConfig.bind(this);
+    this.onChangeTemplate = this.onChangeTemplate.bind(this);
+  }
+
+  /**
+   * @param {import('@/react/portainer/templates/custom-templates/types').CustomTemplate} template
+   */
+  onChangeTemplate(template) {
+    return this.$scope.$evalAsync(() => {
+      this.state.selectedTemplate = template;
+    });
   }
 
   onEnvVarChange(envVars) {
@@ -107,7 +121,7 @@ export default class CreateEdgeStackViewController {
     const metadata = { type: methodLabel(this.state.Method), format };
 
     if (metadata.type === 'template') {
-      metadata.templateName = this.selectedTemplate.title;
+      metadata.templateName = this.state.selectedTemplate && this.state.selectedTemplate.title;
     }
 
     return { metadata };
@@ -132,6 +146,18 @@ export default class CreateEdgeStackViewController {
     }
   }
 
+  async preSelectTemplate(templateId) {
+    try {
+      this.state.Method = 'template';
+      const template = await getCustomTemplate(templateId);
+      this.onChangeTemplate(template);
+      const fileContent = await getCustomTemplateFile({ id: templateId, git: !!template.GitConfig });
+      this.formValues.StackFileContent = fileContent;
+    } catch (e) {
+      notifyError('Failed loading template', e);
+    }
+  }
+
   async $onInit() {
     // Initial Registry Options for selector
     this.formValues.RegistryOptions = await this.RegistryService.registries();
@@ -144,6 +170,11 @@ export default class CreateEdgeStackViewController {
       this.edgeGroups = await this.EdgeGroupService.groups();
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to retrieve Edge groups');
+    }
+
+    const templateId = this.$state.params.templateId;
+    if (templateId) {
+      this.preSelectTemplate(templateId);
     }
 
     this.$window.onbeforeunload = () => {

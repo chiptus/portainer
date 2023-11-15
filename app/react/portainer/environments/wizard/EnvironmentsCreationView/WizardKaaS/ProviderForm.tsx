@@ -2,7 +2,7 @@ import { useFormikContext } from 'formik';
 import { useEffect } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 
 import { KaasProvider } from '../../../types';
 

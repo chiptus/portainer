@@ -1,10 +1,14 @@
 import { useField } from 'formik';
 import { ChangeEvent, useMemo, useEffect } from 'react';
 
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
-import { CustomTemplatesVariablesField } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesField';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
+import {
+  CustomTemplatesVariablesField,
+  VariablesFieldValue,
+  getVariablesFieldDefaultValues,
+} from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesField';
 import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
-import { getCustomTemplateFileContent } from '@/react/portainer/custom-templates/service';
+import { getCustomTemplateFile } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplateFile';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { Select, Option } from '@@/form-components/Input/Select';
@@ -15,8 +19,6 @@ import { BetaAlert } from '../../../update-schedules/common/BetaAlert';
 interface Props {
   customTemplates: CustomTemplate[];
 }
-
-type Variables = Record<string, string>;
 
 export function CustomTemplateSelector({ customTemplates }: Props) {
   const customTemplateOptions: Option<number>[] = useMemo(() => {
@@ -38,7 +40,7 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
   );
 
   const [templateVariables, , templateVariableHelpers] =
-    useField<Variables>('meta.variables');
+    useField<VariablesFieldValue>('meta.variables');
   const [, , customTemplateContentHelpers] = useField<string>(
     'meta.customTemplateContent'
   );
@@ -48,10 +50,9 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
   );
 
   useEffect(() => {
-    const value: Variables = {};
-    selectedTemplate?.Variables.forEach((def) => {
-      value[def.name] = '';
-    });
+    const value = getVariablesFieldDefaultValues(
+      selectedTemplate?.Variables || []
+    );
     templateVariableHelpers.setValue(value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTemplate]);
@@ -59,9 +60,10 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
   useEffect(() => {
     async function fetchTemplate() {
       if (selectedTemplate) {
-        const fileContent = await getCustomTemplateFileContent(
-          selectedTemplate.Id
-        );
+        const fileContent = await getCustomTemplateFile({
+          id: selectedTemplate.Id,
+          git: !!selectedTemplate.GitConfig,
+        });
         const template = renderTemplate(
           fileContent,
           templateVariables.value,
@@ -121,7 +123,7 @@ export function CustomTemplateSelector({ customTemplates }: Props) {
     </FormControl>
   );
 
-  function handleTemplateVariablesChange(v: Variables) {
+  function handleTemplateVariablesChange(v: VariablesFieldValue) {
     templateVariableHelpers.setValue(v);
   }
 

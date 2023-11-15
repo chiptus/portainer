@@ -14,6 +14,7 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { EdgeGroupAssociationTable } from '@/react/edge/components/EdgeGroupAssociationTable';
 import { AssociatedEdgeEnvironmentsSelector } from '@/react/edge/components/AssociatedEdgeEnvironmentsSelector';
 import { EnvironmentsDatatable } from '@/react/edge/edge-stacks/ItemView/EnvironmentsDatatable';
+import { TemplateFieldset } from '@/react/edge/edge-stacks/CreateView/TemplateFieldset';
 
 export const componentsModule = angular
   .module('portainer.edge.react.components', [])
@@ -114,4 +115,8 @@ export const componentsModule = angular
       'onChange',
       'value',
     ])
+  )
+  .component(
+    'edgeStackCreateTemplateFieldset',
+    r2a(withReactQuery(TemplateFieldset), ['onChange', 'value', 'onChangeFile'])
   ).name;

@@ -1,16 +1,21 @@
-import axios, { parseAxiosError } from '@/portainer/services/axios';
+import axios, {
+  parseAxiosError,
+  json2formData,
+  arrayToJson,
+} from '@/portainer/services/axios';
 import { type EnvironmentGroupId } from '@/react/portainer/environments/environment-groups/types';
 import { type TagId } from '@/portainer/tags/types';
 import { EdgeAsyncIntervalsValues } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 
 import { type Environment, EnvironmentCreationTypes } from '../types';
+import { VariablesFieldValue } from '../../custom-templates/components/CustomTemplatesVariablesField';
 
-import { arrayToJson, buildUrl, json2formData } from './utils';
+import { buildUrl } from './utils';
 
 export interface EnvironmentMetadata {
   groupId?: EnvironmentGroupId;
   tagIds?: TagId[];
-  variables?: Record<string, string>;
+  variables?: VariablesFieldValue;
   customTemplateId?: number;
   customTemplateContent?: string;
 }
@@ -198,7 +203,7 @@ export function createEdgeAgentEnvironment({
   name,
   portainerUrl,
   tunnelServerAddr,
-  meta = { tagIds: [], variables: {} },
+  meta = { tagIds: [], variables: [] },
   pollFrequency,
   edge,
 }: CreateEdgeAgentEnvironment) {

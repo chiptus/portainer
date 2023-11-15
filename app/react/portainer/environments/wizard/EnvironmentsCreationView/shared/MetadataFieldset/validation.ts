@@ -7,7 +7,7 @@ export function metadataValidation(): SchemaOf<EnvironmentMetadata> {
     groupId: number(),
     tagIds: array().of(number()).default([]),
     customTemplateId: number().default(0),
-    variables: object().default({}),
+    variables: array(),
     customTemplateContent: string().default(''),
   });
 }

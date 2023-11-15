@@ -7,15 +7,15 @@ import {
   providerToCredentialTypeMap,
 } from '@/react/portainer/settings/sharedCredentials/types';
 import { useCloudCredentials } from '@/react/portainer/settings/sharedCredentials/cloudSettings.service';
-import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
+import { useCustomTemplates } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplates';
 import {
   Environment,
   KaasProvider,
 } from '@/react/portainer/environments/types';
 import { useSettings } from '@/react/portainer/settings/queries';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
-import { CustomTemplateKubernetesType } from '@/react/portainer/custom-templates/types';
 import { useAnalytics } from '@/react/hooks/useAnalytics';
+import { CustomTemplateKubernetesType } from '@/react/portainer/templates/custom-templates/types';
 
 import { Loading } from '@@/Widget/Loading';
 import { Link } from '@@/Link';

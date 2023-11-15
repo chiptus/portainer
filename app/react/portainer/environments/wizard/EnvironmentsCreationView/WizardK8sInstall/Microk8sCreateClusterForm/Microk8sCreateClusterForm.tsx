@@ -4,7 +4,7 @@ import { ArrowLeftRight, Info, Plus } from 'lucide-react';
 import { partition } from 'lodash';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 import {
   TestSSHConnectionResponse,
   useTestSSHConnection,

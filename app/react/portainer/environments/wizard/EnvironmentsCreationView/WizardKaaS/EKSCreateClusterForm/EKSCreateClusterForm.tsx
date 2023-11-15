@@ -2,7 +2,7 @@ import { Field, useFormikContext } from 'formik';
 import { useMemo, useState } from 'react';
 
 import { Credential } from '@/react/portainer/settings/sharedCredentials/types';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 import { KaasProvider } from '@/react/portainer/environments/types';
 
 import { FormControl } from '@@/form-components/FormControl';

@@ -14,8 +14,8 @@ import { WaitingRoomView } from '@/react/edge/edge-devices/WaitingRoomView';
 import { ListView as EdgeStacksListView } from '@/react/edge/edge-stacks/ListView';
 import { ListView as EdgeGroupsListView } from '@/react/edge/edge-groups/ListView';
 
-import { configurationsModule } from './configurations';
 import { templatesModule } from './templates';
+import { configurationsModule } from './configurations';
 
 export const viewsModule = angular
   .module('portainer.edge.react.views', [configurationsModule, templatesModule])

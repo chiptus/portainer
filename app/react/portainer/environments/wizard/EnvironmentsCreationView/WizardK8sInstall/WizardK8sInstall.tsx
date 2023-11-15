@@ -12,7 +12,7 @@ import {
 } from '@/react/portainer/environments/types';
 import { CredentialsForm } from '@/react/portainer/settings/sharedCredentials/CreateCredentialsView/CredentialsForm';
 import Microk8s from '@/assets/ico/vendor/microk8s.svg?c';
-import { useCustomTemplates } from '@/react/portainer/custom-templates/service';
+import { useCustomTemplates } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplates';
 import { formatNodeIPs } from '@/react/kubernetes/cluster/microk8s/utils';
 
 import { Link } from '@@/Link';

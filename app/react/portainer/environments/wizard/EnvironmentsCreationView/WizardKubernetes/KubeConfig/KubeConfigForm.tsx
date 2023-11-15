@@ -6,7 +6,7 @@ import { useCreateKubeConfigEnvironmentMutation } from '@/react/portainer/enviro
 import { notifySuccess } from '@/portainer/services/notifications';
 import { Environment } from '@/react/portainer/environments/types';
 import { CreateKubeConfigEnvironment } from '@/react/portainer/environments/environment.service/create';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 
 import { FormControl } from '@@/form-components/FormControl';
 import { FileUploadField } from '@@/form-components/FileUpload/FileUploadField';

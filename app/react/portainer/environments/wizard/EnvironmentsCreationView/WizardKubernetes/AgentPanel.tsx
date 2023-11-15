@@ -1,5 +1,5 @@
 import { Environment } from '@/react/portainer/environments/types';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 
 import { AgentForm } from '../shared/AgentForm';
 

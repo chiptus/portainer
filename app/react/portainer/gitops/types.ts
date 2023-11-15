@@ -1,7 +1,6 @@
 import { GitCredential } from '@/react/portainer/account/git-credentials/types';
 
 export type AutoUpdateMechanism = 'Webhook' | 'Interval';
-
 export interface AutoUpdateResponse {
   /* Auto update interval */
   Interval: string;
@@ -28,6 +27,7 @@ export interface RepoConfigResponse {
   ConfigFilePath: string;
   Authentication?: GitAuthenticationResponse;
   ConfigHash: string;
+  TLSSkipVerify: boolean;
 }
 
 export type AutoUpdateModel = {
@@ -54,11 +54,12 @@ export type GitAuthModel = GitCredentialsModel & GitNewCredentialModel;
 
 export interface GitFormModel extends GitAuthModel {
   RepositoryURL: string;
-  RepositoryURLValid: boolean;
+  RepositoryURLValid?: boolean;
   ComposeFilePathInRepository: string;
   RepositoryAuthentication: boolean;
   RepositoryReferenceName?: string;
-  AdditionalFiles: string[];
+  AdditionalFiles?: string[];
+
   SaveCredential?: boolean;
   NewCredentialName?: string;
   TLSSkipVerify: boolean;
@@ -78,4 +79,32 @@ export interface RelativePathModel {
   PerDeviceConfigsPath?: string;
   PerDeviceConfigsMatchType?: string;
   PerDeviceConfigsGroupMatchType?: string;
+}
+
+export function toGitFormModel(response?: RepoConfigResponse): GitFormModel {
+  if (!response) {
+    return {
+      RepositoryURL: '',
+      ComposeFilePathInRepository: '',
+      RepositoryAuthentication: false,
+      TLSSkipVerify: false,
+    };
+  }
+
+  const { URL, ReferenceName, ConfigFilePath, Authentication, TLSSkipVerify } =
+    response;
+
+  return {
+    RepositoryURL: URL,
+    ComposeFilePathInRepository: ConfigFilePath,
+    RepositoryReferenceName: ReferenceName,
+    RepositoryAuthentication: !!(
+      Authentication &&
+      (Authentication?.GitCredentialID || Authentication?.Username)
+    ),
+    RepositoryUsername: Authentication?.Username,
+    RepositoryPassword: Authentication?.Password,
+    RepositoryGitCredentialID: Authentication?.GitCredentialID,
+    TLSSkipVerify,
+  };
 }

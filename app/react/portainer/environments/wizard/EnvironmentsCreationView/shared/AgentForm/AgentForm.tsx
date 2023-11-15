@@ -6,7 +6,8 @@ import { useCreateAgentEnvironmentMutation } from '@/react/portainer/environment
 import { notifySuccess } from '@/portainer/services/notifications';
 import { Environment } from '@/react/portainer/environments/types';
 import { CreateAgentEnvironmentValues } from '@/react/portainer/environments/environment.service/create';
-import { CustomTemplate } from '@/react/portainer/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
+import { getVariablesFieldDefaultValues } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesField';
 
 import { LoadingButton } from '@@/buttons/LoadingButton';
 
@@ -29,7 +30,7 @@ const initialValues: CreateAgentEnvironmentValues = {
     groupId: 1,
     tagIds: [],
     customTemplateId: 0,
-    variables: {},
+    variables: getVariablesFieldDefaultValues([]),
   },
 };
 
