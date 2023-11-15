@@ -166,6 +166,7 @@ export function RelativePathFieldset({
               <FormControl
                 label="Directory"
                 errors={errors.PerDeviceConfigsPath}
+                inputId="per_device_configs_path_input"
               >
                 <PathSelector
                   value={value.PerDeviceConfigsPath || ''}
@@ -176,6 +177,7 @@ export function RelativePathFieldset({
                   model={gitModel || dummyGitForm}
                   readOnly={isEditing}
                   dirOnly
+                  inputId="per_device_configs_path_input"
                 />
               </FormControl>
             </div>
