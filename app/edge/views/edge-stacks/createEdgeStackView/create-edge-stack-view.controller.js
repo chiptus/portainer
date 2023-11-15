@@ -1,14 +1,16 @@
-import { EditorType } from '@/react/edge/edge-stacks/types';
+import { DeploymentType, EditorType } from '@/react/edge/edge-stacks/types';
 import { getValidEditorTypes } from '@/react/edge/edge-stacks/utils';
 import { STACK_NAME_VALIDATION_REGEX } from '@/react/constants';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 import { baseEdgeStackWebhookUrl, createWebhookId } from '@/portainer/helpers/webhookHelper';
 import { parseAutoUpdateResponse, transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { EnvironmentType } from '@/react/portainer/environments/types';
-import { StaggerOption, StaggerParallelOption, UpdateFailureAction } from '@/react/edge/edge-stacks/types';
 import { getCustomTemplate } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplate';
 import { notifyError } from '@/portainer/services/notifications';
 import { getCustomTemplateFile } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplateFile';
+import { getDefaultStaggerConfig } from '@/react/edge/edge-stacks/components/StaggerFieldset.types';
+import { toGitFormModel } from '@/react/portainer/gitops/types';
+import { StackType } from '@/react/common/stacks/types';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
@@ -43,16 +45,7 @@ export default class CreateEdgeStackViewController {
       FilesystemPath: '',
       versions: [1],
       envVars: [],
-      staggerConfig: {
-        StaggerOption: StaggerOption.AllAtOnce,
-        StaggerParallelOption: StaggerParallelOption.Fixed,
-        DeviceNumber: 1,
-        DeviceNumberStartFrom: 0,
-        DeviceNumberIncrementBy: 2,
-        Timeout: '',
-        UpdateDelay: '',
-        UpdateFailureAction: UpdateFailureAction.Continue,
-      },
+      staggerConfig: getDefaultStaggerConfig(),
     };
 
     this.EditorType = EditorType;
@@ -101,6 +94,22 @@ export default class CreateEdgeStackViewController {
   onChangeTemplate(template) {
     return this.$scope.$evalAsync(() => {
       this.state.selectedTemplate = template;
+
+      this.formValues = {
+        ...this.formValues,
+        DeploymentType: template.Type === StackType.Kubernetes ? DeploymentType.Kubernetes : DeploymentType.Compose,
+        ...toGitFormModel(template.GitConfig),
+        ...(template.EdgeSettings
+          ? {
+              PrePullImage: template.EdgeSettings.PrePullImage || false,
+              RetryDeploy: template.EdgeSettings.RetryDeploy || false,
+              Registries: template.EdgeSettings.PrivateRegistryId ? [template.EdgeSettings.PrivateRegistryId] : [],
+              SupportRelativePath: template.EdgeSettings.RelativePathSettings.SupportRelativePath || false,
+              FilesystemPath: template.EdgeSettings.RelativePathSettings.FilesystemPath || '',
+              staggerConfig: template.EdgeSettings.StaggerConfig || getDefaultStaggerConfig(),
+            }
+          : {}),
+      };
     });
   }
 

@@ -29,7 +29,7 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 
 	var edgeStack *portaineree.EdgeStack
 	err = handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		edgeStack, err = handler.createSwarmStack(tx, method, dryrun, tokenData.ID, r)
+		edgeStack, err = handler.createEdgeStack(tx, method, dryrun, tokenData.ID, r)
 		return err
 	})
 	if err != nil {
@@ -46,7 +46,7 @@ func (handler *Handler) edgeStackCreate(w http.ResponseWriter, r *http.Request) 
 	return response.JSON(w, edgeStack)
 }
 
-func (handler *Handler) createSwarmStack(tx dataservices.DataStoreTx, method string, dryrun bool, userID portainer.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
+func (handler *Handler) createEdgeStack(tx dataservices.DataStoreTx, method string, dryrun bool, userID portainer.UserID, r *http.Request) (*portaineree.EdgeStack, error) {
 
 	switch method {
 	case "string":

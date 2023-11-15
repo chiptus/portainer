@@ -84,10 +84,9 @@ export const ngModule = angular
   )
   .component(
     'microk8sClusterDetails',
-    r2a(
-      withUIRouter(withReactQuery(withCurrentUser(Microk8sClusterDetails))),
-      []
-    )
+    r2a(withUIRouter(withReactQuery(withCurrentUser(Microk8sClusterDetails))), [
+      'environmentId',
+    ])
   )
   .component(
     'kubeNodesDatatable',

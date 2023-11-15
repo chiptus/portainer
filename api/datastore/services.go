@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/apikeyrepository"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudcredential"
 	"github.com/portainer/portainer-ee/api/dataservices/cloudprovisioning"
+	"github.com/portainer/portainer-ee/api/dataservices/customtemplate"
 	"github.com/portainer/portainer-ee/api/dataservices/dockerhub"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeasynccommand"
 	"github.com/portainer/portainer-ee/api/dataservices/edgeconfig"
@@ -41,7 +42,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices/user"
 	portainer "github.com/portainer/portainer/api"
 	cemodels "github.com/portainer/portainer/api/database/models"
-	"github.com/portainer/portainer/api/dataservices/customtemplate"
 	"github.com/portainer/portainer/api/dataservices/edgejob"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
@@ -528,7 +528,7 @@ func (store *Store) CloudCredential() dataservices.CloudCredentialService {
 
 type storeExport struct {
 	ApiKey             []portaineree.APIKey             `json:"api_key,omitempty"`
-	CustomTemplate     []portainer.CustomTemplate       `json:"customtemplates,omitempty"`
+	CustomTemplate     []portaineree.CustomTemplate     `json:"customtemplates,omitempty"`
 	EdgeStack          []portaineree.EdgeStack          `json:"edge_stack,omitempty"`
 	EdgeGroup          []portaineree.EdgeGroup          `json:"edgegroups,omitempty"`
 	EdgeJob            []portainer.EdgeJob              `json:"edgejobs,omitempty"`

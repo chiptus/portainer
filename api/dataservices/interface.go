@@ -74,7 +74,7 @@ type (
 
 	// CustomTemplateService represents a service to manage custom templates
 	CustomTemplateService interface {
-		BaseCRUD[portainer.CustomTemplate, portainer.CustomTemplateID]
+		BaseCRUD[portaineree.CustomTemplate, portainer.CustomTemplateID]
 		GetNextIdentifier() int
 	}
 

@@ -1,6 +1,5 @@
 import { Form, Formik, useFormikContext } from 'formik';
 import { useRouter } from '@uirouter/react';
-import { useState } from 'react';
 import { array, number, object } from 'yup';
 
 import { AuthFieldset } from '@/react/portainer/gitops/AuthFieldset';
@@ -236,9 +235,8 @@ function InnerForm({
 
   const hasKubeEndpoint = hasType(EnvironmentType.EdgeAgentOnKubernetes);
   const hasDockerEndpoint = hasType(EnvironmentType.EdgeAgentOnDocker);
-  const [selectedParallelOption, setSelectedParallelOption] = useState(
-    values.staggerConfig.StaggerOption === StaggerOption.Parallel
-  );
+  const selectedParallelOption =
+    values.staggerConfig.StaggerOption === StaggerOption.Parallel;
 
   if (staggerUpdateStatus && !staggerUpdateStatus.isSuccess) {
     return null;
@@ -351,7 +349,6 @@ function InnerForm({
           )
         }
         errors={errors.staggerConfig}
-        onParallelOptionChange={(value) => setSelectedParallelOption(value)}
       />
 
       <FormSection title="Actions">

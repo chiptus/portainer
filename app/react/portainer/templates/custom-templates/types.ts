@@ -1,10 +1,17 @@
 import { UserId } from '@/portainer/users/types';
 import { StackType } from '@/react/common/stacks/types';
+import {
+  StaggerConfig,
+  getDefaultStaggerConfig,
+} from '@/react/edge/edge-stacks/components/StaggerFieldset.types';
 
 import { ResourceControlResponse } from '../../access-control/types';
-import { RepoConfigResponse } from '../../gitops/types';
+import { RelativePathModel, RepoConfigResponse } from '../../gitops/types';
 import { VariableDefinition } from '../../custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { Platform } from '../types';
+import { RegistryId } from '../../registries/types';
+import { getDefaultRelativePathModel } from '../../gitops/RelativePathFieldset/types';
+import { isBE } from '../../feature-flags/feature-flags.service';
 
 export type CustomTemplate = {
   Id: number;
@@ -87,6 +94,26 @@ export type CustomTemplate = {
 
   /** EdgeTemplate indicates if this template purpose for Edge Stack */
   EdgeTemplate: boolean;
+
+  EdgeSettings?: EdgeTemplateSettings;
+};
+
+/**
+ * EdgeTemplateSettings represents the configuration of a custom template for Edge
+ */
+export type EdgeTemplateSettings = {
+  PrePullImage: boolean;
+
+  RetryDeploy: boolean;
+
+  PrivateRegistryId: RegistryId | undefined;
+
+  RelativePathSettings: RelativePathModel;
+
+  /**
+   * StaggerConfig is the configuration for staggered update
+   */
+  StaggerConfig: StaggerConfig;
 };
 
 export type CustomTemplateFileContent = {
@@ -94,3 +121,17 @@ export type CustomTemplateFileContent = {
 };
 
 export const CustomTemplateKubernetesType = StackType.Kubernetes;
+
+export function getDefaultEdgeTemplateSettings() {
+  if (!isBE) {
+    return undefined;
+  }
+
+  return {
+    PrePullImage: false,
+    RetryDeploy: false,
+    PrivateRegistryId: undefined,
+    RelativePathSettings: getDefaultRelativePathModel(),
+    StaggerConfig: getDefaultStaggerConfig(),
+  };
+}

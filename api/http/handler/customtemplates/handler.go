@@ -49,6 +49,6 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
-func userCanEditTemplate(customTemplate *portainer.CustomTemplate, securityContext *security.RestrictedRequestContext) bool {
+func userCanEditTemplate(customTemplate *portaineree.CustomTemplate, securityContext *security.RestrictedRequestContext) bool {
 	return securityContext.IsAdmin || customTemplate.CreatedByUserID == securityContext.UserID
 }

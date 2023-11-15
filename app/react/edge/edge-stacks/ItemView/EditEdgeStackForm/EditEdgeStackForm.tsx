@@ -31,6 +31,8 @@ import {
   StaggerFieldset,
   staggerConfigValidation,
 } from '../../components/StaggerFieldset';
+import { RetryDeployToggle } from '../../components/RetryDeployToggle';
+import { PrePullToggle } from '../../components/PrePullToggle';
 
 import { PrivateRegistryFieldsetWrapper } from './PrivateRegistryFieldsetWrapper';
 import { FormValues } from './types';
@@ -132,9 +134,9 @@ function InnerForm({
   const { hasType } = useValidateEnvironmentTypes(values.edgeGroups);
   const staggerUpdateStatus = useStaggerUpdateStatus(edgeStack.Id);
   const [selectedVersion, setSelectedVersion] = useState(versionOptions[0]);
-  const [selectedParallelOption, setSelectedParallelOption] = useState(
-    values.staggerConfig.StaggerOption === StaggerOption.Parallel
-  );
+  const selectedParallelOption =
+    values.staggerConfig.StaggerOption === StaggerOption.Parallel;
+
   useEffect(() => {
     if (selectedVersion !== versionOptions[0]) {
       setFieldValue('rollbackTo', selectedVersion);
@@ -233,9 +235,9 @@ function InnerForm({
           <PrivateRegistryFieldsetWrapper
             value={values.privateRegistryId}
             onChange={(value) => setFieldValue('privateRegistryId', value)}
-            isValid={isValid}
-            values={values}
-            stackName={edgeStack.Name}
+            values={{
+              fileContent: values.content,
+            }}
             onFieldError={(error) => setFieldError('privateRegistryId', error)}
             error={errors.privateRegistryId}
           />
@@ -248,31 +250,15 @@ function InnerForm({
                 errors={errors.envVars}
               />
 
-              <div className="form-group">
-                <div className="col-sm-12">
-                  <SwitchField
-                    checked={values.prePullImage}
-                    name="prePullImage"
-                    label="Pre-pull images"
-                    tooltip="When enabled, redeployment will be executed when image(s) is pulled successfully"
-                    labelClass="col-sm-3 col-lg-2"
-                    onChange={(value) => setFieldValue('prePullImage', value)}
-                  />
-                </div>
-              </div>
+              <PrePullToggle
+                onChange={(value) => setFieldValue('prePullImage', value)}
+                value={values.prePullImage}
+              />
 
-              <div className="form-group">
-                <div className="col-sm-12">
-                  <SwitchField
-                    checked={values.retryDeploy}
-                    name="retryDeploy"
-                    label="Retry deployment"
-                    tooltip="When enabled, this will allow the edge agent to retry deployment if failed to deploy initially"
-                    labelClass="col-sm-3 col-lg-2"
-                    onChange={(value) => setFieldValue('retryDeploy', value)}
-                  />
-                </div>
-              </div>
+              <RetryDeployToggle
+                onChange={(value) => setFieldValue('retryDeploy', value)}
+                value={values.retryDeploy}
+              />
             </>
           )}
 
@@ -284,9 +270,6 @@ function InnerForm({
               )
             }
             errors={errors.staggerConfig}
-            onParallelOptionChange={(value) => {
-              setSelectedParallelOption(value);
-            }}
           />
         </>
       )}

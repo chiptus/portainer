@@ -1,6 +1,8 @@
 import { GitCredential } from '@/react/portainer/account/git-credentials/types';
 
 export type AutoUpdateMechanism = 'Webhook' | 'Interval';
+export { type RelativePathModel } from './RelativePathFieldset/types';
+
 export interface AutoUpdateResponse {
   /* Auto update interval */
   Interval: string;
@@ -39,7 +41,7 @@ export type AutoUpdateModel = {
 };
 
 export type GitCredentialsModel = {
-  RepositoryAuthentication: boolean;
+  RepositoryAuthentication?: boolean;
   RepositoryUsername?: string;
   RepositoryPassword?: string;
   RepositoryGitCredentialID?: GitCredential['id'];
@@ -56,13 +58,12 @@ export interface GitFormModel extends GitAuthModel {
   RepositoryURL: string;
   RepositoryURLValid?: boolean;
   ComposeFilePathInRepository: string;
-  RepositoryAuthentication: boolean;
   RepositoryReferenceName?: string;
   AdditionalFiles?: string[];
 
   SaveCredential?: boolean;
   NewCredentialName?: string;
-  TLSSkipVerify: boolean;
+  TLSSkipVerify?: boolean;
 
   /**
    * Auto update
@@ -70,15 +71,6 @@ export interface GitFormModel extends GitAuthModel {
    * if undefined, GitForm won't show the AutoUpdate fieldset
    */
   AutoUpdate?: AutoUpdateModel;
-}
-
-export interface RelativePathModel {
-  SupportRelativePath: boolean;
-  FilesystemPath?: string;
-  SupportPerDeviceConfigs?: boolean;
-  PerDeviceConfigsPath?: string;
-  PerDeviceConfigsMatchType?: string;
-  PerDeviceConfigsGroupMatchType?: string;
 }
 
 export function toGitFormModel(response?: RepoConfigResponse): GitFormModel {

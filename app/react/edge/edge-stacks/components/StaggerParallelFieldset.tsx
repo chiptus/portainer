@@ -3,7 +3,7 @@ import { FormikErrors } from 'formik';
 import { Select, Input } from '@@/form-components/Input';
 import { FormError } from '@@/form-components/FormError';
 
-import { StaggerConfig, StaggerParallelOption } from '../types';
+import { StaggerConfig, StaggerParallelOption } from './StaggerFieldset.types';
 
 interface Props {
   values: StaggerConfig;

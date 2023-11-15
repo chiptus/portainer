@@ -112,10 +112,12 @@ func (handler *Handler) createEdgeStackFromFileContent(r *http.Request, tx datas
 	}
 
 	if len(payload.Registries) == 0 && dryrun {
-		err = handler.assignPrivateRegistriesToStack(tx, stack, bytes.NewReader([]byte(payload.StackFileContent)))
+		registries, err := getRegistries(tx, bytes.NewReader([]byte(payload.StackFileContent)))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to assign private registries to stack")
 		}
+
+		stack.Registries = registries
 	}
 
 	stack.Webhook = payload.Webhook

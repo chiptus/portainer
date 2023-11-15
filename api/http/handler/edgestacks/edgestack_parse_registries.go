@@ -2,47 +2,104 @@ package edgestacks
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
-	"slices"
 	"strings"
-
-	portaineree "github.com/portainer/portainer-ee/api"
-	"github.com/portainer/portainer-ee/api/dataservices"
-	portainer "github.com/portainer/portainer/api"
 
 	"github.com/distribution/distribution/reference"
 	"github.com/pkg/errors"
+	"github.com/portainer/portainer-ee/api/dataservices"
+	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/set"
+	portainer "github.com/portainer/portainer/api"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/libhttp/request"
+	"github.com/portainer/portainer/pkg/libhttp/response"
 )
+
+type parseRegistriesPayload struct {
+	fileContent []byte
+}
+
+func (payload *parseRegistriesPayload) Validate(r *http.Request) error {
+	fileContent, _, err := request.RetrieveMultiPartFormFile(r, "file")
+	if err != nil || len(fileContent) == 0 {
+		return httperrors.NewInvalidPayloadError("Invalid Compose file. Ensure that the Compose file is uploaded correctly")
+	}
+	payload.fileContent = fileContent
+
+	return nil
+}
+
+// @id EdgeStackParseRegistries
+// @summary Parse registries from a stack file
+// @description **Access policy**: authenticated
+// @tags edge_stacks
+// @security ApiKeyAuth
+// @security jwt
+// @accept multipart/form-data
+// @param file formData file true "stack file"
+// @produce json
+// @success 200 {array} integer "List of registries IDs"
+// @failure 400 "Invalid request payload"
+// @failure 500 "Server error"
+// @router /edge_stacks/parse_registries [post]
+func (handler *Handler) edgeStackParseRegistries(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	payload := &parseRegistriesPayload{}
+	err := payload.Validate(r)
+	if err != nil {
+		return httperror.BadRequest("Invalid request payload", err)
+	}
+
+	var registries []portainer.RegistryID
+	err = handler.DataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
+		foundReg, err := getRegistries(tx, bytes.NewReader([]byte(payload.fileContent)))
+		if err != nil {
+			return err
+		}
+
+		registries = foundReg
+
+		return nil
+	})
+
+	if err != nil {
+		return httperror.InternalServerError("Unable to parse registries", err)
+	}
+
+	return response.JSON(w, registries)
+}
 
 var imageMatcher = regexp.MustCompile(`image:[\s]*["']{0,1}([.\w\/@\-:]+)["']{0,1}`)
 
-func (handler *Handler) assignPrivateRegistriesToStack(tx dataservices.DataStoreTx, stack *portaineree.EdgeStack, r io.Reader) error {
+func getRegistries(tx dataservices.DataStoreTx, r io.Reader) ([]portainer.RegistryID, error) {
 	registries, err := tx.Registry().ReadAll()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	imageDetails, err := getImageDetailsFromFile(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// For each image - try to match registry on URL, but also if URL matches
 	// check for username in the path too and if found, ensure registry
 	// is the one chosen
-	stack.Registries = []portainer.RegistryID{}
+	registriesSet := set.Set[portainer.RegistryID]{}
 	for _, details := range imageDetails {
-		var bestmatch portainer.RegistryID
+		var bestMatch portainer.RegistryID
 		for _, registry := range registries {
 			if details.domain == registry.URL {
-				bestmatch = registry.ID
+				bestMatch = registry.ID
 
 				// this is certainly true for dockerhub and quay.io
 				// and possibly others.  Safe to leave this check here
 				if strings.HasPrefix(details.path, registry.Username) {
-					bestmatch = registry.ID
+					bestMatch = registry.ID
 
 					// we've found the absolute best match
 					break
@@ -53,12 +110,12 @@ func (handler *Handler) assignPrivateRegistriesToStack(tx dataservices.DataStore
 		}
 
 		// don't add the same registry twice
-		if bestmatch > 0 && !slices.Contains(stack.Registries, bestmatch) {
-			stack.Registries = append(stack.Registries, bestmatch)
+		if bestMatch > 0 {
+			registriesSet.Add(bestMatch)
 		}
 	}
 
-	return nil
+	return registriesSet.Keys(), nil
 }
 
 type imageDetails struct {

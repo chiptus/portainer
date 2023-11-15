@@ -1,6 +1,7 @@
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import {
   AutoUpdateResponse,
+  RelativePathModel,
   RepoConfigResponse,
 } from '@/react/portainer/gitops/types';
 import { RegistryId } from '@/react/portainer/registries/types';
@@ -8,6 +9,15 @@ import { RegistryId } from '@/react/portainer/registries/types';
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
 import { EdgeGroup } from '../edge-groups/types';
+
+import { type StaggerConfig } from './components/StaggerFieldset.types';
+
+export {
+  type StaggerConfig,
+  StaggerOption,
+  StaggerParallelOption,
+  UpdateFailureAction,
+} from './components/StaggerFieldset.types';
 
 export enum StatusType {
   /** Pending represents a pending edge stack */
@@ -63,7 +73,7 @@ export enum DeploymentType {
   Kubernetes,
 }
 
-export type EdgeStack = {
+export type EdgeStack = RelativePathModel & {
   Id: number;
   Name: string;
   Status: { [key: EnvironmentId]: EdgeStackStatus };
@@ -92,40 +102,9 @@ export type EdgeStack = {
   StaggerConfig?: StaggerConfig;
   SupportRelativePath: boolean;
   FilesystemPath?: string;
-  SupportPerDeviceConfigs?: boolean;
-  PerDeviceConfigsPath?: string;
-  PerDeviceConfigsMatchType?: string;
-  PerDeviceConfigsGroupMatchType?: string;
 };
 
 export enum EditorType {
   Compose,
   Kubernetes,
 }
-
-export enum StaggerOption {
-  AllAtOnce = 1,
-  Parallel,
-}
-
-export enum StaggerParallelOption {
-  Fixed = 1,
-  Incremental,
-}
-
-export enum UpdateFailureAction {
-  Continue = 1,
-  Pause,
-  Rollback,
-}
-
-export type StaggerConfig = {
-  StaggerOption: StaggerOption;
-  StaggerParallelOption?: StaggerParallelOption;
-  DeviceNumber?: number;
-  DeviceNumberStartFrom?: number;
-  DeviceNumberIncrementBy?: number;
-  Timeout?: string;
-  UpdateDelay?: string;
-  UpdateFailureAction?: UpdateFailureAction;
-};

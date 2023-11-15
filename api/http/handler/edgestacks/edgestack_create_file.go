@@ -121,6 +121,7 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 // @param RetryDeploy formData bool false "Retry deploy"
 // @param dryrun query string false "if true, will not create an edge stack, but just will check the settings and return a non-persisted edge stack object"
 // @param EnvVars formData string false "JSON stringified array of environment variables {name, value}"
+// @param StaggerConfig formData string false "JSON stringified object of stagger config"
 // @success 200 {object} portaineree.EdgeStack
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"
@@ -156,10 +157,12 @@ func (handler *Handler) createEdgeStackFromFileUpload(r *http.Request, tx datase
 	}
 
 	if len(payload.Registries) == 0 && dryrun {
-		err = handler.assignPrivateRegistriesToStack(tx, stack, bytes.NewReader(payload.StackFileContent))
+		registries, err := getRegistries(tx, bytes.NewReader(payload.StackFileContent))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to assign private registries to stack")
 		}
+
+		stack.Registries = registries
 	}
 
 	stack.Webhook = payload.Webhook

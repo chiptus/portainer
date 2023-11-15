@@ -74,6 +74,7 @@ func NewHandler(
 	adminRouter.Handle("/edge_stacks/create/{method}", httperror.LoggerHandler(h.edgeStackCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/edge_stacks", middlewares.Deprecated(adminRouter, deprecatedEdgeStackCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	adminRouter.Handle("/edge_stacks", httperror.LoggerHandler(h.edgeStackList)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_stacks/parse_registries", httperror.LoggerHandler(h.edgeStackParseRegistries)).Methods(http.MethodPost)
 
 	edgeStackAdminRouter := adminRouter.PathPrefix("/edge_stacks/{id}").Subrouter()
 	edgeStackAdminRouter.Use(middlewares.WithItem(func(id portainer.EdgeStackID) (*portaineree.EdgeStack, error) {

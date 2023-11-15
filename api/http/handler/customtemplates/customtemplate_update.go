@@ -62,6 +62,7 @@ type customTemplateUpdatePayload struct {
 	IsComposeFormat bool `example:"false"`
 	// EdgeTemplate indicates if this template purpose for Edge Stack
 	EdgeTemplate bool `example:"false"`
+	EdgeSettings *portaineree.CustomTemplateEdgeSettings
 }
 
 func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
@@ -89,8 +90,16 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 		payload.RepositoryGitCredentialID == 0 {
 		return errors.New("Invalid repository credentials. Username and password must be specified when authentication is enabled")
 	}
+
 	if govalidator.IsNull(payload.ComposeFilePathInRepository) {
 		payload.ComposeFilePathInRepository = filesystem.ComposeFileDefaultName
+	}
+
+	if payload.EdgeTemplate {
+		err := validateEdgeSettings(payload.EdgeSettings, payload.RepositoryURL != "")
+		if err != nil {
+			return err
+		}
 	}
 
 	return validateVariablesDefinitions(payload.Variables)
@@ -107,7 +116,7 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Template identifier"
 // @param body body customTemplateUpdatePayload true "Template details"
-// @success 200 {object} portainer.CustomTemplate "Success"
+// @success 200 {object} portaineree.CustomTemplate "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied to access template"
 // @failure 404 "Template not found"
@@ -162,6 +171,7 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 	customTemplate.Variables = payload.Variables
 	customTemplate.IsComposeFormat = payload.IsComposeFormat
 	customTemplate.EdgeTemplate = payload.EdgeTemplate
+	customTemplate.EdgeSettings = payload.EdgeSettings
 
 	if payload.RepositoryURL != "" {
 		if !govalidator.IsURL(payload.RepositoryURL) {

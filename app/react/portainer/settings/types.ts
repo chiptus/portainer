@@ -43,7 +43,7 @@ export interface LDAPSettings {
 
 export interface Pair {
   name: string;
-  value: string;
+  value?: string;
 }
 
 export interface OpenAMTConfiguration {

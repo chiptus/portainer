@@ -8,41 +8,38 @@ import { TextTip } from '@@/Tip/TextTip';
 import { FormControl } from '@@/form-components/FormControl';
 import { Button, ButtonGroup } from '@@/buttons';
 
+import { StaggerParallelFieldset } from './StaggerParallelFieldset';
 import {
   StaggerConfig,
   StaggerOption,
   StaggerParallelOption,
   UpdateFailureAction,
-} from '../types';
-
-import { StaggerParallelFieldset } from './StaggerParallelFieldset';
+} from './StaggerFieldset.types';
 
 interface Props {
   values: StaggerConfig;
   onChange: (value: Partial<StaggerConfig>) => void;
   errors?: FormikErrors<StaggerConfig>;
   isEdit?: boolean;
-  onParallelOptionChange?: (value: boolean) => void;
 }
+
+const staggerOptions = [
+  {
+    value: StaggerOption.AllAtOnce,
+    label: 'All edge devices at once',
+  },
+  {
+    value: StaggerOption.Parallel,
+    label: 'Parallel edge device(s)',
+  },
+] as const;
 
 export function StaggerFieldset({
   values,
   onChange,
   errors,
   isEdit = true,
-  onParallelOptionChange,
 }: Props) {
-  const staggerOptions = [
-    {
-      value: StaggerOption.AllAtOnce.toString(),
-      label: 'All edge devices at once',
-    },
-    {
-      value: StaggerOption.Parallel.toString(),
-      label: 'Parallel edge device(s)',
-    },
-  ];
-
   return (
     <FormSection title="Update configurations">
       {!isEdit && (
@@ -62,16 +59,9 @@ export function StaggerFieldset({
         <div className="col-sm-12">
           <RadioGroup
             options={staggerOptions}
-            selectedOption={values.StaggerOption.toString()}
+            selectedOption={values.StaggerOption}
             onOptionChange={(value) => {
-              handleChange({ StaggerOption: parseInt(value, 10) });
-              if (onParallelOptionChange) {
-                if (value === StaggerOption.Parallel.toString()) {
-                  onParallelOptionChange(true);
-                } else {
-                  onParallelOptionChange(false);
-                }
-              }
+              handleChange({ StaggerOption: value });
             }}
             name="StaggerOption"
           />

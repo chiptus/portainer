@@ -22,7 +22,7 @@ import (
 // @security jwt
 // @produce json
 // @param id path int true "Template identifier"
-// @success 200 {object} portainer.CustomTemplate "Success"
+// @success 200 {object} portaineree.CustomTemplate "Success"
 // @failure 400 "Invalid request"
 // @failure 404 "Template not found"
 // @failure 500 "Server error"

@@ -1,25 +1,18 @@
-import { useState, ChangeEvent } from 'react';
+import { Option } from '@@/form-components/PortainerSelect';
 
-interface Props {
-  options: { value: string; label: string }[];
-  selectedOption: string;
+interface Props<T extends string | number> {
+  options: Array<Option<T>> | ReadonlyArray<Option<T>>;
+  selectedOption: T;
   name: string;
-  onOptionChange: (value: string) => void;
+  onOptionChange: (value: T) => void;
 }
 
-export function RadioGroup({
+export function RadioGroup<T extends string | number = string>({
   options,
   selectedOption,
   name,
   onOptionChange,
-}: Props) {
-  const [selected, setSelected] = useState(selectedOption);
-
-  function handleOptionChange(event: ChangeEvent<HTMLInputElement>) {
-    setSelected(event.target.value);
-    onOptionChange(event.target.value);
-  }
-
+}: Props<T>) {
   return (
     <div>
       {options.map((option) => (
@@ -31,8 +24,8 @@ export function RadioGroup({
             type="radio"
             name={name}
             value={option.value}
-            checked={selected === option.value}
-            onChange={handleOptionChange}
+            checked={selectedOption === option.value}
+            onChange={() => onOptionChange(option.value)}
             style={{ margin: '0 4px 0 0' }}
           />
           {option.label}

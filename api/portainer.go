@@ -110,6 +110,44 @@ type (
 		Addons *string `json:"-"` // Dont't send it back to the client
 	}
 
+	CustomTemplate struct {
+		portainer.CustomTemplate
+
+		EdgeSettings *CustomTemplateEdgeSettings
+	}
+
+	// CustomTemplateEdgeSettings represents the settings of a custom template for Edge
+	CustomTemplateEdgeSettings struct {
+
+		// Pre Pull Image
+		PrePullImage bool
+		// Retry deploy
+		RetryDeploy bool `example:"false"`
+
+		PrivateRegistryID portainer.RegistryID `json:"PrivateRegistryID,omitempty"`
+
+		RelativePathSettings CustomTemplateRelativePathSettings
+
+		// StaggerConfig is the configuration for staggered update
+		StaggerConfig EdgeStaggerConfig
+	}
+
+	// CustomTemplateRelativePathSettings represents the settings of a custom template for Edge
+	CustomTemplateRelativePathSettings struct {
+		// Whether the stack supports relative path volume
+		SupportRelativePath bool `example:"false"`
+		// Local filesystem path
+		FilesystemPath string `example:"/tmp"`
+		// Whether the edge stack supports per device configs
+		SupportPerDeviceConfigs bool `example:"false"`
+		// Per device configs match type
+		PerDeviceConfigsMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+		// Per device configs group match type
+		PerDeviceConfigsGroupMatchType portainer.PerDevConfigsFilterType `example:"file" enums:"file, dir"`
+		// Per device configs path
+		PerDeviceConfigsPath string `example:"configs"`
+	}
+
 	MicroK8sAddon struct {
 		Name       string `json:"name"`
 		Args       string `json:"arguments"`

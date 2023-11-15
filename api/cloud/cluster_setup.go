@@ -282,7 +282,7 @@ func (service *CloudManagementService) setStatus(id portainer.EndpointID, status
 }
 
 func (service *CloudManagementService) seedCluster(task *portaineree.CloudProvisioningTask) (err error) {
-	customTemplate, err := service.dataStore.CustomTemplate().Read(portainer.CustomTemplateID(task.CustomTemplateID))
+	customTemplate, err := service.dataStore.CustomTemplate().Read(task.CustomTemplateID)
 	if err != nil {
 		return fmt.Errorf("error getting custom template with id: %d, error: %w", task.CustomTemplateID, err)
 	}

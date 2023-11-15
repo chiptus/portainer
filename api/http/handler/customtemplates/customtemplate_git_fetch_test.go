@@ -111,7 +111,11 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	dir, err := os.Getwd()
 	is.NoError(err, "error to get working directory")
 
-	template1 := &portainer.CustomTemplate{ID: 1, Title: "custom-template-1", ProjectPath: filepath.Join(dir, "fixtures/custom_template_1"), GitConfig: &gittypes.RepoConfig{ConfigFilePath: "test-config-path.txt"}}
+	template1 := &portaineree.CustomTemplate{
+		CustomTemplate: portainer.CustomTemplate{
+			ID: 1, Title: "custom-template-1", ProjectPath: filepath.Join(dir, "fixtures/custom_template_1"), GitConfig: &gittypes.RepoConfig{ConfigFilePath: "test-config-path.txt"},
+		},
+	}
 	err = store.CustomTemplateService.Create(template1)
 	is.NoError(err, "error creating custom template 1")
 
