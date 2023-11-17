@@ -3,7 +3,6 @@ package stacks
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -20,6 +19,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/git"
 	gittypes "github.com/portainer/portainer/api/git/types"
+	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,7 +1,6 @@
 package system
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/jwt"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/models"
+	"github.com/segmentio/encoding/json"
 
 	"github.com/stretchr/testify/assert"
 )
