@@ -43,6 +43,7 @@ export function mockExampleData() {
       RoleName: 'user',
       Checked: false,
       AuthenticationMethod: '',
+      UseCache: false,
     },
     {
       Id: 13,
@@ -71,6 +72,7 @@ export function mockExampleData() {
       RoleName: 'user',
       Checked: false,
       AuthenticationMethod: '',
+      UseCache: false,
     },
   ];
 

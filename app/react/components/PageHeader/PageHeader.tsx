@@ -2,6 +2,8 @@ import { useRouter } from '@uirouter/react';
 import { PropsWithChildren } from 'react';
 import { RefreshCw } from 'lucide-react';
 
+import { dispatchCacheRefreshEvent } from '@/portainer/services/http-request.helper';
+
 import { Button } from '../buttons';
 
 import { Breadcrumbs } from './Breadcrumbs';
@@ -51,6 +53,7 @@ export function PageHeader({
   );
 
   function onClickedRefresh() {
+    dispatchCacheRefreshEvent();
     return onReload ? onReload() : router.stateService.reload();
   }
 }

@@ -58,6 +58,7 @@ export function CreateView() {
             label: 'Add Licenses',
           },
         ]}
+        reload
       />
       <div className="row">
         <div className="col-lg-12 col-md-12 col-xs-12">

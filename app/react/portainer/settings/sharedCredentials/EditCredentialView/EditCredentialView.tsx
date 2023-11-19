@@ -26,6 +26,7 @@ export function EditCredentialView() {
           },
           { label: 'Edit credentials' },
         ]}
+        reload
       />
 
       <div className="row">

@@ -12,6 +12,7 @@ export function NodeCreateView() {
           { label: 'Cluster information', link: 'kubernetes.cluster' },
           { label: 'Create nodes' },
         ]}
+        reload
       />
       <div className="row">
         <div className="col-sm-12">

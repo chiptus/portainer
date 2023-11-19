@@ -7,11 +7,13 @@ import KubernetesNamespaceConverter from 'Kubernetes/converters/namespace';
 import { updateNamespaces } from 'Kubernetes/store/namespace';
 import $allSettled from 'Portainer/services/allSettled';
 import KubernetesNamespaceHelper from 'Kubernetes/helpers/namespaceHelper';
+import { getSelfSubjectAccessReview } from '@/react/kubernetes/namespaces/getSelfSubjectAccessReview';
 
 class KubernetesNamespaceService {
   /* @ngInject */
-  constructor($async, KubernetesNamespaces, Authentication, LocalStorage) {
+  constructor($async, KubernetesNamespaces, Authentication, LocalStorage, $state) {
     this.$async = $async;
+    this.$state = $state;
     this.KubernetesNamespaces = KubernetesNamespaces;
     this.LocalStorage = LocalStorage;
     this.Authentication = Authentication;
@@ -86,8 +88,10 @@ class KubernetesNamespaceService {
     try {
       // get the list of all namespaces (RBAC allows users to see the list of namespaces)
       const data = await this.KubernetesNamespaces().get().$promise;
-      // get the status of each namespace (RBAC will give permission denied for status of unauthorised namespaces)
-      const promises = data.items.map((item) => this.KubernetesNamespaces().status({ id: item.metadata.name }).$promise);
+      // get the status of each namespace with accessReviews (to avoid failed forbidden responses, which aren't cached)
+      const accessReviews = await Promise.all(data.items.map((namespace) => getSelfSubjectAccessReview(this.$state.params.endpointId, namespace.metadata.name)));
+      const allowedNamespaceNames = accessReviews.filter((ar) => ar.status.allowed).map((ar) => ar.spec.resourceAttributes.namespace);
+      const promises = allowedNamespaceNames.map((name) => this.KubernetesNamespaces().status({ id: name }).$promise);
       const namespaces = await $allSettled(promises);
       const hasK8sAccessSystemNamespaces = this.Authentication.hasAuthorizations(['K8sAccessSystemNamespaces']);
       // only return namespaces if the user has access to namespaces

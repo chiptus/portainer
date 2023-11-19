@@ -76,6 +76,7 @@ function ItemView() {
           { label: 'Edge agent update and rollback', link: '^' },
           item.name,
         ]}
+        reload
       />
 
       <BetaAlert

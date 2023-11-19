@@ -17,6 +17,7 @@ function EdgeAutoCreateScriptView() {
           { label: 'Environments', link: 'portainer.endpoints' },
           'Auto onboarding script creation',
         ]}
+        reload
       />
 
       <div className="mx-3">

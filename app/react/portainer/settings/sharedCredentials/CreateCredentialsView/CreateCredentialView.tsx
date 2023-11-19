@@ -25,6 +25,7 @@ export function CreateCredentialView() {
           },
           { label: 'Add credentials' },
         ]}
+        reload
       />
 
       <div className="row">

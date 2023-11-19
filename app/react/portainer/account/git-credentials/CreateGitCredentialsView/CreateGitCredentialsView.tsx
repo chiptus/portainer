@@ -12,6 +12,7 @@ export function CreateGitCredentialsView() {
           { label: 'My account', link: 'portainer.account' },
           { label: 'Create git authentication' },
         ]}
+        reload
       />
 
       <div className="row">

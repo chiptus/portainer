@@ -1096,7 +1096,8 @@ type (
 		TokenIssueAt            int64                            `json:"TokenIssueAt" example:"1639408208"`
 		PortainerAuthorizations portainer.Authorizations         `json:"PortainerAuthorizations"`
 		EndpointAuthorizations  portainer.EndpointAuthorizations `json:"EndpointAuthorizations"`
-		ThemeSettings           UserThemeSettings
+		ThemeSettings           UserThemeSettings                `json:"ThemeSettings"`
+		UseCache                bool                             `json:"UseCache" example:"true"`
 
 		// OpenAI integration parameters
 		OpenAIApiKey string `json:"OpenAIApiKey" example:"sk-1234567890"`

@@ -5,6 +5,7 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { OpenAIKeyWidget } from '@/react/portainer/account/AccountView/OpenAIKey';
+import { ApplicationSettingsWidget } from '@/react/portainer/account/AccountView/ApplicationSettings';
 
 export const accountModule = angular
   .module('portainer.app.react.components.account', [])
@@ -12,4 +13,11 @@ export const accountModule = angular
   .component(
     'openAiKeyWidget',
     r2a(withUIRouter(withReactQuery(withCurrentUser(OpenAIKeyWidget))), [])
+  )
+  .component(
+    'applicationSettingsWidget',
+    r2a(
+      withUIRouter(withReactQuery(withCurrentUser(ApplicationSettingsWidget))),
+      []
+    )
   ).name;

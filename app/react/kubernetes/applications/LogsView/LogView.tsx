@@ -63,7 +63,7 @@ export function LogView() {
 
   return (
     <>
-      <PageHeader title="Application logs" breadcrumbs={breadcrumbs} />
+      <PageHeader title="Application logs" breadcrumbs={breadcrumbs} reload />
       <LogViewer
         resourceType="kube-pod"
         resourceName={podID}

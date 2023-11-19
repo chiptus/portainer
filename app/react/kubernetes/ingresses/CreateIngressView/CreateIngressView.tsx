@@ -548,6 +548,7 @@ export function CreateIngressView() {
             label: getIngressTitle(isEdit, hideForm),
           },
         ]}
+        reload
       />
       <div className="row ingress-rules">
         <div className="col-sm-12">

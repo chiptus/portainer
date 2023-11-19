@@ -44,6 +44,7 @@ export function Microk8sNodeStatusView() {
           { label: 'Cluster information', link: 'kubernetes.cluster' },
           { label: 'Node status' },
         ]}
+        reload
       />
       <div className="row">
         <div className="col-sm-12">

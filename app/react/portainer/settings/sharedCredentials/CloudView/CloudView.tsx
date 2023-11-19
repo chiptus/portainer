@@ -11,6 +11,7 @@ export function CloudView() {
           { label: 'Settings', link: 'portainer.settings' },
           { label: 'Shared credentials' },
         ]}
+        reload
       />
 
       <CredentialsDatatable />

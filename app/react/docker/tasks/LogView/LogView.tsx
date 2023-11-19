@@ -53,7 +53,7 @@ export function LogView() {
 
   return (
     <>
-      <PageHeader title="Task logs" breadcrumbs={breadcrumbs} />
+      <PageHeader title="Task logs" breadcrumbs={breadcrumbs} reload />
       <LogViewer
         resourceType="docker-task"
         resourceName={taskID}

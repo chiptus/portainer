@@ -76,6 +76,7 @@
     "angulartics": "^1.6.0",
     "ansicolor": "^1.1.100",
     "axios": "^0.24.0",
+    "axios-cache-adapter": "^2.7.3",
     "axios-progress-bar": "^1.2.0",
     "babel-plugin-angularjs-annotate": "^0.10.0",
     "bootstrap": "^3.4.0",

@@ -47,7 +47,7 @@ export function LogView() {
 
   return (
     <>
-      <PageHeader title="Service logs" breadcrumbs={breadcrumbs} />
+      <PageHeader title="Service logs" breadcrumbs={breadcrumbs} reload />
       <LogViewer
         resourceType="docker-service"
         resourceName={serviceName}

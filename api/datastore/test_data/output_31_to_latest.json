@@ -2179,6 +2179,7 @@
         "subtleUpgradeButton": false
       },
       "TokenIssueAt": 0,
+      "UseCache": true,
       "Username": "admin"
     }
   ],

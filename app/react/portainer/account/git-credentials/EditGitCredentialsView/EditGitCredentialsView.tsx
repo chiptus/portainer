@@ -23,6 +23,7 @@ export function EditGitCredentialsView() {
           { label: 'My account', link: 'portainer.account' },
           { label: 'Edit credential' },
         ]}
+        reload
       />
 
       <div className="row">

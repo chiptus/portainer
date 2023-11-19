@@ -45,7 +45,7 @@ export function LogView({ getLogsFn }: Props) {
 
   return (
     <>
-      <PageHeader title="Stack logs" breadcrumbs={breadcrumbs} />
+      <PageHeader title="Stack logs" breadcrumbs={breadcrumbs} reload />
       <LogViewer
         resourceType="kube-stack"
         resourceName={name}

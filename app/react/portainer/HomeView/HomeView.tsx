@@ -63,7 +63,7 @@ export function HomeView() {
   const environment = environmentQuery.data;
   return (
     <>
-      <PageHeader reload title="Home" breadcrumbs={[{ label: 'Environments' }]}>
+      <PageHeader title="Home" breadcrumbs={[{ label: 'Environments' }]} reload>
         {environment && <DockerSnapshotPanel environment={environment} />}
       </PageHeader>
 

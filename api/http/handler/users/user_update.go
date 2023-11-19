@@ -27,6 +27,7 @@ type userUpdatePayload struct {
 	Username    string `validate:"required" example:"bob"`
 	Password    string `validate:"required" example:"cg9Wgky3"`
 	NewPassword string `validate:"required" example:"asfj2emv"`
+	UseCache    *bool  `validate:"required" example:"true"`
 	Theme       *themePayload
 
 	// User role (1 for administrator account and 2 for regular account)
@@ -152,6 +153,10 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		if payload.Theme.SubtleUpgradeButton != nil {
 			user.ThemeSettings.SubtleUpgradeButton = *payload.Theme.SubtleUpgradeButton
 		}
+	}
+
+	if payload.UseCache != nil {
+		user.UseCache = *payload.UseCache
 	}
 
 	if payload.Role != 0 {

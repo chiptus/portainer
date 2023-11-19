@@ -1329,6 +1329,7 @@
         "subtleUpgradeButton": false
       },
       "TokenIssueAt": 0,
+      "UseCache": true,
       "Username": "admin"
     },
     {
@@ -1365,6 +1366,7 @@
         "subtleUpgradeButton": false
       },
       "TokenIssueAt": 0,
+      "UseCache": true,
       "Username": "bob"
     },
     {
@@ -1401,6 +1403,7 @@
         "subtleUpgradeButton": false
       },
       "TokenIssueAt": 0,
+      "UseCache": true,
       "Username": "joe"
     }
   ],

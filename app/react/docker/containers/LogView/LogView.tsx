@@ -55,7 +55,7 @@ export function LogView() {
 
   return (
     <>
-      <PageHeader title="Container logs" breadcrumbs={breadcrumbs} />
+      <PageHeader title="Container logs" breadcrumbs={breadcrumbs} reload />
 
       {logsEnabled ? (
         <LogViewer

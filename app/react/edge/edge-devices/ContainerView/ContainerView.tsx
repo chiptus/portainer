@@ -49,6 +49,7 @@ export function ContainerView() {
           { label: 'Containers', link: '^' },
           { label: name },
         ]}
+        reload
       >
         <DockerSnapshotPanel environment={environment} />
       </PageHeader>
