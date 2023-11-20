@@ -36,8 +36,17 @@ func (payload *updatePayload) Validate(r *http.Request) error {
 		return errors.New("Invalid version")
 	}
 
-	if payload.ScheduledTime != nil && *payload.ScheduledTime == "" {
-		return errors.New("Scheduled time is required")
+	if payload.ScheduledTime != nil {
+		if *payload.ScheduledTime == "" {
+			return errors.New("Scheduled time is required")
+		}
+
+		scheduledTime, err := validateScheduleTime(*payload.ScheduledTime)
+		if err != nil {
+			return err
+		}
+
+		payload.ScheduledTime = &scheduledTime
 	}
 	return nil
 }

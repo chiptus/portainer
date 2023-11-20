@@ -5,6 +5,7 @@ import (
 	"slices"
 	"time"
 
+	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/utils"
@@ -43,7 +44,32 @@ func (payload *createPayload) Validate(r *http.Request) error {
 		return errors.New("Invalid version")
 	}
 
+	if payload.ScheduledTime != "" {
+		scheduledTime, err := validateScheduleTime(payload.ScheduledTime)
+		if err != nil {
+			return err
+		}
+
+		payload.ScheduledTime = scheduledTime
+	}
+
 	return nil
+}
+
+func validateScheduleTime(scheduledTime string) (string, error) {
+	_, err := time.Parse(portaineree.DateTimeFormat, scheduledTime)
+	if err == nil {
+		return scheduledTime, nil
+	}
+
+	timeWithSeconds := scheduledTime + ":00"
+	_, err = time.Parse(portaineree.DateTimeFormat, timeWithSeconds)
+	if err != nil {
+		return "", errors.New("Invalid scheduled time")
+	}
+
+	return timeWithSeconds, nil
+
 }
 
 // @id EdgeUpdateScheduleCreate

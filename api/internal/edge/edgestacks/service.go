@@ -115,7 +115,7 @@ func validateScheduledTime(scheduledTime string) error {
 		return nil
 	}
 
-	parsedScheduledTime, err := time.Parse(portaineree.DateTimeFormat, string(scheduledTime))
+	parsedScheduledTime, err := time.Parse(portaineree.DateTimeFormat, scheduledTime)
 	if err != nil {
 		return errors.WithMessage(err, "invalid scheduled time")
 	}
