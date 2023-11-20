@@ -2,7 +2,6 @@ package users
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -49,8 +48,8 @@ func Test_userCreateGitCredential(t *testing.T) {
 	h.DataStore = store
 
 	// generate standard and admin user git credential
-	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
+	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
 
 	t.Run("standard user successfully creates git credential", func(t *testing.T) {
 		data := userGitCredentialCreatePayload{
@@ -62,7 +61,7 @@ func Test_userCreateGitCredential(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/users/2/gitcredentials", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -90,7 +89,7 @@ func Test_userCreateGitCredential(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/users/2/gitcredentials", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -112,7 +111,7 @@ func Test_userCreateGitCredential(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/users/2/gitcredentials", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -133,7 +132,7 @@ func Test_userCreateGitCredential(t *testing.T) {
 		is.NoError(err)
 
 		req := httptest.NewRequest(http.MethodPost, "/users/2/gitcredentials", bytes.NewBuffer(payload))
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

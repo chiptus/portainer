@@ -34,13 +34,13 @@ type Handler struct {
 	AuthorizationService     *authorization.Service
 	userActivityService      portaineree.UserActivityService
 	KubernetesDeployer       portaineree.KubernetesDeployer
-	JwtService               portaineree.JWTService
+	JwtService               portainer.JWTService
 	fileService              portainer.FileService
 	baseFileDir              string
 }
 
 // NewHandler creates a handler to process pre-proxied requests to external APIs.
-func NewHandler(bouncer security.BouncerService, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, kubernetesClient portaineree.KubeClient, userActivityService portaineree.UserActivityService, k8sDeployer portaineree.KubernetesDeployer, fileService portainer.FileService, assetsPath string) *Handler {
+func NewHandler(bouncer security.BouncerService, authorizationService *authorization.Service, dataStore dataservices.DataStore, jwtService portainer.JWTService, kubeClusterAccessService kubernetes.KubeClusterAccessService, kubernetesClientFactory *cli.ClientFactory, kubernetesClient portaineree.KubeClient, userActivityService portaineree.UserActivityService, k8sDeployer portaineree.KubernetesDeployer, fileService portainer.FileService, assetsPath string) *Handler {
 	h := &Handler{
 		Router:                   mux.NewRouter(),
 		opaOperationMutex:        &sync.Mutex{},
@@ -150,7 +150,12 @@ func (h *Handler) getProxyKubeClient(r *http.Request) (*cli.KubeClient, *httperr
 		return nil, httperror.BadRequest("Invalid environment identifier route variable", err)
 	}
 
-	cli, ok := h.KubernetesClientFactory.GetProxyKubeClient(strconv.Itoa(endpointID), r.Header.Get("Authorization"))
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return nil, httperror.Forbidden("Permission denied to access environment", err)
+	}
+
+	cli, ok := h.KubernetesClientFactory.GetProxyKubeClient(strconv.Itoa(endpointID), tokenData.Username)
 	if !ok {
 		return nil, httperror.InternalServerError("Failed to lookup KubeClient", nil)
 	}
@@ -171,8 +176,13 @@ func (handler *Handler) kubeClientMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		tokenData, err := security.RetrieveTokenData(r)
+		if err != nil {
+			httperror.WriteError(w, http.StatusForbidden, "Permission denied to access environment", err)
+		}
+
 		// Check if we have a kubeclient against this auth token already, otherwise generate a new one
-		_, ok := handler.KubernetesClientFactory.GetProxyKubeClient(strconv.Itoa(endpointID), r.Header.Get("Authorization"))
+		_, ok := handler.KubernetesClientFactory.GetProxyKubeClient(strconv.Itoa(endpointID), tokenData.Username)
 		if ok {
 			next.ServeHTTP(w, r)
 			return
@@ -187,13 +197,6 @@ func (handler *Handler) kubeClientMiddleware(next http.Handler) http.Handler {
 			}
 
 			httperror.WriteError(w, http.StatusInternalServerError, "Error reading from the database", err)
-			return
-		}
-
-		// Generate a proxied kubeconfig, then create a kubeclient using it.
-		tokenData, err := security.RetrieveTokenData(r)
-		if err != nil {
-			httperror.WriteError(w, http.StatusForbidden, "Permission denied to access environment", err)
 			return
 		}
 
@@ -231,7 +234,7 @@ func (handler *Handler) kubeClientMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		handler.KubernetesClientFactory.SetProxyKubeClient(strconv.Itoa(int(endpoint.ID)), r.Header.Get("Authorization"), kubeCli)
+		handler.KubernetesClientFactory.SetProxyKubeClient(strconv.Itoa(int(endpoint.ID)), tokenData.Username, kubeCli)
 		next.ServeHTTP(w, r)
 	})
 }

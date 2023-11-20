@@ -2,11 +2,14 @@ package azure
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/utils"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	ru "github.com/portainer/portainer-ee/api/http/utils"
+	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 )
@@ -26,6 +29,12 @@ func (transport *Transport) proxyContainerGroupRequest(request *http.Request) (*
 }
 
 func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request) (*http.Response, error) {
+
+	tokenData, err := security.RetrieveTokenData(request)
+	if err != nil {
+		return nil, httperror.Forbidden("Permission denied to access environment", err)
+	}
+
 	//add a lock before processing existence check
 	transport.mutex.Lock()
 	defer transport.mutex.Unlock()
@@ -35,7 +44,7 @@ func (transport *Transport) proxyContainerGroupPutRequest(request *http.Request)
 		Method: http.MethodGet,
 		URL:    request.URL,
 		Header: http.Header{
-			"Authorization": []string{request.Header.Get("Authorization")},
+			"Authorization": []string{fmt.Sprintf("Bearer %s", tokenData.Token)},
 		},
 	}
 

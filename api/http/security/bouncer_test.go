@@ -10,7 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/apikey"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/datastore"
-	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	portainer "github.com/portainer/portainer/api"
 
@@ -22,21 +22,24 @@ var testHandler200 = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 })
 
-func tokenLookupSucceed(dataStore dataservices.DataStore, jwtService portaineree.JWTService) tokenLookup {
-	return func(r *http.Request) *portainer.TokenData {
+func tokenLookupSucceed(dataStore dataservices.DataStore, jwtService portainer.JWTService) tokenLookup {
+	return func(r *http.Request) (*portainer.TokenData, error) {
 		uid := portainer.UserID(1)
 		dataStore.User().Create(&portaineree.User{ID: uid})
 		jwtService.GenerateToken(&portainer.TokenData{ID: uid})
-		return &portainer.TokenData{ID: 1}
+		return &portainer.TokenData{ID: 1}, nil
 	}
 }
 
-func tokenLookupFail(r *http.Request) *portainer.TokenData {
-	return nil
+func tokenLookupFail(r *http.Request) (*portainer.TokenData, error) {
+	return nil, ErrInvalidKey
+}
+
+func tokenLookupEmpty(r *http.Request) (*portainer.TokenData, error) {
+	return nil, nil
 }
 
 func Test_mwAuthenticateFirst(t *testing.T) {
-	is := assert.New(t)
 
 	_, store := datastore.MustNewTestStore(t, true, true)
 
@@ -80,17 +83,28 @@ func Test_mwAuthenticateFirst(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 		},
 		{
-			name: "mwAuthenticateFirst succeeds if last middleware successfully handles request",
+			name: "mwAuthenticateFirst fails if first middleware fails",
 			verificationMiddlwares: []tokenLookup{
 				tokenLookupFail,
 				tokenLookupSucceed(store, jwtService),
 			},
-			wantStatusCode: http.StatusOK,
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name: "mwAuthenticateFirst fails if first middleware has no token, but second middleware fails",
+			verificationMiddlwares: []tokenLookup{
+				tokenLookupEmpty,
+				tokenLookupFail,
+
+				tokenLookupSucceed(store, jwtService),
+			},
+			wantStatusCode: http.StatusUnauthorized,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			is := assert.New(t)
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			rr := httptest.NewRecorder()
 
@@ -102,8 +116,45 @@ func Test_mwAuthenticateFirst(t *testing.T) {
 	}
 }
 
-func Test_extractBearerToken(t *testing.T) {
+func Test_extractKeyFromCookie(t *testing.T) {
 	is := assert.New(t)
+
+	tt := []struct {
+		name     string
+		token    string
+		succeeds bool
+	}{
+		{
+			name:     "missing cookie",
+			token:    "",
+			succeeds: false,
+		},
+
+		{
+			name:     "valid cookie",
+			token:    "abc",
+			succeeds: true,
+		},
+	}
+
+	for _, test := range tt {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		if test.token != "" {
+			testhelpers.AddTestSecurityCookie(req, test.token)
+		}
+
+		apiKey, err := extractKeyFromCookie(req)
+		is.Equal(test.token, apiKey)
+		if !test.succeeds {
+			is.Error(err, "Should return error")
+			is.ErrorIs(err, http.ErrNoCookie)
+		} else {
+			is.NoError(err)
+		}
+	}
+}
+
+func Test_extractBearerToken(t *testing.T) {
 
 	tt := []struct {
 		name               string
@@ -143,16 +194,14 @@ func Test_extractBearerToken(t *testing.T) {
 	}
 
 	for _, test := range tt {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set(test.requestHeader, test.requestHeaderValue)
-		apiKey, err := extractBearerToken(req)
-		is.Equal(test.wantToken, apiKey)
-		if !test.succeeds {
-			is.Error(err, "Should return error")
-			is.ErrorIs(err, httperrors.ErrUnauthorized)
-		} else {
-			is.NoError(err)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			is := assert.New(t)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.Header.Set(test.requestHeader, test.requestHeaderValue)
+			apiKey, ok := extractBearerToken(req)
+			is.Equal(test.wantToken, apiKey)
+			is.Equal(test.succeeds, ok)
+		})
 	}
 }
 
@@ -275,16 +324,17 @@ func Test_apiKeyLookup(t *testing.T) {
 
 	t.Run("missing x-api-key header fails api-key lookup", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		// req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
-		token := bouncer.apiKeyLookup(req)
+		// testhelpers.AddTestSecurityCookie(req, jwt)
+		token, _ := bouncer.apiKeyLookup(req)
 		is.Nil(token)
 	})
 
 	t.Run("invalid x-api-key header fails api-key lookup", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Add("x-api-key", "random-failing-api-key")
-		token := bouncer.apiKeyLookup(req)
+		token, err := bouncer.apiKeyLookup(req)
 		is.Nil(token)
+		is.Error(err)
 	})
 
 	t.Run("valid x-api-key header succeeds api-key lookup", func(t *testing.T) {
@@ -294,7 +344,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Add("x-api-key", rawAPIKey)
 
-		token := bouncer.apiKeyLookup(req)
+		token, err := bouncer.apiKeyLookup(req)
 
 		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
@@ -308,7 +358,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Add("x-api-key", rawAPIKey)
 
-		token := bouncer.apiKeyLookup(req)
+		token, err := bouncer.apiKeyLookup(req)
 
 		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)
@@ -322,7 +372,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Add("x-api-key", rawAPIKey)
 
-		token := bouncer.apiKeyLookup(req)
+		token, err := bouncer.apiKeyLookup(req)
 
 		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portaineree.StandardUserRole}
 		is.Equal(expectedToken, token)

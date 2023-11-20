@@ -2,7 +2,6 @@ package customtemplates
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -78,7 +77,7 @@ func singleAPIRequest(h *Handler, jwt string, is *assert.Assertions, expect stri
 	}
 
 	req := httptest.NewRequest(http.MethodPut, "/custom_templates/1/git_fetch", bytes.NewBuffer([]byte("{}")))
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	testhelpers.AddTestSecurityCookie(req, jwt)
 
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -138,8 +137,8 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	h := NewHandler(requestBouncer, store, fileService, gitService, testhelpers.NewUserActivityService())
 
 	// generate two standard users' tokens
-	jwt1, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})
-	jwt2, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user2.ID, Username: user2.Username, Role: user2.Role})
+	jwt1, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})
+	jwt2, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user2.ID, Username: user2.Username, Role: user2.Role})
 
 	t.Run("can return the expected file content by a single call from one user", func(t *testing.T) {
 		singleAPIRequest(h, jwt1, is, "abcdefg")

@@ -23,7 +23,7 @@ type Handler struct {
 	*mux.Router
 	requestBouncer           security.BouncerService
 	dataStore                dataservices.DataStore
-	jwtService               portaineree.JWTService
+	jwtService               portainer.JWTService
 	kubeClusterAccessService kubernetes.KubeClusterAccessService
 	kubernetesDeployer       portaineree.KubernetesDeployer
 	helmPackageManager       libhelm.HelmPackageManager
@@ -32,7 +32,7 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage endpoint group operations.
-func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, jwtService portaineree.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeClusterAccessService kubernetes.KubeClusterAccessService, userActivityService portaineree.UserActivityService, fileService portaineree.FileService) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, jwtService portainer.JWTService, kubernetesDeployer portaineree.KubernetesDeployer, helmPackageManager libhelm.HelmPackageManager, kubeClusterAccessService kubernetes.KubeClusterAccessService, userActivityService portaineree.UserActivityService, fileService portaineree.FileService) *Handler {
 	h := &Handler{
 		Router:                   mux.NewRouter(),
 		requestBouncer:           bouncer,
@@ -103,7 +103,7 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 		return nil, httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	bearerToken, err := handler.jwtService.GenerateToken(tokenData)
+	bearerToken, _, err := handler.jwtService.GenerateToken(tokenData)
 	if err != nil {
 		return nil, httperror.Unauthorized("Unauthorized", err)
 	}

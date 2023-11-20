@@ -1,16 +1,15 @@
+import { getCurrentUser } from '../users/queries/useLoadCurrentUser';
 import { clear as clearSessionStorage } from './session-storage';
 angular.module('portainer.app').factory('Authentication', [
   '$async',
   '$state',
   'Auth',
   'OAuth',
-  'jwtHelper',
   'LocalStorage',
   'StateManager',
   'EndpointProvider',
-  'UserService',
   'ThemeManager',
-  function AuthenticationFactory($async, $state, Auth, OAuth, jwtHelper, LocalStorage, StateManager, EndpointProvider, UserService, ThemeManager) {
+  function AuthenticationFactory($async, $state, Auth, OAuth, LocalStorage, StateManager, EndpointProvider, ThemeManager) {
     'use strict';
 
     var service = {};
@@ -28,11 +27,12 @@ angular.module('portainer.app').factory('Authentication', [
 
     async function initAsync() {
       try {
-        const jwt = LocalStorage.getJWT();
-        if (jwt) {
-          await setUser(jwt);
+        const userId = LocalStorage.getUserId();
+        if (userId && user.ID === userId) {
+          return true;
         }
-        return !!jwt;
+        await loadUserData();
+        return true;
       } catch (error) {
         return false;
       }
@@ -59,8 +59,8 @@ angular.module('portainer.app').factory('Authentication', [
     }
 
     async function OAuthLoginAsync(code) {
-      const response = await OAuth.validate({ code: code }).$promise;
-      await setUser(response.jwt);
+      await OAuth.validate({ code: code }).$promise;
+      await loadUserData();
     }
 
     function OAuthLogin(code) {
@@ -68,8 +68,8 @@ angular.module('portainer.app').factory('Authentication', [
     }
 
     async function loginAsync(username, password) {
-      const response = await Auth.login({ username: username, password: password }).$promise;
-      await setUser(response.jwt);
+      await Auth.login({ username: username, password: password }).$promise;
+      await loadUserData();
     }
 
     function login(username, password) {
@@ -77,36 +77,31 @@ angular.module('portainer.app').factory('Authentication', [
     }
 
     function isAuthenticated() {
-      var jwt = LocalStorage.getJWT();
-      return jwt && !jwtHelper.isTokenExpired(jwt);
+      return !!user.ID;
     }
 
     function getUserDetails() {
       return user;
     }
 
-    async function retrievePermissions() {
-      const data = await UserService.user(user.ID);
-      user.endpointAuthorizations = data.EndpointAuthorizations;
-      user.portainerAuthorizations = data.PortainerAuthorizations;
+    async function loadUserData() {
+      const userData = await getCurrentUser();
+      user.username = userData.Username;
+      user.ID = userData.Id;
+      user.role = userData.Role;
+      user.forceChangePassword = userData.forceChangePassword;
+      user.endpointAuthorizations = userData.EndpointAuthorizations;
+      user.portainerAuthorizations = userData.PortainerAuthorizations;
 
       // Initialize user theme base on UserTheme from database
-      const userTheme = data.ThemeSettings ? data.ThemeSettings.color : 'auto';
+      const userTheme = userData.ThemeSettings ? userData.ThemeSettings.color : 'auto';
       if (userTheme === 'auto' || !userTheme) {
         ThemeManager.autoTheme();
       } else {
         ThemeManager.setTheme(userTheme);
       }
-    }
 
-    async function setUser(jwt) {
-      LocalStorage.storeJWT(jwt);
-      var tokenPayload = jwtHelper.decodeToken(jwt);
-      user.username = tokenPayload.username;
-      user.ID = tokenPayload.id;
-      user.role = tokenPayload.role;
-      user.forceChangePassword = tokenPayload.forceChangePassword;
-      await retrievePermissions();
+      LocalStorage.storeUserId(userData.Id);
     }
 
     function isAdmin() {

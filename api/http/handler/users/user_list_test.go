@@ -45,7 +45,7 @@ func Test_userList(t *testing.T) {
 	h.DataStore = store
 
 	// generate admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	// Case 1: the user is given the endpoint access directly
 	userWithEndpointAccess := &portaineree.User{ID: 2, Username: "standard-user-with-endpoint-access", Role: portaineree.StandardUserRole, PortainerAuthorizations: authorization.DefaultPortainerAuthorizations()}
@@ -69,11 +69,11 @@ func Test_userList(t *testing.T) {
 	err = store.Endpoint().Create(endpointWithUserAccessPolicy)
 	is.NoError(err, "error creating endpoint")
 
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccess.ID, Username: userWithEndpointAccess.Username, Role: userWithEndpointAccess.Role})
+	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccess.ID, Username: userWithEndpointAccess.Username, Role: userWithEndpointAccess.Role})
 
 	t.Run("admin user can successfully list all users", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/users", nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -94,7 +94,7 @@ func Test_userList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointWithUserAccessPolicy.ID))
 		req := httptest.NewRequest(http.MethodGet, "/users?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -116,7 +116,7 @@ func Test_userList(t *testing.T) {
 
 	t.Run("standard user cannot list users", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/users", nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -148,7 +148,7 @@ func Test_userList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointUnderGroupWithUser.ID))
 		req := httptest.NewRequest(http.MethodGet, "/users?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -200,7 +200,7 @@ func Test_userList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointUnderGroupWithTeam.ID))
 		req := httptest.NewRequest(http.MethodGet, "/users?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -251,7 +251,7 @@ func Test_userList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointWithTeamAccessPolicy.ID))
 		req := httptest.NewRequest(http.MethodGet, "/users?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -290,7 +290,7 @@ func Test_userList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointOnly.ID))
 		req := httptest.NewRequest(http.MethodGet, "/users?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

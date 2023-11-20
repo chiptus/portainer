@@ -75,6 +75,8 @@ func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimit
 
 	adminRouter.Handle("/users", httperror.LoggerHandler(h.userCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/users", httperror.LoggerHandler(h.userList)).Methods(http.MethodGet)
+
+	authenticatedRouter.Handle("/users/me", httperror.LoggerHandler(h.userInspectMe)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/users/{id}/openai", httperror.LoggerHandler(h.userUpdateOpenAIConfig)).Methods(http.MethodPut)

@@ -36,7 +36,7 @@ func Test_getK8sPodSecurityRule(t *testing.T) {
 
 	jwtService, err := jwt.NewService("1h", store)
 	is.NoError(err, "Error initiating jwt service")
-	tk, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
+	tk, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
 
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
 	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
@@ -51,7 +51,7 @@ func Test_getK8sPodSecurityRule(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/kubernetes/1/opa", nil)
 	ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 	req = req.WithContext(ctx)
-	req.Header.Add("Authorization", "Bearer "+tk)
+	testhelpers.AddTestSecurityCookie(req, tk)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -72,7 +72,7 @@ func Test_updateK8sPodSecurityRule(t *testing.T) {
 
 	jwtService, err := jwt.NewService("1h", store)
 	is.NoError(err, "Error initiating jwt service")
-	tk, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
+	tk, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
 
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
 	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
@@ -87,7 +87,7 @@ func Test_updateK8sPodSecurityRule(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/kubernetes/1/opa", nil)
 	ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 	req = req.WithContext(ctx)
-	req.Header.Add("Authorization", "Bearer "+tk)
+	testhelpers.AddTestSecurityCookie(req, tk)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -115,7 +115,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 
 	jwtService, err := jwt.NewService("1h", store)
 	is.NoError(err, "Error initiating jwt service")
-	tk, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
+	tk, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: 1, Username: "admin", Role: portaineree.AdministratorRole})
 
 	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
 	requestBouncer := security.NewRequestBouncer(store, nil, jwtService, apiKeyService, nil)
@@ -143,7 +143,7 @@ func TestHandler_updateK8sPodSecurityRule(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPut, "/kubernetes/1/opa", bytes.NewBuffer(optdata))
 	ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 	req = req.WithContext(ctx)
-	req.Header.Add("Authorization", "Bearer "+tk)
+	testhelpers.AddTestSecurityCookie(req, tk)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)

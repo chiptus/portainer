@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/portainer/portainer-ee/api/internal/logoutcontext"
+	"github.com/portainer/portainer/api/http/security"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
@@ -22,13 +23,14 @@ func (handler *Handler) logout(w http.ResponseWriter, r *http.Request) (*authMid
 		Username: "Unauthenticated user",
 	}
 
-	tokenData := handler.bouncer.JWTAuthLookup(r)
-
+	tokenData, _ := handler.bouncer.CookieAuthLookup(r)
 	if tokenData != nil {
 		resp.Username = tokenData.Username
 		handler.KubernetesTokenCacheManager.RemoveUserFromCache(tokenData.ID)
 		logoutcontext.Cancel(tokenData.Token)
 	}
+
+	security.RemoveAuthCookie(w)
 
 	return resp, response.Empty(w)
 }

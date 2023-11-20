@@ -1196,15 +1196,6 @@ type (
 		ExecuteDeviceAction(configuration portainer.OpenAMTConfiguration, deviceGUID string, action string) error
 	}
 
-	// JWTService represents a service for managing JWT tokens
-	JWTService interface {
-		GenerateToken(data *portainer.TokenData) (string, error)
-		GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error)
-		GenerateTokenForKubeconfig(data *portainer.TokenData) (string, error)
-		ParseAndVerifyToken(token string) (*portainer.TokenData, error)
-		SetUserSessionDuration(userSessionDuration time.Duration)
-	}
-
 	// KubeClient represents a service used to query a Kubernetes environment(endpoint)
 	KubeClient interface {
 		SetupUserServiceAccount(

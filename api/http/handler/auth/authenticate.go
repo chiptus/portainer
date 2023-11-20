@@ -3,12 +3,12 @@ package auth
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/http/security"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -218,10 +218,10 @@ func (handler *Handler) writeToken(
 ) (*authMiddlewareResponse, *httperror.HandlerError) {
 	tokenData := composeTokenData(user, forceChangePassword)
 
-	return handler.persistAndWriteToken(w, tokenData, nil, method)
+	return handler.persistAndWriteToken(w, tokenData, method)
 }
 
-func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portainer.TokenData, expiryTime *time.Time, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
+func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *portainer.TokenData, method portainer.AuthenticationMethod) (*authMiddlewareResponse, *httperror.HandlerError) {
 	resp := &authMiddlewareResponse{
 		Username: tokenData.Username,
 		Method:   method,
@@ -230,17 +230,13 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 	var token string
 	var err error
 
-	if method == portaineree.AuthenticationOAuth {
-		token, err = handler.JWTService.GenerateTokenForOAuth(tokenData, expiryTime)
-		if err != nil {
-			return resp, httperror.InternalServerError("Unable to generate JWT token for OAuth", err)
-		}
-	} else {
-		token, err = handler.JWTService.GenerateToken(tokenData)
-		if err != nil {
-			return resp, httperror.InternalServerError("Unable to generate JWT token", err)
-		}
+	token, expirationTime, err := handler.JWTService.GenerateToken(tokenData)
+	if err != nil {
+		return resp, httperror.InternalServerError("Unable to generate JWT token", err)
 	}
+
+	security.AddAuthCookie(w, token, expirationTime)
+
 	return resp, response.JSON(w, &authenticateResponse{JWT: token})
 
 }

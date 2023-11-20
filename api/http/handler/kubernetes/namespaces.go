@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"net/http"
-	"strconv"
 
 	models "github.com/portainer/portainer-ee/api/http/models/kubernetes"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -25,22 +24,9 @@ import (
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces [get]
 func (handler *Handler) getKubernetesNamespaces(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
+	cli, httpErr := handler.getProxyKubeClient(r)
+	if httpErr != nil {
+		return httpErr
 	}
 
 	namespaces, err := cli.GetNamespaces()
@@ -70,22 +56,9 @@ func (handler *Handler) getKubernetesNamespaces(w http.ResponseWriter, r *http.R
 // @failure 500 "Server error"
 // @router /kubernetes/{id}/namespaces/{namespace} [get]
 func (handler *Handler) getKubernetesNamespace(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericRouteVariableValue(r, "id")
-	if err != nil {
-		return httperror.BadRequest(
-			"Invalid environment identifier route variable",
-			err,
-		)
-	}
-
-	cli, ok := handler.KubernetesClientFactory.GetProxyKubeClient(
-		strconv.Itoa(endpointID), r.Header.Get("Authorization"),
-	)
-	if !ok {
-		return httperror.InternalServerError(
-			"Failed to lookup KubeClient",
-			nil,
-		)
+	cli, httpErr := handler.getProxyKubeClient(r)
+	if httpErr != nil {
+		return httpErr
 	}
 
 	ns, err := request.RetrieveRouteVariableValue(r, "namespace")

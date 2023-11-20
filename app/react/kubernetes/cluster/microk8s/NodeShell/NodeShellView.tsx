@@ -8,7 +8,6 @@ import { baseHref } from '@/portainer/helpers/pathHelper';
 import { terminalClose } from '@/portainer/services/terminal-window';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { error as notifyError } from '@/portainer/services/notifications';
-import { useLocalStorage } from '@/react/hooks/useLocalStorage';
 
 import { Alert } from '@@/Alert';
 import { Button } from '@@/buttons';
@@ -27,8 +26,6 @@ export function NodeShellView() {
   const [shellState, setShellState] = useState<ShellState>('loading');
 
   const terminalElem = useRef(null);
-
-  const [jwt] = useLocalStorage('JWT', '');
 
   const closeTerminal = useCallback(() => {
     terminalClose(); // only css trick
@@ -92,7 +89,7 @@ export function NodeShellView() {
 
   // on component load/destroy
   useEffect(() => {
-    const socket = new WebSocket(buildUrl(jwt, environmentId, nodeIP));
+    const socket = new WebSocket(buildUrl(environmentId, nodeIP));
     setSocket(socket);
     setShellState('loading');
 
@@ -113,7 +110,7 @@ export function NodeShellView() {
     }
 
     return close;
-  }, [environmentId, jwt, terminal, nodeIP, resizeTerminal]);
+  }, [environmentId, terminal, nodeIP, resizeTerminal]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 top-0 z-[10000] bg-black text-white">
@@ -136,9 +133,8 @@ export function NodeShellView() {
     </div>
   );
 
-  function buildUrl(jwt: string, environmentId: EnvironmentId, nodeIp: string) {
+  function buildUrl(environmentId: EnvironmentId, nodeIp: string) {
     const params = {
-      token: jwt,
       endpointId: environmentId,
       nodeIp,
     };

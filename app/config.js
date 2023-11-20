@@ -1,10 +1,11 @@
 import { Terminal } from 'xterm';
 import * as fit from 'xterm/lib/addons/fit/fit';
+import { csrfInterceptor, csrfTokenReaderInterceptorAngular } from './portainer/services/csrf';
 import { agentInterceptor } from './portainer/services/axios';
 import { dispatchCacheRefreshEventIfNeeded } from './portainer/services/http-request.helper';
 
 /* @ngInject */
-export function configApp($urlRouterProvider, $httpProvider, localStorageServiceProvider, jwtOptionsProvider, $uibTooltipProvider, $compileProvider, cfpLoadingBarProvider) {
+export function configApp($urlRouterProvider, $httpProvider, localStorageServiceProvider, $uibTooltipProvider, $compileProvider, cfpLoadingBarProvider) {
   if (process.env.NODE_ENV === 'testing') {
     $compileProvider.debugInfoEnabled(false);
   }
@@ -18,14 +19,6 @@ export function configApp($urlRouterProvider, $httpProvider, localStorageService
   }));
 
   localStorageServiceProvider.setPrefix('portainer');
-
-  jwtOptionsProvider.config({
-    tokenGetter: /* @ngInject */ function tokenGetter(LocalStorage) {
-      return LocalStorage.getJWT();
-    },
-  });
-
-  $httpProvider.interceptors.push('jwtInterceptor');
 
   if (!$httpProvider.defaults.headers.get) {
     $httpProvider.defaults.headers.get = {};
@@ -42,6 +35,11 @@ export function configApp($urlRouterProvider, $httpProvider, localStorageService
 
   $httpProvider.interceptors.push(() => ({
     request: agentInterceptor,
+  }));
+
+  $httpProvider.interceptors.push(() => ({
+    response: csrfTokenReaderInterceptorAngular,
+    request: csrfInterceptor,
   }));
 
   Terminal.applyAddon(fit);

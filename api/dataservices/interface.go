@@ -2,7 +2,6 @@ package dataservices
 
 import (
 	"io"
-	"time"
 
 	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
@@ -193,15 +192,6 @@ type (
 	HelmUserRepositoryService interface {
 		BaseCRUD[portaineree.HelmUserRepository, portainer.HelmUserRepositoryID]
 		HelmUserRepositoryByUserID(userID portainer.UserID) ([]portaineree.HelmUserRepository, error)
-	}
-
-	// JWTService represents a service for managing JWT tokens
-	JWTService interface {
-		GenerateToken(data *portainer.TokenData) (string, error)
-		GenerateTokenForOAuth(data *portainer.TokenData, expiryTime *time.Time) (string, error)
-		GenerateTokenForKubeconfig(data *portainer.TokenData) (string, error)
-		ParseAndVerifyToken(token string) (*portainer.TokenData, error)
-		SetUserSessionDuration(userSessionDuration time.Duration)
 	}
 
 	// LicenseRepository represents a service used to manage licenses store

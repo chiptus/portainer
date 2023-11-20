@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -45,12 +44,12 @@ func Test_getSystemVersion(t *testing.T) {
 	h := NewHandler(requestBouncer, &portainer.Status{}, &demo.Service{}, store, nil)
 
 	// generate standard and admin user tokens
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	t.Run("Display Edition", func(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/system/version", nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

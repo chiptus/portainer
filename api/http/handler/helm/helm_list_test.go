@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/exec/exectest"
 	"github.com/portainer/portainer-ee/api/filesystem"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	"github.com/portainer/portainer-ee/api/jwt"
 	"github.com/portainer/portainer-ee/api/kubernetes"
@@ -52,7 +53,7 @@ func Test_helmList(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/1/kubernetes/helm", nil)
 		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
-		req.Header.Add("Authorization", "Bearer dummytoken")
+		testhelpers.AddTestSecurityCookie(req, "Bearer dummytoken")
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

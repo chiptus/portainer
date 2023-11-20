@@ -84,6 +84,7 @@ import (
 	"github.com/portainer/portainer-ee/api/stacks/deployments"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
+	"github.com/portainer/portainer/api/http/csrf"
 	"github.com/portainer/portainer/pkg/libhelm"
 
 	"github.com/pkg/errors"
@@ -112,7 +113,7 @@ type Server struct {
 	GitService                  portainer.GitService
 	APIKeyService               apikey.APIKeyService
 	OpenAMTService              portainer.OpenAMTService
-	JWTService                  portaineree.JWTService
+	JWTService                  portainer.JWTService
 	LDAPService                 portaineree.LDAPService
 	OAuthService                portaineree.OAuthService
 	SwarmStackManager           portaineree.SwarmStackManager
@@ -434,6 +435,11 @@ func (server *Server) Start() error {
 	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))
 
 	handler = middlewares.WithSlowRequestsLogger(handler)
+
+	handler, err = csrf.WithProtect(handler)
+	if err != nil {
+		return errors.Wrap(err, "failed to create CSRF middleware")
+	}
 
 	if server.HTTPEnabled {
 		go func() {

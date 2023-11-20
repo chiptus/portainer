@@ -45,8 +45,8 @@ func Test_userRemoveGitCredential(t *testing.T) {
 	h.DataStore = store
 
 	// generate standard and admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
+	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
 
 	t.Run("standard user can successfully delete Git Credential", func(t *testing.T) {
 		cred := &portaineree.GitCredential{
@@ -63,7 +63,7 @@ func Test_userRemoveGitCredential(t *testing.T) {
 		is.NotNil(newAddedCred)
 
 		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("%s/%d", "/users/2/gitcredentials", newAddedCred.ID), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -91,7 +91,7 @@ func Test_userRemoveGitCredential(t *testing.T) {
 		is.NotNil(newAddedCred)
 
 		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("%s/%d", "/users/2/gitcredentials", newAddedCred.ID), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

@@ -41,7 +41,7 @@ func Test_teamList(t *testing.T) {
 	h.DataStore = store
 
 	// generate admin user tokens
-	adminJWT, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 
 	// Case 1: the team is given the endpoint access directly
 	// create teams
@@ -79,11 +79,11 @@ func Test_teamList(t *testing.T) {
 	err = store.Endpoint().Create(endpointWithTeamAccessPolicy)
 	is.NoError(err, "error creating endpoint")
 
-	jwt, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccessByTeam.ID, Username: userWithEndpointAccessByTeam.Username, Role: userWithEndpointAccessByTeam.Role})
+	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: userWithEndpointAccessByTeam.ID, Username: userWithEndpointAccessByTeam.Username, Role: userWithEndpointAccessByTeam.Role})
 
 	t.Run("admin user can successfully list all teams", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/teams", nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -104,7 +104,7 @@ func Test_teamList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointWithTeamAccessPolicy.ID))
 		req := httptest.NewRequest(http.MethodGet, "/teams?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -126,7 +126,7 @@ func Test_teamList(t *testing.T) {
 
 	t.Run("standard user only can list team where he belongs to", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/teams", nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+		testhelpers.AddTestSecurityCookie(req, jwt)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -170,7 +170,7 @@ func Test_teamList(t *testing.T) {
 		params := url.Values{}
 		params.Add("environmentId", fmt.Sprintf("%d", endpointUnderGroupWithTeam.ID))
 		req := httptest.NewRequest(http.MethodGet, "/teams?"+params.Encode(), nil)
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", adminJWT))
+		testhelpers.AddTestSecurityCookie(req, adminJWT)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

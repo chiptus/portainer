@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/useractivity"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/internal/ssl"
+	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -30,7 +31,7 @@ type Handler struct {
 	AuthorizationService *authorization.Service
 	DataStore            dataservices.DataStore
 	FileService          portaineree.FileService
-	JWTService           portaineree.JWTService
+	JWTService           portainer.JWTService
 	LDAPService          portaineree.LDAPService
 	SnapshotService      portaineree.SnapshotService
 	SSLService           *ssl.Service

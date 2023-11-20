@@ -11,6 +11,7 @@ import (
 	"github.com/portainer/portainer-ee/api/datastore"
 	"github.com/portainer/portainer-ee/api/demo"
 	"github.com/portainer/portainer-ee/api/http/security"
+	"github.com/portainer/portainer-ee/api/internal/testhelpers"
 	helper "github.com/portainer/portainer-ee/api/internal/testhelpers"
 	portainer "github.com/portainer/portainer/api"
 
@@ -50,7 +51,7 @@ func Test_endpointUpdate(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
 		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
-		req.Header.Add("Authorization", "Bearer dummytoken")
+		testhelpers.AddTestSecurityCookie(req, "Bearer dummytoken")
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -83,7 +84,7 @@ func Test_endpointUpdate(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPut, "/endpoints/1/settings", bytes.NewBuffer(data))
 		ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
 		req = req.WithContext(ctx)
-		req.Header.Add("Authorization", "Bearer dummytoken")
+		testhelpers.AddTestSecurityCookie(req, "Bearer dummytoken")
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

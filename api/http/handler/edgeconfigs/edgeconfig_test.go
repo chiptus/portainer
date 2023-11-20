@@ -94,7 +94,7 @@ func TestStdFlow(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -230,7 +230,7 @@ func TestStdFlow(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -241,7 +241,7 @@ func TestStdFlow(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/edge_configurations/%d", configID), nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
 	err = json.Unmarshal(rr.Body.Bytes(), config)
@@ -312,7 +312,7 @@ func TestStdFlow(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/edge_groups/2", edgeGroupPayload)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	edgeGroupsHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -369,7 +369,7 @@ func TestStdFlow(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/edge_groups/2", edgeGroupPayload)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	edgeGroupsHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -444,7 +444,7 @@ func TestStdFlow(t *testing.T) {
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/edge_configurations/1", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -544,7 +544,7 @@ func TestStdFlow(t *testing.T) {
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/edge_configurations/1", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -605,7 +605,7 @@ func TestStdFlow(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodDelete, "/edge_configurations/1", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -660,7 +660,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -764,7 +764,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -787,7 +787,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/endpoints/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	endpointHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -842,7 +842,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/endpoints/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	endpointHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -879,7 +879,7 @@ func TestEnvTagsAddRm(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/endpoints/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	endpointHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -942,7 +942,7 @@ func TestEnvGroups(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -1039,7 +1039,7 @@ func TestEnvGroups(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -1062,7 +1062,7 @@ func TestEnvGroups(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/endpoint_groups/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	groupHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -1117,7 +1117,7 @@ func TestEnvGroups(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPut, "/endpoint_groups/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	groupHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -1180,7 +1180,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -1236,7 +1236,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -1249,7 +1249,7 @@ func TestDeleteEmptyConfig(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodDelete, "/edge_configurations/1", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -1272,7 +1272,7 @@ func TestEndpointDelete(t *testing.T) {
 	err = store.User().Create(usr)
 	require.NoError(t, err)
 
-	token, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
+	token, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: usr.ID, Username: usr.Username, Role: portaineree.AdministratorRole})
 	require.NoError(t, err)
 
 	settings, err := store.Settings().Settings()
@@ -1358,7 +1358,7 @@ func TestEndpointDelete(t *testing.T) {
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/edge_configurations", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 	h.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
 
@@ -1371,7 +1371,7 @@ func TestEndpointDelete(t *testing.T) {
 
 	rr = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodDelete, "/endpoints/1", body)
-	req.Header.Set("Authorization", "Bearer "+token)
+	testhelpers.AddTestSecurityCookie(req, token)
 
 	endpointHandler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusNoContent, rr.Result().StatusCode)
