@@ -61,9 +61,9 @@ type snapshot struct {
 type EdgeAsyncResponse struct {
 	EndpointID portainer.EndpointID `json:"endpointID"`
 
-	PingInterval     time.Duration `json:"pingInterval"`
-	SnapshotInterval time.Duration `json:"snapshotInterval"`
-	CommandInterval  time.Duration `json:"commandInterval"`
+	PingInterval     int64 `json:"pingInterval"`
+	SnapshotInterval int64 `json:"snapshotInterval"`
+	CommandInterval  int64 `json:"commandInterval"`
 
 	Commands         []portaineree.EdgeAsyncCommand `json:"commands"`
 	NeedFullSnapshot bool                           `json:"needFullSnapshot"`
@@ -235,9 +235,9 @@ func (handler *Handler) getStatusAsync(tx dataservices.DataStoreTx, edgeID strin
 
 	asyncResponse := EdgeAsyncResponse{
 		EndpointID:       endpoint.ID,
-		PingInterval:     time.Duration(pingInterval) * time.Second,
-		SnapshotInterval: time.Duration(snapshotInterval) * time.Second,
-		CommandInterval:  time.Duration(commandInterval) * time.Second,
+		PingInterval:     (time.Duration(pingInterval) * time.Second).Nanoseconds(),
+		SnapshotInterval: (time.Duration(snapshotInterval) * time.Second).Nanoseconds(),
+		CommandInterval:  (time.Duration(commandInterval) * time.Second).Nanoseconds(),
 		NeedFullSnapshot: needFullSnapshot,
 	}
 
