@@ -31,7 +31,10 @@ export function CreateNamespaceView() {
     <div className="form-horizontal">
       <PageHeader
         title="Create a namespace"
-        breadcrumbs="Create a namespace"
+        breadcrumbs={[
+          { label: 'Namespaces', link: 'kubernetes.resourcePools' },
+          'Create a namespace',
+        ]}
         reload
       />
 
