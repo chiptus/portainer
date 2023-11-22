@@ -94,7 +94,7 @@ func NewHandler(
 
 	loggedAdminRouter := h.NewRoute().Subrouter()
 	loggedAdminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
-	loggedAdminRouter.Handle("/cloud/{provider}/provision", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.provisionCluster))).Methods(http.MethodPost)
+	loggedAdminRouter.Handle("/cloud/{provider}/provision", license.NotOverused(licenseService, dataStore, license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.provisionCluster)))).Methods(http.MethodPost)
 	loggedAdminRouter.Handle("/cloud/testssh", license.NotOverused(licenseService, dataStore, httperror.LoggerHandler(h.sshTestNodeIPs))).Methods(http.MethodPost)
 	loggedAdminRouter.Handle("/cloud/{provider}/cluster", middlewares.Deprecated(loggedAdminRouter, deprecatedProvisionUrlParser)).Methods(http.MethodPost) // deprecated
 

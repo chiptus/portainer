@@ -563,7 +563,7 @@ func buildServer(flags *portaineree.CLIFlags) portainer.Server {
 	}
 	snapshotService.Start()
 
-	licenseService := license.NewService(dataStore, shutdownCtx, snapshotService, *flags.LicenseExpireAbsolute)
+	licenseService := license.NewService(dataStore, dockerClientFactory, kubernetesClientFactory, shutdownCtx, snapshotService, *flags.LicenseExpireAbsolute)
 
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
 

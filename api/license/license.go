@@ -11,26 +11,39 @@ import (
 	"github.com/portainer/liblicense/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/dataservices"
+	dockercli "github.com/portainer/portainer-ee/api/docker/client"
+	kubecli "github.com/portainer/portainer-ee/api/kubernetes/cli"
 	"github.com/rs/zerolog/log"
 )
 
 // Service represents a service for managing portainer licenses
 type Service struct {
-	licenses        []liblicense.PortainerLicense
-	dataStore       dataservices.DataStore
-	shutdownCtx     context.Context
-	snapshotService portaineree.SnapshotService
-	expireAbsolute  bool
+	licenses                []liblicense.PortainerLicense
+	dataStore               dataservices.DataStore
+	dockerClientFactory     *dockercli.ClientFactory
+	kubernetesClientFactory *kubecli.ClientFactory
+	shutdownCtx             context.Context
+	snapshotService         portaineree.SnapshotService
+	expireAbsolute          bool
 }
 
 // NewService creates a new instance of Service
-func NewService(dataStore dataservices.DataStore, shutdownCtx context.Context, snapshotService portaineree.SnapshotService, expireAbsolute bool) *Service {
+func NewService(
+	dataStore dataservices.DataStore,
+	dockerClientFactory *dockercli.ClientFactory,
+	kubernetesClientFactory *kubecli.ClientFactory,
+	shutdownCtx context.Context,
+	snapshotService portaineree.SnapshotService,
+	expireAbsolute bool,
+) *Service {
 	return &Service{
-		licenses:        []liblicense.PortainerLicense{},
-		dataStore:       dataStore,
-		shutdownCtx:     shutdownCtx,
-		snapshotService: snapshotService,
-		expireAbsolute:  expireAbsolute,
+		licenses:                []liblicense.PortainerLicense{},
+		dataStore:               dataStore,
+		dockerClientFactory:     dockerClientFactory,
+		kubernetesClientFactory: kubernetesClientFactory,
+		shutdownCtx:             shutdownCtx,
+		snapshotService:         snapshotService,
+		expireAbsolute:          expireAbsolute,
 	}
 }
 
@@ -51,12 +64,23 @@ func (service *Service) Licenses() []liblicense.PortainerLicense {
 func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// Validate the given license key and parse it into a license object.
 	l := ParseLicense(key, service.expireAbsolute, false)
-	log.Debug().Str("license", l.Company).Msg("validating license with remote server")
-	valid, err := liblicense.ValidateLicense(&l)
+
+	meta, err := service.Metadata(service.licenses)
 	if err != nil {
 		return nil, err
 	}
-	if !valid {
+	licenses := []liblicense.PortainerLicense{l}
+	licenses = append(licenses, service.licenses...)
+	info := liblicense.CheckInInfo{
+		Licenses: licenses,
+		Meta:     meta,
+	}
+	log.Debug().Str("license", l.Company).Msg("validating license with remote server")
+	resp, err := liblicense.CheckIn(info)
+	if err != nil {
+		return nil, err
+	}
+	if !resp[key] {
 		return nil, fmt.Errorf("license key is invalid")
 	}
 	if isExpiredOrRevoked(l) {
@@ -81,9 +105,37 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// V2 Free licenses are stackable with V2 Subscription licenses.
 	// With all other license types, you must remove your existing
 	// licenses in order to add a new license. We warn the user of this.
+	conflicts, _ := service.getConflictingLicenses(l, force)
+	if len(conflicts) != 0 && !force {
+		return conflicts, nil
+	}
+
+	err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
+	if err != nil {
+		return nil, err
+	}
+	licenses, err = service.dataStore.License().Licenses()
+	if err != nil {
+		return nil, err
+	}
+	service.licenses = licenses
+
+	// Now the issue is, in case of conflicting licenses, if user cancel the popup in the FE,
+	// the checkin info is still incorrect
+	if force {
+		// Do another checkin to send an accurate count in case we replaced a license.
+		// We can ignore the error and response since we validated it above.
+		info.Licenses = service.licenses
+		liblicense.CheckIn(info)
+	}
+
+	return conflicts, nil
+}
+
+func (service *Service) getConflictingLicenses(license liblicense.PortainerLicense, force bool) ([]string, error) {
 	var conflicts []string
 	switch {
-	case l.Type == liblicense.PortainerLicenseSubscription && l.Version == 3:
+	case license.Type == liblicense.PortainerLicenseSubscription && license.Version == 3:
 		// V3 Subscription licenses can only be added if all existing licenses
 		// are also subscription licenses.
 		for _, l := range service.licenses {
@@ -105,7 +157,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 				)
 			}
 		}
-	case l.Type == liblicense.PortainerLicenseSubscription && l.Version != 3:
+	case license.Type == liblicense.PortainerLicenseSubscription && license.Version != 3:
 		// V2 Subscription licenses can be added if all existing licenses
 		// are subscription licenses OR V2 free licenses.
 		for _, l := range service.licenses {
@@ -129,7 +181,7 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 				),
 			)
 		}
-	case l.Type == liblicense.PortainerLicenseFree && l.Version != 3:
+	case license.Type == liblicense.PortainerLicenseFree && license.Version != 3:
 		// V2 Free licenses are stackable with other V2 Free licenses or V2
 		// Subscription licenses.
 		for _, l := range service.licenses {
@@ -173,20 +225,6 @@ func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 			)
 		}
 	}
-
-	if len(conflicts) != 0 && !force {
-		return conflicts, nil
-	}
-
-	err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
-	if err != nil {
-		return nil, err
-	}
-	licenses, err := service.dataStore.License().Licenses()
-	if err != nil {
-		return nil, err
-	}
-	service.licenses = licenses
 	return conflicts, nil
 }
 

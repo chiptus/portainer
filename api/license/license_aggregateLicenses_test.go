@@ -71,7 +71,7 @@ func Test_aggregateLicense_CalculateCorrectType(t *testing.T) {
 			}
 
 			_, store := datastore.MustNewTestStore(t, true, true)
-			service := NewService(store, nil, nil, false)
+			service := NewService(store, nil, nil, nil, nil, false)
 
 			result := service.aggregateLicenses(licenses)
 			assert.Equal(t, tc.expectedType, result.Type)
@@ -105,7 +105,7 @@ func Test_aggregateLicenses_shouldSetOveruseTimestamp(t *testing.T) {
 
 	snapshotService, _ := snapshot.NewService("1s", store, nil, nil, nil, nil, nil)
 
-	service := NewService(store, nil, snapshotService, false)
+	service := NewService(store, nil, nil, nil, snapshotService, false)
 	enforcement, _ := service.dataStore.Enforcement().LicenseEnforcement()
 	assert.Equal(t, int64(0), enforcement.LicenseOveruseStartedTimestamp)
 

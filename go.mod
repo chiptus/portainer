@@ -53,8 +53,8 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/liblicense/v3 v3.0.0
-	github.com/portainer/portainer v0.6.1-0.20231120095428-57ed6ae6a68d
+	github.com/portainer/liblicense/v3 v3.0.1-0.20231113040038-90490ceed07f
+	github.com/portainer/portainer v0.6.1-0.20231120073503-436da01bce80
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.30.0
 	github.com/sashabaranov/go-openai v1.9.3
@@ -78,6 +78,8 @@ require (
 	k8s.io/metrics v0.27.4
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )
+
+require github.com/lib/pq v1.10.9 // indirect
 
 require github.com/gorilla/securecookie v1.1.1 // indirect
 

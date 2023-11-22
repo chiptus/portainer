@@ -16,6 +16,7 @@ import (
 	"github.com/portainer/portainer-ee/api/database/models"
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/http/client"
+	"github.com/portainer/portainer-ee/api/http/handler/kaas/types"
 	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/edge"
 	"github.com/portainer/portainer-ee/api/internal/endpointutils"
@@ -774,6 +775,9 @@ func (handler *Handler) createKubeConfigEndpoint(tx dataservices.DataStoreTx, pa
 		return nil, httperror.InternalServerError("Unable to create kubeconfig environment", err)
 	}
 
+	provider := types.CloudProvidersMap[portaineree.CloudProviderKubeConfig]
+	provider.CredentialID = credentials.ID
+
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portaineree.Endpoint{
 		ID:      portainer.EndpointID(endpointID),
@@ -799,9 +803,7 @@ func (handler *Handler) createKubeConfigEndpoint(tx dataservices.DataStoreTx, pa
 			Enabled: false,
 		},
 
-		CloudProvider: &portaineree.CloudProvider{
-			CredentialID: credentials.ID,
-		},
+		CloudProvider: &provider,
 	}
 
 	err = handler.saveEndpointAndUpdateAuthorizations(tx, endpoint)

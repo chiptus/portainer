@@ -62,6 +62,11 @@ var CloudProvidersMap CloudProviders = CloudProviders{
 		Name:     "MicroK8s",
 		URL:      "https://microk8s.io/",
 	},
+	portaineree.CloudProviderKubeConfig: {
+		Provider: portaineree.CloudProviderKubeConfig,
+		Name:     "KubeConfig",
+		URL:      "",
+	},
 }
 
 func (r Microk8sAddonsPayload) Validate(request *http.Request) error {
