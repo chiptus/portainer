@@ -70,6 +70,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 		Username:                payload.Username,
 		Role:                    payload.Role,
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
+		UseCache:                true,
 	}
 
 	settings, err := handler.DataStore.Settings().Settings()
