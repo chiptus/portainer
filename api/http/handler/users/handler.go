@@ -64,31 +64,28 @@ func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimit
 		passwordStrengthChecker: passwordStrengthChecker,
 	}
 
-	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	pureAdminRouter := h.NewRoute().Subrouter()
+	pureAdminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	pureAdminRouter.Handle("/users", httperror.LoggerHandler(h.userCreate)).Methods(http.MethodPost)
+	pureAdminRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userDelete)).Methods(http.MethodDelete)
+
+	// EE-6176 doc: routes are filtering or denying access based on payload
+	restrictedRouter := h.NewRoute().Subrouter()
+	restrictedRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	restrictedRouter.Handle("/users", httperror.LoggerHandler(h.userList)).Methods(http.MethodGet)
+	restrictedRouter.Handle("/users/{id}/tokens", httperror.LoggerHandler(h.userGetAccessTokens)).Methods(http.MethodGet)
+	restrictedRouter.Handle("/users/{id}/tokens", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateAccessToken))).Methods(http.MethodPost)
+	restrictedRouter.Handle("/users/{id}/tokens/{keyID}", httperror.LoggerHandler(h.userRemoveAccessToken)).Methods(http.MethodDelete)
+	restrictedRouter.Handle("/users/{id}/namespaces", httperror.LoggerHandler(h.userNamespaces)).Methods(http.MethodGet)
+	restrictedRouter.Handle("/users/{id}/memberships", httperror.LoggerHandler(h.userMemberships)).Methods(http.MethodGet)
 
 	authenticatedRouter := h.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	publicRouter := h.NewRoute().Subrouter()
-	publicRouter.Use(bouncer.PublicAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	adminRouter.Handle("/users", httperror.LoggerHandler(h.userCreate)).Methods(http.MethodPost)
-	adminRouter.Handle("/users", httperror.LoggerHandler(h.userList)).Methods(http.MethodGet)
-
 	authenticatedRouter.Handle("/users/me", httperror.LoggerHandler(h.userInspectMe)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userInspect)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/users/{id}/openai", httperror.LoggerHandler(h.userUpdateOpenAIConfig)).Methods(http.MethodPut)
-	adminRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userDelete)).Methods(http.MethodDelete)
-	adminRouter.Handle("/users/{id}/tokens", httperror.LoggerHandler(h.userGetAccessTokens)).Methods(http.MethodGet)
-	adminRouter.Handle("/users/{id}/tokens", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateAccessToken))).Methods(http.MethodPost)
-	adminRouter.Handle("/users/{id}/tokens/{keyID}", httperror.LoggerHandler(h.userRemoveAccessToken)).Methods(http.MethodDelete)
-	adminRouter.Handle("/users/{id}/memberships", httperror.LoggerHandler(h.userMemberships)).Methods(http.MethodGet)
-	adminRouter.Handle("/users/{id}/namespaces", httperror.LoggerHandler(h.userNamespaces)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}/passwd", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userUpdatePassword))).Methods(http.MethodPut)
-	publicRouter.Handle("/users/admin/check", httperror.LoggerHandler(h.adminCheck)).Methods(http.MethodGet)
-	publicRouter.Handle("/users/admin/init", httperror.LoggerHandler(h.adminInit)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/users/{id}/gitcredentials", httperror.LoggerHandler(h.userGetGitCredentials)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}/gitcredentials", rateLimiter.LimitAccess(httperror.LoggerHandler(h.userCreateGitCredential))).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/users/{id}/gitcredentials/{credentialID}", httperror.LoggerHandler(h.userRemoveGitCredential)).Methods(http.MethodDelete)
@@ -99,6 +96,11 @@ func NewHandler(bouncer security.BouncerService, rateLimiter *security.RateLimit
 	authenticatedRouter.Handle("/users/{id}/helm/repositories", httperror.LoggerHandler(h.userGetHelmRepos)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/users/{id}/helm/repositories", httperror.LoggerHandler(h.userCreateHelmRepo)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/users/{id}/helm/repositories/{repositoryID}", httperror.LoggerHandler(h.userDeleteHelmRepo)).Methods(http.MethodDelete)
+
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess, useractivity.LogUserActivity(h.userActivityService))
+	publicRouter.Handle("/users/admin/check", httperror.LoggerHandler(h.adminCheck)).Methods(http.MethodGet)
+	publicRouter.Handle("/users/admin/init", httperror.LoggerHandler(h.adminInit)).Methods(http.MethodPost)
 
 	return h
 }

@@ -27,16 +27,13 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		Router: mux.NewRouter(),
 	}
 
-	h.Handle("/ldap/check",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapCheck))).Methods(http.MethodPost)
-	h.Handle("/ldap/groups",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapGroups))).Methods(http.MethodPost)
-	h.Handle("/ldap/admin-groups",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapAdminGroups))).Methods(http.MethodPost)
-	h.Handle("/ldap/users",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapUsers))).Methods(http.MethodPost)
-	h.Handle("/ldap/test",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.ldapTestLogin))).Methods(http.MethodPost)
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess)
+	adminRouter.Handle("/ldap/check", httperror.LoggerHandler(h.ldapCheck)).Methods(http.MethodPost)
+	adminRouter.Handle("/ldap/groups", httperror.LoggerHandler(h.ldapGroups)).Methods(http.MethodPost)
+	adminRouter.Handle("/ldap/admin-groups", httperror.LoggerHandler(h.ldapAdminGroups)).Methods(http.MethodPost)
+	adminRouter.Handle("/ldap/users", httperror.LoggerHandler(h.ldapUsers)).Methods(http.MethodPost)
+	adminRouter.Handle("/ldap/test", httperror.LoggerHandler(h.ldapTestLogin)).Methods(http.MethodPost)
 
 	return h
 }

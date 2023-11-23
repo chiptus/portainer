@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/apikey"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
@@ -45,7 +44,8 @@ func (handler *Handler) userRemoveAccessToken(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	// if requesting user is not admin and target user is not himself, deny
+	if !security.IsAdmin(tokenData.Role) && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to get user access tokens", httperrors.ErrUnauthorized)
 	}
 

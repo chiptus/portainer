@@ -31,16 +31,18 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	}
 
 	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Handle("/teams", httperror.LoggerHandler(h.teamCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamDelete)).Methods(http.MethodDelete)
+
+	restrictedRouter := h.NewRoute().Subrouter()
+	restrictedRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	restrictedRouter.Handle("/teams", httperror.LoggerHandler(h.teamList)).Methods(http.MethodGet)
 
 	teamLeaderRouter := h.NewRoute().Subrouter()
 	teamLeaderRouter.Use(bouncer.TeamLeaderAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	adminRouter.Handle("/teams", httperror.LoggerHandler(h.teamCreate)).Methods(http.MethodPost)
-	adminRouter.Handle("/teams", httperror.LoggerHandler(h.teamList)).Methods(http.MethodGet)
 	teamLeaderRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamInspect)).Methods(http.MethodGet)
-	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamUpdate)).Methods(http.MethodPut)
-	adminRouter.Handle("/teams/{id}", httperror.LoggerHandler(h.teamDelete)).Methods(http.MethodDelete)
 	teamLeaderRouter.Handle("/teams/{id}/memberships", httperror.LoggerHandler(h.teamMemberships)).Methods(http.MethodGet)
 
 	return h

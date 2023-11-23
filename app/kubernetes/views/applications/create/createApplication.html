@@ -252,7 +252,7 @@
                       input-class="col-sm-8"
                       namespace="ctrl.formValues.ResourcePool.Namespace.Name"
                       endpoint="ctrl.endpoint"
-                      is-admin="ctrl.isAdmin"
+                      is-admin="ctrl.isPureAdmin"
                       check-rate-limits="true"
                       set-validity="ctrl.setPullImageValidity"
                     ></por-image-registry>
@@ -1148,8 +1148,8 @@
 
                   <div class="form-group !mb-0" ng-if="ctrl.formValues.DeploymentType !== ctrl.ApplicationDeploymentTypes.GLOBAL && !ctrl.state.useServerMetrics">
                     <div class="col-sm-12 small text-muted">
-                      <p ng-if="!ctrl.isAdmin"> This feature is currently disabled and must be enabled by an administrator user. </p>
-                      <p ng-if="ctrl.isAdmin">
+                      <p ng-if="!ctrl.isPureAdmin"> This feature is currently disabled and must be enabled by an administrator user. </p>
+                      <p ng-if="ctrl.isPureAdmin">
                         Server metrics features must be enabled in the
                         <a ui-sref="kubernetes.cluster.setup" class="ctrl.isAdmin">environment configuration view</a>.
                       </p>

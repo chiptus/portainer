@@ -32,15 +32,15 @@ func NewHandler(dataStore dataservices.DataStore, bouncer security.BouncerServic
 		userActivityService: userActivityService,
 	}
 
-	authRoutes := h.NewRoute().Subrouter()
-	authRoutes.Use(bouncer.AuthenticatedAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, bouncer.EdgeComputeOperation, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Handle("/edge_configurations", httperror.LoggerHandler(h.edgeConfigList)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_configurations", httperror.LoggerHandler(h.edgeConfigCreate)).Methods(http.MethodPost)
+	adminRouter.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigInspect)).Methods(http.MethodGet)
+	adminRouter.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigDelete)).Methods(http.MethodDelete)
 
-	authRoutes.Handle("/edge_configurations", httperror.LoggerHandler(h.edgeConfigList)).Methods(http.MethodGet)
-	authRoutes.Handle("/edge_configurations", httperror.LoggerHandler(h.edgeConfigCreate)).Methods(http.MethodPost)
-	authRoutes.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigInspect)).Methods(http.MethodGet)
-	authRoutes.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigUpdate)).Methods(http.MethodPut)
-	authRoutes.Handle("/edge_configurations/{id}", httperror.LoggerHandler(h.edgeConfigDelete)).Methods(http.MethodDelete)
-
+	// EE-6176 doc: restricted in handler to requests coming from remote edge agents
 	h.Handle("/edge_configurations/{id}/files", httperror.LoggerHandler(h.edgeConfigFiles)).Methods(http.MethodGet)
 	h.Handle("/edge_configurations/{id}/{state}", httperror.LoggerHandler(h.edgeConfigState)).Methods(http.MethodPut)
 

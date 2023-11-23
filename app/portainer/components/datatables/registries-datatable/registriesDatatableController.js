@@ -49,7 +49,7 @@ function RegistriesDatatableController($scope, $controller, $state, Authenticati
   };
 
   this.$onInit = function () {
-    this.isAdmin = Authentication.isAdmin();
+    this.isAdmin = Authentication.isPureAdmin();
     this.setDefaults();
     this.prepareTableFromDataset();
 

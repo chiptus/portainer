@@ -55,7 +55,8 @@ func (handler *Handler) registryUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminContext(securityContext) {
 		return httperror.Forbidden("Permission denied to update registry", httperrors.ErrResourceAccessDenied)
 	}
 

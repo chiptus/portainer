@@ -21,6 +21,7 @@ import (
 type (
 	BouncerService interface {
 		PublicAccess(http.Handler) http.Handler
+		PureAdminAccess(http.Handler) http.Handler
 		AdminAccess(http.Handler) http.Handler
 		RestrictedAccess(http.Handler) http.Handler
 		TeamLeaderAccess(http.Handler) http.Handler
@@ -45,8 +46,14 @@ type (
 
 	// RestrictedRequestContext is a data structure containing information
 	// used in AuthenticatedAccess
+	//
+	// EE-6176 TODO later: refactor to include User.Role directly instead of exposing 2 booleans
+	// EE-6176 TODO later: will likely not exist in 3.0
+	// 	- admins = IsAdmin true + IsEdgeAdmin false
+	// 	- edge admins = IsAdmin false + IsEdgeAdmin true
 	RestrictedRequestContext struct {
 		IsAdmin         bool
+		IsEdgeAdmin     bool
 		IsTeamLeader    bool
 		UserID          portainer.UserID
 		UserMemberships []portainer.TeamMembership
@@ -80,6 +87,34 @@ func (bouncer *RequestBouncer) PublicAccess(h http.Handler) http.Handler {
 // It's not removed as it's used across our codebase and removing will cause conflicts with CE
 func (bouncer *RequestBouncer) AdminAccess(h http.Handler) http.Handler {
 	return bouncer.RestrictedAccess(h)
+}
+
+// PureAdminAccess defines a security check for restricted API endpoints.
+// Authentication and authorizations are required to access these endpoints.
+// Only Portainer Admins (user.Role = AdministratorRole) are able to go through this security check.
+// As Edge Admins have the same rights as Portainer Admins for the vast majority of cases
+// some functions are purely restricted to Portainer admins, thus this bouncer function.
+// The name "AdminAccess" was already taken by the alias for CE
+func (bouncer *RequestBouncer) PureAdminAccess(h http.Handler) http.Handler {
+	h = bouncer.mwUpgradeToRestrictedRequest(h)
+	h = bouncer.mwCheckUserIsAdmin(h)
+	h = bouncer.mwCheckLicense(h)
+	h = bouncer.mwAuthenticatedUser(h)
+	return h
+}
+
+// mwCheckUserIsAdmin will verify that the user is a Portainer Administrator to access
+// a specific API endpoint.
+func (bouncer *RequestBouncer) mwCheckUserIsAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenData, err := RetrieveTokenData(r)
+		if err != nil || !IsAdmin(tokenData.Role) {
+			httperror.WriteError(w, http.StatusForbidden, "Access denied", httperrors.ErrUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // RestrictedAccess defines a security check for restricted API endpoints.
@@ -140,7 +175,7 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 		return err
 	}
 
-	if tokenData.Role == portaineree.AdministratorRole {
+	if IsAdminOrEdgeAdmin(tokenData.Role) {
 		return nil
 	}
 
@@ -219,7 +254,7 @@ func (bouncer *RequestBouncer) checkEndpointOperationAuthorization(r *http.Reque
 		return err
 	}
 
-	if tokenData.Role == portaineree.AdministratorRole {
+	if IsAdminOrEdgeAdmin(tokenData.Role) {
 		return nil
 	}
 
@@ -263,7 +298,7 @@ func (bouncer *RequestBouncer) mwCheckLicense(next http.Handler) http.Handler {
 			return
 		}
 
-		if tokenData.Role == portaineree.AdministratorRole {
+		if IsAdmin(tokenData.Role) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -291,7 +326,7 @@ func (bouncer *RequestBouncer) mwCheckPortainerAuthorizations(next http.Handler)
 			return
 		}
 
-		if tokenData.Role == portaineree.AdministratorRole {
+		if IsAdminOrEdgeAdmin(tokenData.Role) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -350,7 +385,7 @@ func (bouncer *RequestBouncer) mwIsTeamLeader(next http.Handler) http.Handler {
 			return
 		}
 
-		if !securityContext.IsAdmin && !securityContext.IsTeamLeader {
+		if !IsAdminContext(securityContext) && !securityContext.IsTeamLeader {
 			httperror.WriteError(w, http.StatusForbidden, "Access denied", httperrors.ErrUnauthorized)
 			return
 		}
@@ -530,10 +565,18 @@ func mwSecureHeaders(next http.Handler) http.Handler {
 }
 
 func (bouncer *RequestBouncer) newRestrictedContextRequest(userID portainer.UserID, userRole portainer.UserRole) (*RestrictedRequestContext, error) {
-	if userRole == portaineree.AdministratorRole {
+	if IsAdmin(userRole) {
 		return &RestrictedRequestContext{
 			IsAdmin: true,
 			UserID:  userID,
+		}, nil
+	}
+
+	// admins will never reach, and we don't need a dedicated function only for this single check
+	if IsAdminOrEdgeAdmin(userRole) {
+		return &RestrictedRequestContext{
+			IsEdgeAdmin: true,
+			UserID:      userID,
 		}, nil
 	}
 

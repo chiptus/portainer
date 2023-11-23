@@ -44,6 +44,7 @@ func NewHandler(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, bounc
 
 	activityLogging := useractivity.LogUserActivityWithContext(h.userActivityService, middlewares.FindInQuery(dataStore.Endpoint(), "endpointId"))
 
+	// EE-6176 doc: RBAC performed inside handlers with bouncer.AuthorizedEndpointOperation()
 	h.Use(bouncer.AuthenticatedAccess, activityLogging)
 
 	h.PathPrefix("/websocket/exec").Handler(httperror.LoggerHandler(h.websocketExec))

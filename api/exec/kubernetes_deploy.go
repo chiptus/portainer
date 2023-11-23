@@ -15,6 +15,7 @@ import (
 	"github.com/portainer/portainer-ee/api/http/proxy"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory"
 	"github.com/portainer/portainer-ee/api/http/proxy/factory/kubernetes"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes/cli"
 	portainer "github.com/portainer/portainer/api"
@@ -68,7 +69,7 @@ func (deployer *KubernetesDeployer) getToken(userID portainer.UserID, endpoint *
 		return "", errors.Wrap(err, "failed to fetch the user")
 	}
 
-	if user.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(user.Role) {
 		return tokenManager.GetAdminServiceAccountToken(), nil
 	}
 

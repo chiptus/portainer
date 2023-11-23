@@ -28,7 +28,7 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(
-		bouncer.AdminAccess,
+		bouncer.PureAdminAccess,
 		useractivity.LogUserActivity(h.userActivityService),
 	)
 

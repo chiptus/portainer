@@ -43,6 +43,8 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(bouncer.PublicAccess, useractivity.LogUserActivity(h.userActivityService))
 
+	// EE-6176 doc: RBAC performed inside handlers with direct checks on user's Authorizations
+	// EE-6176 doc: see checkAuthorization() function below
 	authenticatedRouter.Handle("/webhooks", httperror.LoggerHandler(h.webhookCreate)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/webhooks", httperror.LoggerHandler(h.webhookList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/webhooks/{id}", httperror.LoggerHandler(h.webhookUpdate)).Methods(http.MethodPut)
@@ -52,6 +54,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
+// EE-6176  TODO later: move this check to RBAC layer performed before the handler exec
 func (handler *Handler) checkAuthorization(r *http.Request, endpoint *portaineree.Endpoint, authorizations []portainer.Authorization) (bool, *httperror.HandlerError) {
 	err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint, true)
 	if err != nil {

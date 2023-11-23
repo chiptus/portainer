@@ -31,7 +31,7 @@ const enabledPlatforms: Array<ContainerPlatform> = [
 ];
 
 function UpdateBanner() {
-  const { isAdmin } = useCurrentUser();
+  const { isPureAdmin } = useCurrentUser();
   const { isOpen: isSidebarOpen } = useSidebarState();
   const systemInfoQuery = useSystemInfo();
 
@@ -91,10 +91,10 @@ function UpdateBanner() {
         </button>
 
         <button
-          className={clsx(isAdmin ? styles.actions : styles.nonAdminAction)}
-          disabled={!isAdmin}
+          className={clsx(isPureAdmin ? styles.actions : styles.nonAdminAction)}
+          disabled={!isPureAdmin}
           type="button"
-          onClick={isAdmin ? handleClick : () => {}}
+          onClick={isPureAdmin ? handleClick : () => {}}
         >
           Update now
         </button>
@@ -103,7 +103,7 @@ function UpdateBanner() {
         >
           <Tooltip
             message={
-              isAdmin
+              isPureAdmin
                 ? 'This will effortlessly migrate you to the latest version of Portainer by updating this instance'
                 : 'Admin users can effortlessly migrate to the latest version of Portainer by updating this instance'
             }

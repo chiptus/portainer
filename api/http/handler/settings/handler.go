@@ -48,22 +48,25 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	}
 
 	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Handle("/settings", httperror.LoggerHandler(h.settingsUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/settings/default_registry", httperror.LoggerHandler(h.defaultRegistryUpdate)).Methods(http.MethodPut)
+	adminRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalUpdate)).Methods(http.MethodPut)
+
+	// Allow edge admins to retrieve settings because they are needed for edge compute features
+	// We should probably create a dedicated route to filter sensitive informations
+	// Related to EE-4881
+	restrictedRouter := h.NewRoute().Subrouter()
+	restrictedRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	restrictedRouter.Handle("/settings", httperror.LoggerHandler(h.settingsInspect)).Methods(http.MethodGet)
 
 	authenticatedRouter := h.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
+	authenticatedRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalInspect)).Methods(http.MethodGet)
 
 	publicRouter := h.NewRoute().Subrouter()
 	publicRouter.Use(bouncer.PublicAccess)
-
-	adminRouter.Handle("/settings", httperror.LoggerHandler(h.settingsInspect)).Methods(http.MethodGet)
-	adminRouter.Handle("/settings", httperror.LoggerHandler(h.settingsUpdate)).Methods(http.MethodPut)
-	adminRouter.Handle("/settings/default_registry", httperror.LoggerHandler(h.defaultRegistryUpdate)).Methods(http.MethodPut)
-
 	publicRouter.Handle("/settings/public", httperror.LoggerHandler(h.settingsPublic)).Methods(http.MethodGet)
-
-	adminRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalUpdate)).Methods(http.MethodPut)
-	authenticatedRouter.Handle("/settings/experimental", httperror.LoggerHandler(h.settingsExperimentalInspect)).Methods(http.MethodGet)
 
 	return h
 }

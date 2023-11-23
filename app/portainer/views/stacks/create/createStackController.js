@@ -115,7 +115,7 @@ angular
       };
 
       $scope.hasAuthorizations = function (authorizations) {
-        return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+        return Authentication.hasAuthorizations(authorizations);
       };
 
       function buildAnalyticsProperties() {

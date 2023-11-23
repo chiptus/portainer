@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { withError } from '@/react-tools/react-query';
 
-import { buildUrl } from '../user.service';
+import { buildUrl } from '../buildUrl';
 import { User, UserId } from '../types';
 
 import { userQueryKeys } from './queryKeys';

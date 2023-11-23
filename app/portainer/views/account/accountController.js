@@ -1,3 +1,5 @@
+import { Role } from '@/portainer/users/types';
+import { isPureAdmin } from '@/portainer/users/user.helpers';
 import { confirmChangePassword, confirmDelete } from '@@/modals/confirm';
 import { openDialog } from '@@/modals/Dialog';
 import { buildConfirmButton } from '@@/modals/utils';
@@ -50,7 +52,7 @@ angular.module('portainer.app').controller('AccountController', [
 
     this.uiCanExit = (newTransition) => {
       if (newTransition) {
-        if ($scope.userRole === 1 && newTransition.to().name === 'portainer.settings.authentication') {
+        if (isPureAdmin({ Role: $scope.userRole }) && newTransition.to().name === 'portainer.settings.authentication') {
           return true;
         }
         if (newTransition.to().name === 'portainer.logout') {
@@ -99,8 +101,9 @@ angular.module('portainer.app').controller('AccountController', [
     function initView() {
       const state = StateManager.getState();
       const userDetails = Authentication.getUserDetails();
+      $scope.RoleEnum = Role;
       $scope.userID = userDetails.ID;
-      $scope.userRole = Authentication.getUserDetails().role;
+      $scope.userRole = userDetails.role;
       $scope.forceChangePassword = userDetails.forceChangePassword;
       $scope.isInitialAdmin = userDetails.ID === 1;
 

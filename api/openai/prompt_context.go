@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/rs/zerolog/log"
 )
@@ -44,7 +45,7 @@ func (builder *OpenAIPromptBuilder) buildEnvironmentAwareContext(environmentID p
 func (builder *OpenAIPromptBuilder) buildUserAwareContext(user portaineree.User) string {
 	ctx := ""
 
-	if user.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(user.Role) {
 		ctx = "I am a Portainer Administrator."
 	} else {
 		ctx = "I am not a Portainer administrator."

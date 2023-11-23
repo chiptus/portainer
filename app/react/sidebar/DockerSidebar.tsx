@@ -15,7 +15,11 @@ import {
   type Environment,
   type EnvironmentId,
 } from '@/react/portainer/environments/types';
-import { Authorized, useUser, isEnvironmentAdmin } from '@/react/hooks/useUser';
+import {
+  Authorized,
+  useCurrentUser,
+  isEnvironmentAdmin,
+} from '@/react/hooks/useUser';
 import { useInfo } from '@/react/docker/proxy/queries/useInfo';
 import { useApiVersion } from '@/react/docker/proxy/queries/useVersion';
 
@@ -30,7 +34,7 @@ interface Props {
 }
 
 export function DockerSidebar({ environmentId, environment }: Props) {
-  const { user } = useUser();
+  const { user } = useCurrentUser();
   const isAdmin = isEnvironmentAdmin(user, environmentId);
 
   const areStacksVisible =

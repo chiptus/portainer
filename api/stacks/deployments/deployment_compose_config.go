@@ -12,6 +12,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
+// isAdmin = true for admins and edge admins
 type ComposeStackDeploymentConfig struct {
 	stack          *portaineree.Stack
 	endpoint       *portaineree.Endpoint
@@ -41,7 +42,7 @@ func CreateComposeStackDeploymentConfig(securityContext *security.RestrictedRequ
 		stack:          stack,
 		endpoint:       endpoint,
 		registries:     filteredRegistries,
-		isAdmin:        securityContext.IsAdmin,
+		isAdmin:        security.IsAdminOrEdgeAdminContext(securityContext),
 		user:           user,
 		forcePullImage: forcePullImage,
 		ForceCreate:    forceCreate,

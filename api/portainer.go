@@ -1686,6 +1686,9 @@ const (
 	AdministratorRole
 	// StandardUserRole represents a regular user role
 	StandardUserRole
+	// EdgeAdminRole represent a user that has access to resources of all environments
+	// like AdministratorRole but doesn't have access to Portainer settings
+	EdgeAdminRole
 )
 
 const (

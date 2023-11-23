@@ -69,9 +69,11 @@ func (handler *Handler) stackList(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to retrieve user information from the database", err)
 	}
 
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 	_, hasEndpointResourcesAccess := user.EndpointAuthorizations[portainer.EndpointID(filters.EndpointID)][portaineree.EndpointResourcesAccess]
 
-	if !securityContext.IsAdmin && !hasEndpointResourcesAccess {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminOrEdgeAdminContext(securityContext) && !hasEndpointResourcesAccess {
 		if filters.IncludeOrphanedStacks {
 			return httperror.Forbidden("Permission denied to access orphaned stacks", httperrors.ErrUnauthorized)
 		}

@@ -17,17 +17,19 @@ import (
 type userCreatePayload struct {
 	Username string `validate:"required" example:"bob"`
 	Password string `validate:"required" example:"cg9Wgky3"`
-	// User role (1 for administrator account and 2 for regular account)
-	Role int `validate:"required" enums:"1,2" example:"2"`
+	// User role
+	// 1 = administrator account
+	// 2 = regular account
+	Role portainer.UserRole `validate:"required" enums:"1,2" example:"1"`
 }
 
 func (payload *userCreatePayload) Validate(r *http.Request) error {
 	if govalidator.IsNull(payload.Username) || govalidator.Contains(payload.Username, " ") {
-		return errors.New("Invalid username. Must not contain any whitespace")
+		return errors.New("invalid username. Must not contain any whitespace")
 	}
 
-	if payload.Role != 1 && payload.Role != 2 {
-		return errors.New("Invalid role value. Value must be one of: 1 (administrator) or 2 (regular user)")
+	if payload.Role != portaineree.AdministratorRole && payload.Role != portaineree.StandardUserRole {
+		return errors.New("invalid role value. Value must be one of: 1 (administrator) or 2 (regular user)")
 	}
 	return nil
 }
@@ -66,7 +68,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 
 	user = &portaineree.User{
 		Username:                payload.Username,
-		Role:                    portainer.UserRole(payload.Role),
+		Role:                    payload.Role,
 		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
 	}
 
@@ -77,7 +79,7 @@ func (handler *Handler) userCreate(w http.ResponseWriter, r *http.Request) *http
 
 	// when ldap/oauth is on, can only add users without password
 	if (settings.AuthenticationMethod == portaineree.AuthenticationLDAP || settings.AuthenticationMethod == portaineree.AuthenticationOAuth) && payload.Password != "" {
-		errMsg := "A user with password can not be created when authentication method is Oauth or LDAP"
+		errMsg := "a user with password can not be created when authentication method is Oauth or LDAP"
 		return httperror.BadRequest(errMsg, errors.New(errMsg))
 	}
 

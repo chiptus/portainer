@@ -1,10 +1,11 @@
 import { UserViewModel } from '@/portainer/models/user';
+import { Role, RoleNames } from '@/portainer/users/types';
 
 export function createMockUser(id: number, username: string): UserViewModel {
   return {
     Id: id,
     Username: username,
-    Role: 2,
+    Role: Role.Standard,
     EndpointAuthorizations: {},
     UseCache: false,
     PortainerAuthorizations: {
@@ -22,7 +23,7 @@ export function createMockUser(id: number, username: string): UserViewModel {
       PortainerUserList: true,
       PortainerUserMemberships: true,
     },
-    RoleName: 'user',
+    RoleName: RoleNames[Role.Standard],
     Checked: false,
     AuthenticationMethod: '',
     ThemeSettings: {

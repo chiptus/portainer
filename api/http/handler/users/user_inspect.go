@@ -38,7 +38,11 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin && !securityContext.IsTeamLeader && securityContext.UserID != portainer.UserID(userID) {
+	// IF user is not admin
+	// AND is not team leader
+	// AND requesting user is not target user
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminOrEdgeAdminContext(securityContext) && !securityContext.IsTeamLeader && securityContext.UserID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied inspect user", errors.ErrResourceAccessDenied)
 	}
 
@@ -49,7 +53,7 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
 
-	if securityContext.IsTeamLeader && user.Role == portainer.AdministratorRole {
+	if securityContext.IsTeamLeader && security.IsAdminOrEdgeAdmin(user.Role) {
 		return httperror.Forbidden("Permission denied inspect user", nil)
 	}
 

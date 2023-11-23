@@ -292,7 +292,7 @@ func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User,
 		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")
 	}
 
-	if user.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(user.Role) {
 		return registries, nil
 	}
 

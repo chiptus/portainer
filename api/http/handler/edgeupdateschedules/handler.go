@@ -45,36 +45,20 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 
 	authenticatedRouter := router.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
-
-	authenticatedRouter.Handle("/agent_versions",
-		httperror.LoggerHandler(h.agentVersions)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/agent_versions", httperror.LoggerHandler(h.agentVersions)).Methods(http.MethodGet)
 
 	adminRouter := router.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess)
-
-	adminRouter.Handle("",
-		httperror.LoggerHandler(h.list)).Methods(http.MethodGet)
-
-	adminRouter.Handle("",
-		httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
-
-	adminRouter.Handle("/active",
-		httperror.LoggerHandler(h.activeSchedules)).Methods(http.MethodPost)
-
-	adminRouter.Handle("/previous_versions",
-		httperror.LoggerHandler(h.previousVersions)).Methods(http.MethodGet)
+	adminRouter.Handle("", httperror.LoggerHandler(h.list)).Methods(http.MethodGet)
+	adminRouter.Handle("", httperror.LoggerHandler(h.create)).Methods(http.MethodPost)
+	adminRouter.Handle("/active", httperror.LoggerHandler(h.activeSchedules)).Methods(http.MethodPost)
+	adminRouter.Handle("/previous_versions", httperror.LoggerHandler(h.previousVersions)).Methods(http.MethodGet)
 
 	itemRouter := adminRouter.PathPrefix("/{id}").Subrouter()
 	itemRouter.Use(middlewares.WithItem(updateService.Schedule, "id", contextKey))
-
-	itemRouter.Handle("",
-		httperror.LoggerHandler(h.inspect)).Methods(http.MethodGet)
-
-	itemRouter.Handle("",
-		httperror.LoggerHandler(h.update)).Methods(http.MethodPut)
-
-	itemRouter.Handle("",
-		httperror.LoggerHandler(h.delete)).Methods(http.MethodDelete)
+	itemRouter.Handle("", httperror.LoggerHandler(h.inspect)).Methods(http.MethodGet)
+	itemRouter.Handle("", httperror.LoggerHandler(h.update)).Methods(http.MethodPut)
+	itemRouter.Handle("", httperror.LoggerHandler(h.delete)).Methods(http.MethodDelete)
 
 	return h
 }

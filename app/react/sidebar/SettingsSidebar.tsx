@@ -16,17 +16,19 @@ import { SidebarSection } from './SidebarSection';
 import { SidebarParent } from './SidebarItem/SidebarParent';
 
 interface Props {
+  isPureAdmin: boolean;
   isAdmin: boolean;
   isTeamLeader?: boolean;
 }
 
-export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
+export function SettingsSidebar({ isPureAdmin, isAdmin, isTeamLeader }: Props) {
   const teamSyncQuery = usePublicSettings<boolean>({
     select: (settings) => settings.TeamSync,
   });
 
-  const showUsersSection =
-    !window.ddExtension && (isAdmin || (isTeamLeader && !teamSyncQuery.data));
+  const isPureAdminOrTeamLeader =
+    isPureAdmin || (isTeamLeader && !teamSyncQuery.data && !isAdmin);
+  const showUsersSection = !window.ddExtension && isPureAdminOrTeamLeader;
 
   return (
     <SidebarSection title="Administration">
@@ -51,7 +53,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
             data-cy="portainerSidebar-teams"
           />
 
-          {isAdmin && (
+          {isPureAdmin && (
             <SidebarItem
               to="portainer.roles"
               label="Roles"
@@ -61,7 +63,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
           )}
         </SidebarParent>
       )}
-      {isAdmin && (
+      {isPureAdmin && (
         <>
           <SidebarParent
             label="Environment-related"
@@ -145,7 +147,7 @@ export function SettingsSidebar({ isAdmin, isTeamLeader }: Props) {
         label="Notifications"
         data-cy="portainerSidebar-notifications"
       />
-      {isAdmin && (
+      {isPureAdmin && (
         <SidebarParent
           to="portainer.settings"
           label="Settings"

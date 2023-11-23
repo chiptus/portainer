@@ -383,6 +383,7 @@ class KubernetesDeployController {
   $onInit() {
     return this.$async(async () => {
       this.currentUser.isAdmin = this.Authentication.isAdmin();
+      this.currentUser.isPureAdmin = this.Authentication.isPureAdmin();
       const user = this.Authentication.getUserDetails();
       this.currentUser.id = user.ID;
 

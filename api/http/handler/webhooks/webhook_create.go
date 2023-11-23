@@ -78,6 +78,7 @@ func (handler *Handler) webhookCreate(w http.ResponseWriter, r *http.Request) *h
 	// endpoint will be used in the user activity logging middleware
 	middlewares.SetEndpoint(endpoint, r)
 
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 	authorizations := []portainer.Authorization{portaineree.OperationPortainerWebhookCreate}
 
 	_, handlerErr := handler.checkAuthorization(r, endpoint, authorizations)

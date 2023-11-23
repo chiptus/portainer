@@ -7,7 +7,7 @@ import {
   PropsWithChildren,
 } from 'react';
 
-import { isAdmin } from '@/portainer/users/user.helpers';
+import { isAdmin, isPureAdmin } from '@/portainer/users/user.helpers';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { User } from '@/portainer/users/types';
 import { useLoadCurrentUser } from '@/portainer/users/queries/useLoadCurrentUser';
@@ -40,6 +40,7 @@ export function useCurrentUser() {
     () => ({
       user,
       isAdmin: isAdmin(user),
+      isPureAdmin: isPureAdmin(user),
     }),
     [user]
   );

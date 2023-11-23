@@ -1,5 +1,6 @@
 import { TeamViewModel } from '@/portainer/models/team';
 import { UserViewModel } from '@/portainer/models/user';
+import { Role, RoleNames } from '@/portainer/users/types';
 
 export function mockExampleData() {
   const teams: TeamViewModel[] = [
@@ -19,7 +20,7 @@ export function mockExampleData() {
     {
       Id: 10,
       Username: 'user1',
-      Role: 2,
+      Role: Role.Standard,
       ThemeSettings: {
         color: 'auto',
         subtleUpgradeButton: false,
@@ -40,7 +41,7 @@ export function mockExampleData() {
         PortainerUserList: true,
         PortainerUserMemberships: true,
       },
-      RoleName: 'user',
+      RoleName: RoleNames[Role.Standard],
       Checked: false,
       AuthenticationMethod: '',
       UseCache: false,
@@ -48,7 +49,7 @@ export function mockExampleData() {
     {
       Id: 13,
       Username: 'user2',
-      Role: 2,
+      Role: Role.Standard,
       ThemeSettings: {
         color: 'auto',
         subtleUpgradeButton: false,
@@ -69,7 +70,7 @@ export function mockExampleData() {
         PortainerUserList: true,
         PortainerUserMemberships: true,
       },
-      RoleName: 'user',
+      RoleName: RoleNames[Role.Standard],
       Checked: false,
       AuthenticationMethod: '',
       UseCache: false,

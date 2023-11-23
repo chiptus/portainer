@@ -52,6 +52,7 @@ type (
 		UserActivityService  portaineree.UserActivityService
 	}
 
+	// isAdmin = true for admin and edge admins
 	restrictedDockerOperationContext struct {
 		isAdmin                bool
 		endpointResourceAccess bool
@@ -496,7 +497,7 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 		return nil, err
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		user, err := transport.dataStore.User().Read(tokenData.ID)
 		if err != nil {
 			return nil, err
@@ -710,7 +711,7 @@ func (transport *Transport) administratorOperation(request *http.Request) (*http
 		return nil, err
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		return utils.WriteAccessDeniedResponse()
 	}
 
@@ -740,7 +741,7 @@ func (transport *Transport) createRegistryAccessContext(request *http.Request) (
 	}
 	accessContext.registries = registries
 
-	if user.Role != portaineree.AdministratorRole {
+	if !security.IsAdminOrEdgeAdmin(user.Role) {
 		accessContext.isAdmin = false
 
 		teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
@@ -773,7 +774,7 @@ func (transport *Transport) createOperationContext(request *http.Request) (*rest
 		endpointResourceAccess: false,
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		operationContext.isAdmin = false
 
 		user, err := transport.dataStore.User().Read(operationContext.userID)
@@ -802,13 +803,15 @@ func (transport *Transport) createOperationContext(request *http.Request) (*rest
 	return operationContext, nil
 }
 
+// EE-6176 doc: used to restrict services/containers creation based on CAP ADD / CAP DROP configuration
+// EE-6176 TODO later: apply a bypass Authorization for this specific action
 func (transport *Transport) isAdminOrEndpointAdmin(request *http.Request) (bool, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return false, err
 	}
 
-	if tokenData.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		return true, nil
 	}
 

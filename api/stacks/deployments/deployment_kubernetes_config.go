@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	portaineree "github.com/portainer/portainer-ee/api"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	"github.com/portainer/portainer-ee/api/kubernetes"
 	k "github.com/portainer/portainer-ee/api/kubernetes"
@@ -262,10 +263,11 @@ func (config *KubernetesStackDeploymentConfig) GetResponse() string {
 	return config.output
 }
 
+// EE-6176 TODO later: move this check to RBAC layer
 func (config *KubernetesStackDeploymentConfig) checkEndpointPermission() error {
 	permissionDeniedErr := errors.New("Permission denied to access environment")
 
-	if config.tokenData.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(config.tokenData.Role) {
 		return nil
 	}
 

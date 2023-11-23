@@ -22,15 +22,11 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		Router: mux.NewRouter(),
 	}
 
-	h.Handle("/useractivity/authlogs",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.authLogsList))).Methods(http.MethodGet)
-	h.Handle("/useractivity/authlogs.csv",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.authLogsCSV))).Methods(http.MethodGet)
-
-	h.Handle("/useractivity/logs",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.logsList))).Methods(http.MethodGet)
-	h.Handle("/useractivity/logs.csv",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.logsCSV))).Methods(http.MethodGet)
+	h.Use(bouncer.PureAdminAccess)
+	h.Handle("/useractivity/authlogs", httperror.LoggerHandler(h.authLogsList)).Methods(http.MethodGet)
+	h.Handle("/useractivity/authlogs.csv", httperror.LoggerHandler(h.authLogsCSV)).Methods(http.MethodGet)
+	h.Handle("/useractivity/logs", httperror.LoggerHandler(h.logsList)).Methods(http.MethodGet)
+	h.Handle("/useractivity/logs.csv", httperror.LoggerHandler(h.logsCSV)).Methods(http.MethodGet)
 
 	return h
 }

@@ -56,7 +56,7 @@ func (handler *Handler) userDelete(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
 
-	if user.Role == portaineree.AdministratorRole {
+	if security.IsAdmin(user.Role) {
 		return handler.deleteAdminUser(w, user)
 	}
 
@@ -77,7 +77,7 @@ func (handler *Handler) deleteAdminUser(w http.ResponseWriter, user *portaineree
 
 	localAdminCount := 0
 	for _, u := range users {
-		if u.Role == portaineree.AdministratorRole && u.Password != "" {
+		if security.IsAdmin(u.Role) && u.Password != "" {
 			localAdminCount++
 		}
 	}

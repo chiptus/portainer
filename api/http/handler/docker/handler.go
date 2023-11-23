@@ -43,9 +43,7 @@ func NewHandler(bouncer security.BouncerService, authorizationService *authoriza
 
 	// endpoints
 	endpointRouter := h.PathPrefix("/{id}").Subrouter()
-	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
-	endpointRouter.Use()
-	endpointRouter.Use(dockerOnlyMiddleware)
+	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"), dockerOnlyMiddleware)
 
 	dockerSnapshotHandler := dockersnapshot.NewHandler("/{id}/snapshot", bouncer, dataStore)
 	endpointRouter.PathPrefix("/snapshot").Handler(dockerSnapshotHandler)

@@ -15,10 +15,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// EE-6176 doc: can't use security package because of import cycles
+//
+// package github.com/portainer/portainer-ee/api/apikey
+//
+//	imports github.com/portainer/portainer-ee/api/datastore
+//	imports github.com/portainer/portainer-ee/api/internal/authorization
+//	imports github.com/portainer/portainer-ee/api/http/security
+//	imports github.com/portainer/portainer-ee/api/apikey: import cycle not allowed in test
+//
+// package github.com/portainer/portainer-ee/api/http/security
+//
+//	imports github.com/portainer/portainer-ee/api/datastore
+//	imports github.com/portainer/portainer-ee/api/internal/authorization
+//	imports github.com/portainer/portainer-ee/api/http/security: import cycle not allowed in test
+func isAdminOrEdgeAdmin(role portainer.UserRole) bool {
+	return role == portaineree.AdministratorRole || role == portaineree.EdgeAdminRole
+}
+
 // GetServiceAccount returns the portainer ServiceAccount associated to the specified user.
 func (kcl *KubeClient) GetServiceAccount(tokenData *portainer.TokenData) (*v1.ServiceAccount, error) {
 	var portainerServiceAccountName string
-	if tokenData.Role == portaineree.AdministratorRole {
+	if isAdminOrEdgeAdmin(tokenData.Role) {
 		portainerServiceAccountName = portainerClusterAdminServiceAccountName
 	} else {
 		portainerServiceAccountName = UserServiceAccountName(int(tokenData.ID), kcl.instanceID)

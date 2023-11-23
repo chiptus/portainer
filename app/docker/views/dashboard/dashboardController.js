@@ -128,9 +128,7 @@ angular.module('portainer.docker').controller('DashboardController', [
     }
 
     async function shouldShowStacks() {
-      const isAdmin = Authentication.isAdmin();
-
-      return isAdmin || endpoint.SecuritySettings.allowStackManagementForRegularUsers || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
+      return endpoint.SecuritySettings.allowStackManagementForRegularUsers || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
     }
 
     initView();

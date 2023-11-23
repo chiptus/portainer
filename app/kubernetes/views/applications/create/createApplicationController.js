@@ -1301,6 +1301,7 @@ class KubernetesCreateApplicationController {
       try {
         this.Authentication.redirectIfUnauthorized(['K8sApplicationDetailsW']);
 
+        this.isPureAdmin = this.Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
         this.isAdmin = this.Authentication.isAdmin();
         this.deploymentOptions = await getGlobalDeploymentOptions();
 

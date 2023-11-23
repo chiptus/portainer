@@ -42,8 +42,7 @@ angular.module('portainer.docker').controller('NetworkMacvlanFormController', [
 
     this.$onInit = $onInit;
     function $onInit() {
-      var isAdmin = Authentication.isAdmin();
-      ctrl.isAdmin = isAdmin;
+      ctrl.isAdmin = Authentication.isAdmin();
 
       var provider = ctrl.applicationState.endpoint.mode.provider;
       var apiVersion = ctrl.applicationState.endpoint.apiVersion;

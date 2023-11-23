@@ -54,7 +54,7 @@ angular.module('portainer.docker').controller('ContainerController', [
   ) {
     $scope.resourceType = ResourceControlType.Container;
     $scope.endpoint = endpoint;
-    $scope.isAdmin = Authentication.isAdmin();
+    $scope.isAdmin = Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
     $scope.activityTime = 0;
     $scope.portBindings = [];
     $scope.displayRecreateButton = false;
@@ -77,7 +77,7 @@ angular.module('portainer.docker').controller('ContainerController', [
     };
 
     $scope.hasAuthorizations = function (authorizations) {
-      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+      return Authentication.hasAuthorizations(authorizations);
     };
 
     $scope.disabledWebhookButton = function (webhookExists) {

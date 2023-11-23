@@ -707,7 +707,7 @@ angular.module('portainer.docker').controller('ServiceController', [
     }
 
     $scope.hasAuthorizations = function (authorizations) {
-      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+      return Authentication.hasAuthorizations(authorizations);
     };
 
     $scope.disabledWebhookButton = function (webhookExists) {
@@ -757,6 +757,7 @@ angular.module('portainer.docker').controller('ServiceController', [
           $scope.availableLoggingDrivers = data.availableLoggingDrivers;
           $scope.availableVolumes = data.volumes;
           $scope.allowBindMounts = endpoint.SecuritySettings.allowBindMountsForRegularUsers;
+          $scope.isPureAdmin = Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
           $scope.isAdmin = Authentication.isAdmin();
           $scope.availableNetworks = data.availableNetworks;
           $scope.swarmNetworks = _.filter($scope.availableNetworks, (network) => network.Scope === 'swarm');

@@ -37,7 +37,7 @@ function EndpointController($async, $scope, $state, $transition$, $filter, clipb
     agentEndpoint: false,
     edgeEndpoint: false,
     edgeAssociated: false,
-    allowCreate: Authentication.isAdmin(),
+    allowCreate: Authentication.isPureAdmin(),
     allowSelfSignedCerts: true,
     showAMTInfo: false,
     showTLSConfig: false,

@@ -3,7 +3,6 @@ package users
 import (
 	"net/http"
 
-	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
 	"github.com/portainer/portainer-ee/api/http/security"
 	portainer "github.com/portainer/portainer/api"
@@ -65,7 +64,8 @@ func (handler *Handler) userUpdateOpenAIConfig(w http.ResponseWriter, r *http.Re
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	// if requesting user is not admin and target user is not himself, deny
+	if !security.IsAdmin(tokenData.Role) && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to update OpenAI API token", httperrors.ErrUnauthorized)
 	}
 

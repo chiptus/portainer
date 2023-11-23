@@ -41,7 +41,8 @@ func (handler *Handler) userNamespaces(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	// is requesting user is not an admin and target user is not himself, deny
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to retrieve user namespaces", errors.ErrUnauthorized)
 	}
 

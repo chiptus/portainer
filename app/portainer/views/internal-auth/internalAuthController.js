@@ -110,14 +110,22 @@ class InternalAuthenticationController {
   async postLoginSteps() {
     await this.StateManager.initialize();
 
-    const isAdmin = this.Authentication.isAdmin();
-    this.$analytics.setUserRole(isAdmin ? 'admin' : 'standard-user');
+    const isPortainerAdmin = this.Authentication.isPureAdmin();
+    const isEdgeAdmin = this.Authentication.isAdmin() && !isPortainerAdmin;
+
+    let userRole = 'standard-user';
+    if (isPortainerAdmin) {
+      userRole = 'admin';
+    } else if (isEdgeAdmin) {
+      userRole = 'edge-admin';
+    }
+    this.$analytics.setUserRole(userRole);
 
     let path = 'portainer.home';
     if (this.Authentication.getUserDetails().forceChangePassword) {
       path = 'portainer.account';
     }
-    if (isAdmin) {
+    if (isPortainerAdmin) {
       path = await this.checkForLicensesAsync();
       if (!path) {
         path = await this.checkForEndpointsAsync();

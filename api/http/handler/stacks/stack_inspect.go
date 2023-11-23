@@ -50,7 +50,8 @@ func (handler *Handler) stackInspect(w http.ResponseWriter, r *http.Request) *ht
 
 	endpoint, err := handler.DataStore.Endpoint().Endpoint(stack.EndpointID)
 	if handler.DataStore.IsErrObjectNotFound(err) {
-		if !securityContext.IsAdmin {
+		// ignore not found error for admins and edge admins to manage orphaned stacks
+		if !security.IsAdminOrEdgeAdminContext(securityContext) {
 			return httperror.NotFound("Unable to find an environment with the specified identifier inside the database", err)
 		}
 	} else if err != nil {

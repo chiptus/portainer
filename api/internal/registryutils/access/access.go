@@ -20,7 +20,7 @@ func hasPermission(
 		return
 	}
 
-	if user.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(user.Role) {
 		return true, err
 	}
 

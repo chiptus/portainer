@@ -17,8 +17,10 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 	}
-	h.Handle("/motd",
-		bouncer.RestrictedAccess(http.HandlerFunc(h.motd))).Methods(http.MethodGet)
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess)
+	adminRouter.Handle("/motd", http.HandlerFunc(h.motd)).Methods(http.MethodGet)
 
 	return h
 }

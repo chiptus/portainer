@@ -54,33 +54,29 @@ func NewHandler(
 		adminMonitor:      adminMonitor,
 	}
 
-	demoRestrictedRouter := h.NewRoute().Subrouter()
-	demoRestrictedRouter.Use(middlewares.RestrictDemoEnv(demoService.IsDemo))
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess)
+	adminRouter.Handle("/backup/s3/settings", httperror.LoggerHandler(h.backupSettingsFetch)).Methods(http.MethodGet)
 
-	h.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupSettingsFetch)))).Methods(http.MethodGet)
-	demoRestrictedRouter.Handle("/backup/s3/settings", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.updateSettings)))).Methods(http.MethodPost)
-	h.Handle("/backup/s3/status", bouncer.PublicAccess(httperror.LoggerHandler(h.backupStatusFetch))).Methods(http.MethodGet)
-	demoRestrictedRouter.Handle("/backup/s3/execute", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backupToS3)))).Methods(http.MethodPost)
-	demoRestrictedRouter.Handle("/backup/s3/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restoreFromS3))).Methods(http.MethodPost)
-	demoRestrictedRouter.Handle("/backup", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backup)))).Methods(http.MethodPost)
-	demoRestrictedRouter.Handle("/restore", bouncer.PublicAccess(httperror.LoggerHandler(h.restore))).Methods(http.MethodPost)
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
+	publicRouter.Handle("/backup/s3/status", httperror.LoggerHandler(h.backupStatusFetch)).Methods(http.MethodGet)
+
+	demoRouter := h.NewRoute().Subrouter()
+	demoRouter.Use(middlewares.RestrictDemoEnv(demoService.IsDemo))
+
+	demoAdmin := demoRouter.NewRoute().Subrouter()
+	demoAdmin.Use(bouncer.PureAdminAccess)
+
+	demoAdmin.Handle("/backup/s3/settings", httperror.LoggerHandler(h.updateSettings)).Methods(http.MethodPost)
+	demoAdmin.Handle("/backup/s3/execute", httperror.LoggerHandler(h.backupToS3)).Methods(http.MethodPost)
+	demoAdmin.Handle("/backup", httperror.LoggerHandler(h.backup)).Methods(http.MethodPost)
+
+	demoPublic := demoRouter.NewRoute().Subrouter()
+	demoPublic.Use(bouncer.PublicAccess)
+
+	demoPublic.Handle("/backup/s3/restore", httperror.LoggerHandler(h.restoreFromS3)).Methods(http.MethodPost)
+	demoPublic.Handle("/restore", httperror.LoggerHandler(h.restore)).Methods(http.MethodPost)
 
 	return h
-}
-
-func adminAccess(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		securityContext, err := security.RetrieveRestrictedRequestContext(r)
-		if err != nil {
-			httperror.WriteError(w, http.StatusInternalServerError, "Unable to retrieve user info from request context", err)
-			return
-		}
-
-		if !securityContext.IsAdmin {
-			httperror.WriteError(w, http.StatusUnauthorized, "User is not authorized to perform the action", nil)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }

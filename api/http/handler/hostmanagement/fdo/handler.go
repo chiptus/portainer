@@ -24,17 +24,19 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 		FileService: fileService,
 	}
 
-	h.Handle("/fdo/configure", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoConfigure))).Methods(http.MethodPost)
-	h.Handle("/fdo/list", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoListAll))).Methods(http.MethodGet)
-	h.Handle("/fdo/register", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoRegisterDevice))).Methods(http.MethodPost)
-	h.Handle("/fdo/configure/{guid}", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoConfigureDevice))).Methods(http.MethodPost)
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess)
 
-	h.Handle("/fdo/profiles", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoProfileList))).Methods(http.MethodGet)
-	h.Handle("/fdo/profiles", bouncer.AdminAccess(httperror.LoggerHandler(h.createProfile))).Methods(http.MethodPost)
-	h.Handle("/fdo/profiles/{id}", bouncer.AdminAccess(httperror.LoggerHandler(h.fdoProfileInspect))).Methods(http.MethodGet)
-	h.Handle("/fdo/profiles/{id}", bouncer.AdminAccess(httperror.LoggerHandler(h.updateProfile))).Methods(http.MethodPut)
-	h.Handle("/fdo/profiles/{id}", bouncer.AdminAccess(httperror.LoggerHandler(h.deleteProfile))).Methods(http.MethodDelete)
-	h.Handle("/fdo/profiles/{id}/duplicate", bouncer.AdminAccess(httperror.LoggerHandler(h.duplicateProfile))).Methods(http.MethodPost)
+	adminRouter.Handle("/fdo/configure", httperror.LoggerHandler(h.fdoConfigure)).Methods(http.MethodPost)
+	adminRouter.Handle("/fdo/list", httperror.LoggerHandler(h.fdoListAll)).Methods(http.MethodGet)
+	adminRouter.Handle("/fdo/register", httperror.LoggerHandler(h.fdoRegisterDevice)).Methods(http.MethodPost)
+	adminRouter.Handle("/fdo/configure/{guid}", httperror.LoggerHandler(h.fdoConfigureDevice)).Methods(http.MethodPost)
+	adminRouter.Handle("/fdo/profiles", httperror.LoggerHandler(h.fdoProfileList)).Methods(http.MethodGet)
+	adminRouter.Handle("/fdo/profiles", httperror.LoggerHandler(h.createProfile)).Methods(http.MethodPost)
+	adminRouter.Handle("/fdo/profiles/{id}", httperror.LoggerHandler(h.fdoProfileInspect)).Methods(http.MethodGet)
+	adminRouter.Handle("/fdo/profiles/{id}", httperror.LoggerHandler(h.updateProfile)).Methods(http.MethodPut)
+	adminRouter.Handle("/fdo/profiles/{id}", httperror.LoggerHandler(h.deleteProfile)).Methods(http.MethodDelete)
+	adminRouter.Handle("/fdo/profiles/{id}/duplicate", httperror.LoggerHandler(h.duplicateProfile)).Methods(http.MethodPost)
 
 	return h
 }

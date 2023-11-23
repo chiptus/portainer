@@ -12,6 +12,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 )
 
+// isAdmin = true for admins and edge admins
 type SwarmStackDeploymentConfig struct {
 	stack         *portaineree.Stack
 	endpoint      *portaineree.Endpoint
@@ -42,7 +43,7 @@ func CreateSwarmStackDeploymentConfig(securityContext *security.RestrictedReques
 		endpoint:      endpoint,
 		registries:    filteredRegistries,
 		prune:         prune,
-		isAdmin:       securityContext.IsAdmin,
+		isAdmin:       security.IsAdminOrEdgeAdminContext(securityContext),
 		user:          user,
 		pullImage:     pullImage,
 		FileService:   fileService,

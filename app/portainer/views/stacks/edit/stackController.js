@@ -261,7 +261,7 @@ angular.module('portainer.app').controller('StackController', [
     };
 
     $scope.hasAuthorizations = function (authorizations) {
-      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+      return Authentication.hasAuthorizations(authorizations);
     };
 
     $scope.disabledWebhookButton = function (webhookExists) {

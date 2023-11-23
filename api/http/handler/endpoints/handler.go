@@ -82,13 +82,6 @@ func NewHandler(
 
 	adminRouter := h.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess, logEndpointActivity)
-
-	authenticatedRouter := h.NewRoute().Subrouter()
-	authenticatedRouter.Use(bouncer.AuthenticatedAccess, logEndpointActivity)
-
-	publicRouter := h.NewRoute().Subrouter()
-	publicRouter.Use(bouncer.PublicAccess)
-
 	adminRouter.Handle("/endpoints", license.NotOverused(licenseService, dataStore, license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointCreate)))).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints/snapshot", httperror.LoggerHandler(h.endpointSnapshots)).Methods(http.MethodPost)
 	adminRouter.Handle("/endpoints", httperror.LoggerHandler(h.endpointList)).Methods(http.MethodGet)
@@ -98,17 +91,22 @@ func NewHandler(
 	adminRouter.Handle("/endpoints/{id}", license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointDelete))).Methods(http.MethodDelete)
 	adminRouter.Handle("/endpoints/{id}/association", httperror.LoggerHandler(h.endpointAssociationDelete)).Methods(http.MethodDelete)
 
+	// EE-6176 doc: some routes should be restricted to admins only OR [portainer + edge + endpoint] admins
+	// But the check is performed inside the handlers...
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess, logEndpointActivity)
 	authenticatedRouter.Handle("/endpoints/{id}", httperror.LoggerHandler(h.endpointUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/endpoints/{id}/settings", httperror.LoggerHandler(h.endpointSettingsUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/endpoints/{id}/dockerhub/{registryId}", httperror.LoggerHandler(h.endpointDockerhubStatus)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/endpoints/{id}/pools/{rpn}/access", httperror.LoggerHandler(h.endpointPoolsAccessUpdate)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/endpoints/{id}/forceupdateservice", httperror.LoggerHandler(h.endpointForceUpdateService)).Methods(http.MethodPut)
-
 	authenticatedRouter.Handle("/endpoints/{id}/registries", httperror.LoggerHandler(h.endpointRegistriesList)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/endpoints/{id}/registries/{registryId}", httperror.LoggerHandler(h.endpointRegistryAccess)).Methods(http.MethodPut)
 	authenticatedRouter.Handle("/endpoints/{id}/snapshot", httperror.LoggerHandler(h.endpointSnapshot)).Methods(http.MethodPost)
 
 	// DEPRECATED
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
 	publicRouter.Handle("/endpoints/{id}/status", httperror.LoggerHandler(h.endpointStatusInspect)).Methods(http.MethodGet)
 	publicRouter.Handle("/endpoints/global-key", httperror.LoggerHandler(h.endpointCreateGlobalKey)).Methods(http.MethodPost)
 

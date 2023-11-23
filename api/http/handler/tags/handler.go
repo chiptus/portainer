@@ -29,14 +29,12 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	}
 
 	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	authenticatedRouter := h.NewRoute().Subrouter()
-	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
-
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
 	adminRouter.Handle("/tags", httperror.LoggerHandler(h.tagCreate)).Methods(http.MethodPost)
 	adminRouter.Handle("/tags/{id}", httperror.LoggerHandler(h.tagDelete)).Methods(http.MethodDelete)
 
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
 	authenticatedRouter.Handle("/tags", httperror.LoggerHandler(h.tagList)).Methods(http.MethodGet)
 
 	return h

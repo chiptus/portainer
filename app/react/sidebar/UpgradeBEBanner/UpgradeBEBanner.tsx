@@ -28,7 +28,7 @@ const enabledPlatforms: Array<ContainerPlatform> = [
 
 function UpgradeBEBanner() {
   const {
-    isAdmin,
+    isPureAdmin,
     user: { Id },
   } = useCurrentUser();
 
@@ -100,7 +100,7 @@ function UpgradeBEBanner() {
 
   function handleClick() {
     trackEvent(
-      isAdmin ? 'portainer-upgrade-admin' : 'portainer-upgrade-non-admin',
+      isPureAdmin ? 'portainer-upgrade-admin' : 'portainer-upgrade-non-admin',
       {
         category: 'portainer',
         metadata,

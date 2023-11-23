@@ -6,6 +6,7 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -140,7 +141,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole {
+	if security.IsAdmin(user.Role) {
 		if !info.Valid {
 			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}

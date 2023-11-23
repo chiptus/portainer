@@ -85,7 +85,7 @@ export class RegistryRepositoriesController {
   async $onInit() {
     const registryId = this.$state.params.id;
 
-    this.isAdmin = this.Authentication.isAdmin();
+    this.isAdmin = this.Authentication.isPureAdmin();
     this.endpointId = this.$state.params.endpointId;
     this.endpointProviderType = await this.endpointProviderType(this.endpointId);
 

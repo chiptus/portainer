@@ -3,6 +3,7 @@ import angular from 'angular';
 
 import { RoleTypes } from '@/portainer/rbac/models/role';
 import { isLimitedToBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { getSettings } from '@/react/portainer/settings/settings.service';
 
 class PorAccessManagementController {
   /* @ngInject */
@@ -96,6 +97,14 @@ class PorAccessManagementController {
       this.formValues = {
         selectedRole: this.roles.find((role) => !this.isRoleLimitedToBE(role)),
       };
+
+      // as this is rendered only for admins, we can safely assume that settings query will succeed
+      // also as we don't render elements relying on 'edgeComputeEnabled' in the registries accesses view
+      // skip the request for this situation
+      if (this.entityType !== 'registry') {
+        const { EnableEdgeComputeFeatures } = await getSettings();
+        this.edgeComputeEnabled = EnableEdgeComputeFeatures;
+      }
 
       const data = await this.AccessService.accesses(entity, parent, this.roles);
 

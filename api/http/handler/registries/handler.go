@@ -30,7 +30,7 @@ func hideFields(registry *portaineree.Registry, hideAccesses bool) {
 // Handler is the HTTP handler used to handle registry operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer       accessGuard
+	requestBouncer       security.BouncerService
 	registryProxyService *registryproxy.Service
 
 	DataStore             dataservices.DataStore
@@ -42,49 +42,37 @@ type Handler struct {
 }
 
 // NewHandler creates a handler to manage registry operations.
-func NewHandler(bouncer accessGuard, userActivityService portaineree.UserActivityService) *Handler {
-	h := newHandler(bouncer, userActivityService)
-	h.initRouter(bouncer)
-
-	return h
-}
-
-func newHandler(bouncer accessGuard, userActivityService portaineree.UserActivityService) *Handler {
-	return &Handler{
+func NewHandler(bouncer security.BouncerService, userActivityService portaineree.UserActivityService) *Handler {
+	h := &Handler{
 		Router:               mux.NewRouter(),
 		requestBouncer:       bouncer,
 		registryProxyService: registryproxy.NewService(userActivityService),
 		userActivityService:  userActivityService,
 	}
-}
 
-func (handler *Handler) initRouter(bouncer accessGuard) {
-	logUserActivity := useractivity.LogUserActivity(handler.userActivityService)
+	logUserActivity := useractivity.LogUserActivity(userActivityService)
 
-	adminRouter := handler.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, logUserActivity)
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess, logUserActivity)
+	adminRouter.Handle("/registries", httperror.LoggerHandler(h.registryCreate)).Methods(http.MethodPost)     // admin
+	adminRouter.Handle("/registries/{id}", httperror.LoggerHandler(h.registryUpdate)).Methods(http.MethodPut) // admin
+	adminRouter.Handle("/registries/{id}/configure", httperror.LoggerHandler(h.registryConfigure)).Methods(http.MethodPost)
+	adminRouter.Handle("/registries/{id}", httperror.LoggerHandler(h.registryDelete)).Methods(http.MethodDelete)
 
-	authenticatedRouter := handler.NewRoute().Subrouter()
+	edgeAdminRouter := h.NewRoute().Subrouter()
+	edgeAdminRouter.Use(bouncer.AdminAccess, logUserActivity)
+	edgeAdminRouter.Handle("/registries", httperror.LoggerHandler(h.registryList)).Methods(http.MethodGet) // used in edge stack views + update schedules
+
+	authenticatedRouter := h.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess, logUserActivity)
+	authenticatedRouter.Handle("/registries/{id}", httperror.LoggerHandler(h.registryInspect)).Methods(http.MethodGet)                                          // all roles
+	authenticatedRouter.Handle("/registries/{id}/ecr/repositories/{repositoryName}", httperror.LoggerHandler(h.ecrDeleteRepository)).Methods(http.MethodDelete) // all roles
+	authenticatedRouter.Handle("/registries/{id}/ecr/repositories/{repositoryName}/tags", httperror.LoggerHandler(h.ecrDeleteTags)).Methods(http.MethodDelete)  // all roles
+	authenticatedRouter.PathPrefix("/registries/{id}/v2").Handler(httperror.LoggerHandler(h.proxyRequestsToRegistryAPI))
+	authenticatedRouter.PathPrefix("/registries/{id}/proxies/gitlab").Handler(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithRegistry))
+	authenticatedRouter.PathPrefix("/registries/proxies/gitlab").Handler(httperror.LoggerHandler(h.proxyRequestsToGitlabAPIWithoutRegistry))
 
-	adminRouter.Handle("/registries", httperror.LoggerHandler(handler.registryCreate)).Methods(http.MethodPost)
-	adminRouter.Handle("/registries", httperror.LoggerHandler(handler.registryList)).Methods(http.MethodGet)
-	adminRouter.Handle("/registries/{id}", httperror.LoggerHandler(handler.registryUpdate)).Methods(http.MethodPut)
-	adminRouter.Handle("/registries/{id}/configure", httperror.LoggerHandler(handler.registryConfigure)).Methods(http.MethodPost)
-	adminRouter.Handle("/registries/{id}", httperror.LoggerHandler(handler.registryDelete)).Methods(http.MethodDelete)
-
-	authenticatedRouter.Handle("/registries/{id}", httperror.LoggerHandler(handler.registryInspect)).Methods(http.MethodGet)
-	authenticatedRouter.Handle("/registries/{id}/ecr/repositories/{repositoryName}", httperror.LoggerHandler(handler.ecrDeleteRepository)).Methods(http.MethodDelete)
-	authenticatedRouter.Handle("/registries/{id}/ecr/repositories/{repositoryName}/tags", httperror.LoggerHandler(handler.ecrDeleteTags)).Methods(http.MethodDelete)
-	authenticatedRouter.PathPrefix("/registries/{id}/v2").Handler(httperror.LoggerHandler(handler.proxyRequestsToRegistryAPI))
-	authenticatedRouter.PathPrefix("/registries/{id}/proxies/gitlab").Handler(httperror.LoggerHandler(handler.proxyRequestsToGitlabAPIWithRegistry))
-	authenticatedRouter.PathPrefix("/registries/proxies/gitlab").Handler(httperror.LoggerHandler(handler.proxyRequestsToGitlabAPIWithoutRegistry))
-}
-
-type accessGuard interface {
-	AdminAccess(h http.Handler) http.Handler
-	AuthenticatedAccess(h http.Handler) http.Handler
-	AuthorizedEndpointOperation(r *http.Request, endpoint *portaineree.Endpoint, authorizationCheck bool) error
+	return h
 }
 
 func (handler *Handler) registriesHaveSameURLAndCredentials(r1, r2 *portaineree.Registry) bool {
@@ -120,7 +108,7 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request) (hasAccess bool, 
 		return false, false, err
 	}
 
-	if securityContext.IsAdmin {
+	if security.IsAdminOrEdgeAdminContext(securityContext) {
 		return true, true, nil
 	}
 

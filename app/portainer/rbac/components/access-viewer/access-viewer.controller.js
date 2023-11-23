@@ -1,7 +1,9 @@
 import _ from 'lodash-es';
-import { isLimitedToBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
+import { isLimitedToBE } from '@/react/portainer/feature-flags/feature-flags.service';
 import { getEnvironments } from '@/react/portainer/environments/environment.service';
+import { Role } from '@/portainer/users/types';
+
 import AccessViewerPolicyModel from '../../models/access';
 
 export default class AccessViewerController {
@@ -37,7 +39,13 @@ export default class AccessViewerController {
       const userMemberships = _.filter(this.teamMemberships, { UserId: user.Id });
 
       for (const [, endpoint] of _.entries(this.endpoints)) {
-        let role = this.getRoleFromUserEndpointPolicy(user, endpoint);
+        let role = this.getEdgeAdminRole(user, endpoint);
+        if (role) {
+          userRoles[endpoint.Id] = role;
+          continue;
+        }
+
+        role = this.getRoleFromUserEndpointPolicy(user, endpoint);
         if (role) {
           userRoles[endpoint.Id] = role;
           continue;
@@ -67,6 +75,13 @@ export default class AccessViewerController {
 
   findLowestRole(policies) {
     return _.first(_.orderBy(policies, 'RolePriority', 'desc'));
+  }
+
+  getEdgeAdminRole(user, endpoint) {
+    if (user.Role !== Role.EdgeAdmin) {
+      return undefined;
+    }
+    return new AccessViewerPolicyModel({ RoleId: 0 }, endpoint, this.roles, null, null);
   }
 
   getRoleFromUserEndpointPolicy(user, endpoint) {
@@ -148,7 +163,7 @@ export default class AccessViewerController {
         return;
       }
 
-      this.isAdmin = this.Authentication.isAdmin();
+      this.isAdmin = this.Authentication.isPureAdmin();
       this.allUsers = await this.UserService.users();
       this.endpoints = _.keyBy((await getEnvironments()).value, 'Id');
       const groups = await this.GroupService.groups();

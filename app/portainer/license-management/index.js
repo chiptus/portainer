@@ -20,7 +20,7 @@ function config($stateRegistryProvider) {
     },
     onEnter: /* @ngInject */ function onEnter($async, $state, Authentication) {
       return $async(async () => {
-        if (!Authentication.isAdmin()) {
+        if (!Authentication.isPureAdmin()) {
           return $state.go('portainer.home');
         }
       });

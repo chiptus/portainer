@@ -25,9 +25,10 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 		Router:              mux.NewRouter(),
 		userActivityService: userActivityService,
 	}
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
 
-	h.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Handle("/upload/tls/{certificate:(?:ca|cert|key)}", httperror.LoggerHandler(h.uploadTLS)).Methods(http.MethodPost)
 
-	h.Handle("/upload/tls/{certificate:(?:ca|cert|key)}", httperror.LoggerHandler(h.uploadTLS)).Methods(http.MethodPost)
 	return h
 }

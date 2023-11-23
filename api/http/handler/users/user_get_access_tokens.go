@@ -47,7 +47,11 @@ func (handler *Handler) userGetAccessTokens(w http.ResponseWriter, r *http.Reque
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.ID != portainer.UserID(userID) && (tokenData.Role != portaineree.AdministratorRole || user.Role == portaineree.AdministratorRole) {
+	// if requesting user is not the target user
+	// and (requesting user is not an admin or requesting is user is admin but the target user is another admin)
+	// then deny request
+	if tokenData.ID != portainer.UserID(userID) &&
+		(!security.IsAdmin(tokenData.Role) || security.IsAdmin(user.Role)) {
 		return httperror.Forbidden("Permission denied to get user access tokens", httperrors.ErrUnauthorized)
 	}
 

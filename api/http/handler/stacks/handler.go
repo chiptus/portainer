@@ -67,13 +67,6 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 
 	authenticatedRouter := h.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	publicRouter := h.NewRoute().Subrouter()
-	publicRouter.Use(bouncer.PublicAccess)
-
 	authenticatedRouter.Handle("/stacks/create/{type}/{method}", httperror.LoggerHandler(h.stackCreate)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks", middlewares.Deprecated(authenticatedRouter, deprecatedStackCreateUrlParser)).Methods(http.MethodPost) // Deprecated
 	authenticatedRouter.Handle("/stacks", httperror.LoggerHandler(h.stackList)).Methods(http.MethodGet)
@@ -89,8 +82,12 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	authenticatedRouter.Handle("/stacks/{id}/stop", httperror.LoggerHandler(h.stackStop)).Methods(http.MethodPost)
 	authenticatedRouter.Handle("/stacks/{id}/images_status", httperror.LoggerHandler(h.stackImagesStatus)).Methods(http.MethodGet)
 
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
 	adminRouter.Handle("/stacks/{id}/associate", httperror.LoggerHandler(h.stackAssociate)).Methods(http.MethodPut)
 
+	publicRouter := h.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
 	publicRouter.Handle("/stacks/webhooks/{webhookID}", httperror.LoggerHandler(h.webhookInvoke)).Methods(http.MethodPost)
 
 	return h
@@ -120,7 +117,7 @@ func (handler *Handler) userIsAdmin(userID portainer.UserID) (bool, error) {
 		return false, err
 	}
 
-	isAdmin := user.Role == portaineree.AdministratorRole
+	isAdmin := security.IsAdminOrEdgeAdmin(user.Role)
 
 	return isAdmin, nil
 }
@@ -134,10 +131,11 @@ func (handler *Handler) userCanCreateStack(securityContext *security.RestrictedR
 	return stackutils.UserIsAdminOrEndpointAdmin(user, endpointID)
 }
 
-// if stack management is disabled for non admins and the user isn't an admin, then return false. Otherwise return true
+// if stack management is disabled for non admins and the user isn't an admin or edge admin, then return false. Otherwise return true
 func (handler *Handler) userCanManageStacks(securityContext *security.RestrictedRequestContext, endpoint *portaineree.Endpoint) (bool, error) {
 	// When the endpoint is deleted, stacks that the deleted endpoint created will be tagged as an orphan stack
-	// An orphan stack can be adopted by admins
+	// An orphan stack can be adopted by admins or edge admin
+	// This function is called to verify accesses. If endpoint = nil then stack is orphaned
 	if endpoint == nil {
 		return true, nil
 	}

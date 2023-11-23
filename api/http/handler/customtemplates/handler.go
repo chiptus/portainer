@@ -49,6 +49,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	return h
 }
 
+// [EE-6176]: TODO later: find a way to move this check to RBAC layer performed before the handler exec
 func userCanEditTemplate(customTemplate *portaineree.CustomTemplate, securityContext *security.RestrictedRequestContext) bool {
-	return securityContext.IsAdmin || customTemplate.CreatedByUserID == securityContext.UserID
+	return security.IsAdminOrEdgeAdminContext(securityContext) || customTemplate.CreatedByUserID == securityContext.UserID
 }

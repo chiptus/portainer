@@ -34,6 +34,18 @@
             </div>
           </div>
 
+          <div class="form-group" ng-if="ctrl.entityType !== 'registry' && ctrl.edgeComputeEnabled">
+            <div class="col-sm-12">
+              <span class="small">
+                <p class="text-muted vertical-center">
+                  <pr-icon icon="'alert-circle'" class-name="'icon-primary =vertical-center'"></pr-icon>
+                  To assign the Edge administrator role and grant Edge Compute access, please proceed to the
+                  <a ui-sref="portainer.settings.edgeCompute">Edge Compute</a> Settings.
+                </p>
+              </span>
+            </div>
+          </div>
+
           <!-- actions -->
           <div class="form-group">
             <div class="col-sm-12">

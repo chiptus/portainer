@@ -28,7 +28,7 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	}
 
 	adminRouter := h.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
 
 	adminRouter.Handle("/cloud/credentials", httperror.LoggerHandler(h.getAll)).Methods(http.MethodGet)
 	adminRouter.Handle("/cloud/credentials", httperror.LoggerHandler(h.create)).Methods(http.MethodPost)

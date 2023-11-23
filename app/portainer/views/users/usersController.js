@@ -107,7 +107,7 @@ angular.module('portainer.app').controller('UsersController', [
           var membership = memberships[j];
           if (user.Id === membership.UserId && membership.Role === 1) {
             user.isTeamLeader = true;
-            user.RoleName = 'team leader';
+            user.RoleName += ' - team leader';
             break;
           }
         }
@@ -116,7 +116,7 @@ angular.module('portainer.app').controller('UsersController', [
 
     function initView() {
       var userDetails = Authentication.getUserDetails();
-      var isAdmin = Authentication.isAdmin();
+      var isAdmin = Authentication.isPureAdmin();
       $scope.isAdmin = isAdmin;
       $q.all({
         users: UserService.users(true),

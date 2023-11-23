@@ -35,7 +35,7 @@ func NewHandler(bouncer security.BouncerService, status *portainer.Status, demoS
 	router := h.PathPrefix("/system").Subrouter()
 
 	adminRouter := router.PathPrefix("/").Subrouter()
-	adminRouter.Use(bouncer.AdminAccess)
+	adminRouter.Use(bouncer.PureAdminAccess)
 
 	adminRouter.Handle("/update", httperror.LoggerHandler(h.systemUpdate)).Methods(http.MethodPost)
 

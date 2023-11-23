@@ -1,3 +1,5 @@
+import { isPureAdmin } from '@/portainer/users/user.helpers';
+
 import { ModalType } from '@@/modals';
 import { buildConfirmButton } from '@@/modals/utils';
 import { confirm, confirmChangePassword, confirmDelete } from '@@/modals/confirm';
@@ -100,7 +102,7 @@ angular.module('portainer.app').controller('UserController', [
     $scope.isSubmitEnabled = isSubmitEnabled;
     function isSubmitEnabled() {
       const { user, formValues } = $scope;
-      return user && (user.Username !== formValues.username || (formValues.Administrator && user.Role !== 1) || (!formValues.Administrator && user.Role === 1));
+      return user && (user.Username !== formValues.username || (formValues.Administrator && !isPureAdmin(user)) || (!formValues.Administrator && isPureAdmin(user)));
     }
 
     $scope.isDeleteDisabled = isDeleteDisabled;
@@ -110,11 +112,11 @@ angular.module('portainer.app').controller('UserController', [
     }
 
     function initView() {
-      if (!Authentication.isAdmin()) {
+      if (!Authentication.isPureAdmin()) {
         return $state.go('portainer.home');
       }
 
-      $scope.isAdmin = Authentication.isAdmin();
+      $scope.isAdmin = Authentication.isPureAdmin();
 
       $q.all({
         user: UserService.user($transition$.params().id),
@@ -123,7 +125,7 @@ angular.module('portainer.app').controller('UserController', [
         .then(function success(data) {
           var user = data.user;
           $scope.user = user;
-          $scope.formValues.Administrator = user.Role === 1;
+          $scope.formValues.Administrator = isPureAdmin(user);
           $scope.formValues.username = user.Username;
           $scope.AuthenticationMethod = data.settings.AuthenticationMethod;
           $scope.requiredPasswordLength = data.settings.RequiredPasswordLength;

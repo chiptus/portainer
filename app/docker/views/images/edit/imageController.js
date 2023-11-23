@@ -37,7 +37,7 @@ angular.module('portainer.docker').controller('ImageController', [
     RegistryModalService
   ) {
     $scope.endpoint = endpoint;
-    $scope.isAdmin = Authentication.isAdmin();
+    $scope.isAdmin = Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
 
     $scope.formValues = {
       RegistryModel: new PorImageRegistryModel(),

@@ -26,6 +26,7 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		requestBouncer: bouncer,
 	}
 
+	// EE-6176 doc: RBAC performed inside handlers with bouncer.AuthorizedEndpointOperation()
 	h.Use(bouncer.AuthenticatedAccess)
 
 	h.PathPrefix("/{id}/azure").Handler(httperror.LoggerHandler(h.proxyRequestsToAzureAPI))

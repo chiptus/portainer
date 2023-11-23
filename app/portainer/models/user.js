@@ -1,3 +1,5 @@
+import { RoleNames } from '../users/types';
+
 export function UserViewModel(data) {
   this.Id = data.Id;
   this.Username = data.Username;
@@ -5,11 +7,7 @@ export function UserViewModel(data) {
   this.EndpointAuthorizations = data.EndpointAuthorizations;
   this.PortainerAuthorizations = data.PortainerAuthorizations;
   this.ThemeSettings = data.ThemeSettings;
-  if (data.Role === 1) {
-    this.RoleName = 'administrator';
-  } else {
-    this.RoleName = 'user';
-  }
+  this.RoleName = RoleNames[data.Role];
   this.AuthenticationMethod = data.AuthenticationMethod;
   this.Checked = false;
   this.UseCache = data.UseCache;

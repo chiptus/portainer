@@ -45,27 +45,24 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 		fileService:              fileService,
 	}
 
+	// EE-6176 doc: RBAC performed inside handlers with direct checks on user's Authorizations
+	// EE-6176 doc: see authoriseHelmOperation() function below
 	h.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"),
 		bouncer.AuthenticatedAccess,
 		useractivity.LogUserActivity(h.userActivityService))
 
 	// `helm list -o json`
-	h.Handle("/{id}/kubernetes/helm",
-		httperror.LoggerHandler(h.helmList)).Methods(http.MethodGet)
+	h.Handle("/{id}/kubernetes/helm", httperror.LoggerHandler(h.helmList)).Methods(http.MethodGet)
 
 	// `helm delete RELEASE_NAME`
-	h.Handle("/{id}/kubernetes/helm/{release}",
-		httperror.LoggerHandler(h.helmDelete)).Methods(http.MethodDelete)
+	h.Handle("/{id}/kubernetes/helm/{release}", httperror.LoggerHandler(h.helmDelete)).Methods(http.MethodDelete)
 
 	// `helm install [NAME] [CHART] flags`
-	h.Handle("/{id}/kubernetes/helm",
-		httperror.LoggerHandler(h.helmInstall)).Methods(http.MethodPost)
+	h.Handle("/{id}/kubernetes/helm", httperror.LoggerHandler(h.helmInstall)).Methods(http.MethodPost)
 
 	// Deprecated
-	h.Handle("/{id}/kubernetes/helm/repositories",
-		httperror.LoggerHandler(h.userGetHelmRepos)).Methods(http.MethodGet)
-	h.Handle("/{id}/kubernetes/helm/repositories",
-		httperror.LoggerHandler(h.userCreateHelmRepo)).Methods(http.MethodPost)
+	h.Handle("/{id}/kubernetes/helm/repositories", httperror.LoggerHandler(h.userGetHelmRepos)).Methods(http.MethodGet)
+	h.Handle("/{id}/kubernetes/helm/repositories", httperror.LoggerHandler(h.userCreateHelmRepo)).Methods(http.MethodPost)
 
 	return h
 }
@@ -128,13 +125,15 @@ func (handler *Handler) getHelmClusterAccess(r *http.Request) (*options.Kubernet
 }
 
 // authoriseChartOperation verified whether the calling user can perform underlying helm operations based on authorization.
+//
+// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 func (handler *Handler) authoriseHelmOperation(r *http.Request, authorization portainer.Authorization) *httperror.HandlerError {
 	tokenData, err := security.RetrieveTokenData(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		return nil
 	}
 

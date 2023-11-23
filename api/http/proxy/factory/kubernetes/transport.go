@@ -140,7 +140,7 @@ func getRoundTripToken(request *http.Request, tokenManager *tokenManager, endpoi
 	}
 
 	var token string
-	if tokenData.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		token = tokenManager.GetAdminServiceAccountToken()
 	} else {
 		token, err = tokenManager.GetUserServiceAccountToken(int(tokenData.ID), int(endpointID))

@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 
 import { UserContext } from '@/react/hooks/useUser';
 import { UserViewModel } from '@/portainer/models/user';
+import { Role } from '@/portainer/users/types';
+import { isAdmin } from '@/portainer/users/user.helpers';
 
 import { parseAccessControlFormData } from '../utils';
 
@@ -16,11 +18,6 @@ const meta: Meta = {
 
 export default meta;
 
-enum Role {
-  Admin = 1,
-  User,
-}
-
 const testQueryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
@@ -30,8 +27,7 @@ interface Args {
 }
 
 function Template({ userRole }: Args) {
-  const isAdmin = userRole === Role.Admin;
-  const defaults = parseAccessControlFormData(isAdmin, 0);
+  const defaults = parseAccessControlFormData(isAdmin({ Role: userRole }), 0);
 
   const [value, setValue] = useState(defaults);
 
@@ -61,5 +57,5 @@ AdminAccessControl.args = {
 
 export const NonAdminAccessControl: Story<Args> = Template.bind({});
 NonAdminAccessControl.args = {
-  userRole: Role.User,
+  userRole: Role.Standard,
 };

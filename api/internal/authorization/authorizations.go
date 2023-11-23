@@ -764,7 +764,8 @@ func (service *Service) updateUserAuthorizations(tx dataservices.DataStoreTx, us
 
 func (service *Service) getAuthorizations(tx dataservices.DataStoreTx, user *portaineree.User) (portainer.EndpointAuthorizations, error) {
 	endpointAuthorizations := portainer.EndpointAuthorizations{}
-	if user.Role == portaineree.AdministratorRole {
+
+	if isAdminOrEdgeAdmin(user.Role) {
 		return endpointAuthorizations, nil
 	}
 
@@ -1089,6 +1090,9 @@ func (service *Service) GetNamespaceAuthorizations(
 	accessPolicies, hasChange, err := service.UpdateUserNamespaceAccessPolicies(
 		tx, userID, &endpoint, accessPolicies,
 	)
+	if err != nil {
+		return nil, err
+	}
 	if hasChange {
 		err = kcl.UpdateNamespaceAccessPolicies(accessPolicies)
 		if err != nil {
@@ -1491,13 +1495,15 @@ func unionAuthorizations(auths ...portainer.Authorizations) portainer.Authorizat
 	return authorizations
 }
 
+// EE-6176 doc: this function is redundant with the RBAC layer
+// EE-6176 doc: it is only used by webhooks handlers to perform RBAC checks outside of the RBAC layer
 func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, userID portainer.UserID, endpointID portainer.EndpointID, authorizations []portainer.Authorization) (bool, error) {
 	user, err := tx.User().Read(userID)
 	if err != nil {
 		return false, err
 	}
 
-	if user.Role == portaineree.AdministratorRole {
+	if isAdminOrEdgeAdmin(user.Role) {
 		return true, nil
 	}
 
@@ -1509,4 +1515,22 @@ func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, use
 	}
 
 	return false, nil
+}
+
+// EE-6176 doc: can't use security package because of import cycles
+//
+// package github.com/portainer/portainer-ee/api/apikey
+//
+//	imports github.com/portainer/portainer-ee/api/datastore
+//	imports github.com/portainer/portainer-ee/api/internal/authorization
+//	imports github.com/portainer/portainer-ee/api/http/security
+//	imports github.com/portainer/portainer-ee/api/apikey: import cycle not allowed in test
+//
+// package github.com/portainer/portainer-ee/api/http/security
+//
+//	imports github.com/portainer/portainer-ee/api/datastore
+//	imports github.com/portainer/portainer-ee/api/internal/authorization
+//	imports github.com/portainer/portainer-ee/api/http/security: import cycle not allowed in test
+func isAdminOrEdgeAdmin(role portainer.UserRole) bool {
+	return role == portaineree.AdministratorRole || role == portaineree.EdgeAdminRole
 }

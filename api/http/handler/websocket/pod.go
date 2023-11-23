@@ -82,7 +82,8 @@ func (handler *Handler) websocketPodExec(w http.ResponseWriter, r *http.Request)
 		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		// check if the user has console RW access in the environment(endpoint)
 		endpointRole, err := handler.authorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
@@ -203,7 +204,7 @@ func (handler *Handler) getToken(request *http.Request, endpoint *portaineree.En
 		return "", false, err
 	}
 
-	if tokenData.Role == portaineree.AdministratorRole {
+	if security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		return tokenManager.GetAdminServiceAccountToken(), true, nil
 	}
 

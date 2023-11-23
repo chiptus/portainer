@@ -74,7 +74,7 @@
               </span>
             </div>
           </div>
-          <div ng-if="userRole === 1">
+          <div ng-if="userRole === RoleEnum.Admin">
             <p class="text-muted vertical-center">
               <pr-icon icon="'alert-circle'" class-name="'icon-primary'"></pr-icon>
               Minimum password length is set <a ui-sref="portainer.settings.authentication">here.</a>

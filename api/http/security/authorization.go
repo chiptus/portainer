@@ -7,7 +7,7 @@ import (
 
 // AuthorizedResourceControlAccess checks whether the user can alter an existing resource control.
 func AuthorizedResourceControlAccess(resourceControl *portainer.ResourceControl, context *RestrictedRequestContext) bool {
-	if context.IsAdmin || resourceControl.Public {
+	if IsAdminOrEdgeAdminContext(context) || resourceControl.Public {
 		return true
 	}
 
@@ -37,7 +37,7 @@ func AuthorizedResourceControlAccess(resourceControl *portainer.ResourceControl,
 // * he wants to add a user in the user accesses that is not corresponding to its id
 // * he wants to add a team he is not a member of
 func AuthorizedResourceControlUpdate(resourceControl *portainer.ResourceControl, context *RestrictedRequestContext) bool {
-	if context.IsAdmin || resourceControl.Public {
+	if IsAdminOrEdgeAdminContext(context) || resourceControl.Public {
 		return true
 	}
 
@@ -79,7 +79,7 @@ func AuthorizedResourceControlUpdate(resourceControl *portainer.ResourceControl,
 // AuthorizedTeamManagement ensure that access to the management of the specified team is granted.
 // It will check if the user is either administrator or leader of that team.
 func AuthorizedTeamManagement(teamID portainer.TeamID, context *RestrictedRequestContext) bool {
-	if context.IsAdmin {
+	if IsAdminContext(context) {
 		return true
 	}
 
@@ -90,16 +90,6 @@ func AuthorizedTeamManagement(teamID portainer.TeamID, context *RestrictedReques
 	}
 
 	return false
-}
-
-// AuthorizedIsTeamLeader ensure that the user is an admin or a team leader
-func AuthorizedIsTeamLeader(context *RestrictedRequestContext) bool {
-	return context.IsAdmin || context.IsTeamLeader
-}
-
-// AuthorizedIsAdmin ensure that the user is an admin
-func AuthorizedIsAdmin(context *RestrictedRequestContext) bool {
-	return context.IsAdmin
 }
 
 // AuthorizedEndpointAccess ensure that the user can access the specified environment(endpoint).
@@ -125,7 +115,7 @@ func authorizedEndpointGroupAccess(endpointGroup *portainer.EndpointGroup, userI
 // listed in the authorized teams for a specified environment(endpoint),
 // Or if the user is an EndpointAdmin or Helpdesk for the specified environment(endpoint)
 func AuthorizedRegistryAccess(registry *portaineree.Registry, user *portaineree.User, teamMemberships []portainer.TeamMembership, endpointID portainer.EndpointID) bool {
-	if user.Role == portaineree.AdministratorRole {
+	if IsAdminOrEdgeAdmin(user.Role) {
 		return true
 	}
 

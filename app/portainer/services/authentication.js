@@ -1,4 +1,5 @@
 import { getCurrentUser } from '../users/queries/useLoadCurrentUser';
+import { isAdmin as isAdminHelperFunc, isPureAdmin as isPureAdminHelperFunc } from '../users/user.helpers';
 import { clear as clearSessionStorage } from './session-storage';
 angular.module('portainer.app').factory('Authentication', [
   '$async',
@@ -12,18 +13,24 @@ angular.module('portainer.app').factory('Authentication', [
   function AuthenticationFactory($async, $state, Auth, OAuth, LocalStorage, StateManager, EndpointProvider, ThemeManager) {
     'use strict';
 
-    var service = {};
     var user = {};
 
-    service.init = init;
-    service.OAuthLogin = OAuthLogin;
-    service.login = login;
-    service.logout = logout;
-    service.isAuthenticated = isAuthenticated;
-    service.getUserDetails = getUserDetails;
-    service.isAdmin = isAdmin;
-    service.hasAuthorizations = hasAuthorizations;
-    service.redirectIfUnauthorized = redirectIfUnauthorized;
+    if (process.env.NODE_ENV === 'development') {
+      window.login = loginAsync;
+    }
+
+    return {
+      init,
+      OAuthLogin,
+      login,
+      logout,
+      isAuthenticated,
+      getUserDetails,
+      isAdmin,
+      isPureAdmin,
+      hasAuthorizations,
+      redirectIfUnauthorized,
+    };
 
     async function initAsync() {
       try {
@@ -88,7 +95,7 @@ angular.module('portainer.app').factory('Authentication', [
       const userData = await getCurrentUser();
       user.username = userData.Username;
       user.ID = userData.Id;
-      user.role = userData.Role;
+      user.role = userData.Role; // type in Role Enum
       user.forceChangePassword = userData.forceChangePassword;
       user.endpointAuthorizations = userData.EndpointAuthorizations;
       user.portainerAuthorizations = userData.PortainerAuthorizations;
@@ -104,11 +111,16 @@ angular.module('portainer.app').factory('Authentication', [
       LocalStorage.storeUserId(userData.Id);
     }
 
+    // To avoid creating divergence between CE and EE
+    // isAdmin checks if the user is a portainer admin or edge admin
     function isAdmin() {
-      if (user.role === 1) {
-        return true;
-      }
-      return false;
+      return isAdminHelperFunc({ Role: user.role });
+    }
+
+    // To avoid creating divergence between CE and EE
+    // isPureAdmin checks if the user is portainer admin only
+    function isPureAdmin() {
+      return isPureAdminHelperFunc({ Role: user.role });
     }
 
     function hasAuthorizations(authorizations) {
@@ -129,11 +141,5 @@ angular.module('portainer.app').factory('Authentication', [
         $state.go('portainer.home');
       }
     }
-
-    if (process.env.NODE_ENV === 'development') {
-      window.login = loginAsync;
-    }
-
-    return service;
   },
 ]);

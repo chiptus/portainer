@@ -9,7 +9,6 @@ import (
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
-	"github.com/rs/zerolog/log"
 )
 
 type User struct {
@@ -41,6 +40,8 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 	}
 
 	// environment (endpoint) admins have access to users in the same environment
+	//
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 	endpointID, _ := request.RetrieveNumericQueryParameter(r, "environmentId", true)
 	permissionDeniedErr := "Permission denied to access users list"
 	tokenData, err := security.RetrieveTokenData(r)
@@ -52,10 +53,9 @@ func (handler *Handler) userList(w http.ResponseWriter, r *http.Request) *httper
 	canUserUpdateNamespaceAccess := endpointRole != nil &&
 		err == nil &&
 		// only endpoint admins can update role bindings (K8sRoleBindingsW) for users linked to a service account
-		endpointRole.Authorizations["K8sRoleBindingsW"] == true
+		endpointRole.Authorizations["K8sRoleBindingsW"]
 
-	log.Debug().Bool("IsAdmin", securityContext.IsAdmin).Bool("IsTeamLeader", securityContext.IsTeamLeader).Bool("canUserUpdateNamespaceAccess", canUserUpdateNamespaceAccess).Msg("User list access")
-	if !(securityContext.IsAdmin || securityContext.IsTeamLeader || canUserUpdateNamespaceAccess) {
+	if !security.IsAdminOrEdgeAdminContext(securityContext) && !securityContext.IsTeamLeader && !canUserUpdateNamespaceAccess {
 		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 

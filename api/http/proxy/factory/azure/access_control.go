@@ -31,7 +31,7 @@ func (transport *Transport) createAzureRequestContext(request *http.Request) (*a
 		endpointResourceAccess: false,
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		context.isAdmin = false
 
 		user, err := transport.dataStore.User().Read(context.userID)

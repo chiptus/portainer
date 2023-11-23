@@ -60,14 +60,14 @@ export function NodesDatatable() {
     environmentUrl
   );
 
-  const { isAdmin } = useCurrentUser();
+  const { isPureAdmin } = useCurrentUser();
 
   const authorizedToWriteClusterNode = useAuthorizations('K8sClusterNodeW');
   const authorizedToReadMicroK8sStatus = useAuthorizations('K8sResourcePoolsR');
 
   const { data: credential, ...credentialQuery } = useCloudCredential(
     environment?.CloudProvider?.CredentialID ?? NaN,
-    isAdmin // if the user is admin
+    isPureAdmin // if the user is admin
   );
 
   // currently only microk8s supports deleting nodes

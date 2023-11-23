@@ -235,7 +235,7 @@ angular.module('portainer.app').controller('TemplatesController', [
 
     $scope.selectTemplate = function (template) {
       return $async(async () => {
-        if (!Authentication.isAdmin() && !Authentication.hasAuthorizations(['DockerContainerCreate', 'PortainerStackCreate'])) {
+        if (!Authentication.hasAuthorizations(['DockerContainerCreate', 'PortainerStackCreate'])) {
           return;
         }
 

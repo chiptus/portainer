@@ -74,7 +74,7 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 	}
 	isOrphaned := portainer.EndpointID(endpointID) != stack.EndpointID
 
-	if isOrphaned && !securityContext.IsAdmin {
+	if isOrphaned && !security.IsAdminOrEdgeAdminContext(securityContext) {
 		return httperror.Forbidden("Permission denied to remove orphaned stack", errors.New("Permission denied to remove orphaned stack"))
 	}
 
@@ -161,9 +161,11 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 		return httperror.InternalServerError("Unable to load user information from the database", err)
 	}
 
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 	_, endpointResourceAccess := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 
-	if !securityContext.IsAdmin && !endpointResourceAccess {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminOrEdgeAdminContext(securityContext) && !endpointResourceAccess {
 		return httperror.Unauthorized("Permission denied to delete the stack", httperrors.ErrUnauthorized)
 	}
 
@@ -336,7 +338,7 @@ func (handler *Handler) stackDeleteKubernetesByName(w http.ResponseWriter, r *ht
 			return httperror.BadRequest("Only Kubernetes stacks can be deleted by name", errors.New("Only Kubernetes stacks can be deleted by name"))
 		}
 
-		if isOrphaned && !securityContext.IsAdmin {
+		if isOrphaned && !security.IsAdminOrEdgeAdminContext(securityContext) {
 			return httperror.Forbidden("Permission denied to remove orphaned stack", errors.New("Permission denied to remove orphaned stack"))
 		}
 

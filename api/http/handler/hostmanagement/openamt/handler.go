@@ -26,12 +26,15 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 		Router: mux.NewRouter(),
 	}
 
-	h.Handle("/open_amt/configure", bouncer.AdminAccess(httperror.LoggerHandler(h.openAMTConfigure))).Methods(http.MethodPost)
-	h.Handle("/open_amt/{id}/info", bouncer.AdminAccess(httperror.LoggerHandler(h.openAMTHostInfo))).Methods(http.MethodGet)
-	h.Handle("/open_amt/{id}/activate", bouncer.AdminAccess(httperror.LoggerHandler(h.openAMTActivate))).Methods(http.MethodPost)
-	h.Handle("/open_amt/{id}/devices", bouncer.AdminAccess(httperror.LoggerHandler(h.openAMTDevices))).Methods(http.MethodGet)
-	h.Handle("/open_amt/{id}/devices/{deviceId}/action", bouncer.AdminAccess(httperror.LoggerHandler(h.deviceAction))).Methods(http.MethodPost)
-	h.Handle("/open_amt/{id}/devices/{deviceId}/features", bouncer.AdminAccess(httperror.LoggerHandler(h.deviceFeatures))).Methods(http.MethodPost)
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess)
+
+	adminRouter.Handle("/open_amt/configure", httperror.LoggerHandler(h.openAMTConfigure)).Methods(http.MethodPost)
+	adminRouter.Handle("/open_amt/{id}/info", httperror.LoggerHandler(h.openAMTHostInfo)).Methods(http.MethodGet)
+	adminRouter.Handle("/open_amt/{id}/activate", httperror.LoggerHandler(h.openAMTActivate)).Methods(http.MethodPost)
+	adminRouter.Handle("/open_amt/{id}/devices", httperror.LoggerHandler(h.openAMTDevices)).Methods(http.MethodGet)
+	adminRouter.Handle("/open_amt/{id}/devices/{deviceId}/action", httperror.LoggerHandler(h.deviceAction)).Methods(http.MethodPost)
+	adminRouter.Handle("/open_amt/{id}/devices/{deviceId}/features", httperror.LoggerHandler(h.deviceFeatures)).Methods(http.MethodPost)
 
 	return h
 }

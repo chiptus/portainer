@@ -21,10 +21,11 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 	}
-	h.Handle("/ssl",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.sslInspect))).Methods(http.MethodGet)
-	h.Handle("/ssl",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.sslUpdate))).Methods(http.MethodPut)
+
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.PureAdminAccess)
+	adminRouter.Handle("/ssl", httperror.LoggerHandler(h.sslInspect)).Methods(http.MethodGet)
+	adminRouter.Handle("/ssl", httperror.LoggerHandler(h.sslUpdate)).Methods(http.MethodPut)
 
 	return h
 }

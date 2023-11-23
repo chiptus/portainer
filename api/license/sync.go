@@ -191,7 +191,7 @@ func (service *Service) Metadata(licenses []liblicense.PortainerLicense) (liblic
 	var adminUsers, nonAdminUsers int
 	users, err := service.dataStore.User().ReadAll()
 	for _, user := range users {
-		if user.Role == 1 {
+		if user.Role == portaineree.AdministratorRole {
 			adminUsers += 1
 		} else {
 			nonAdminUsers += 1

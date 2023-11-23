@@ -35,18 +35,14 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 
 	adminRouter := subrouter.NewRoute().Subrouter()
 	adminRouter.Use(bouncer.AdminAccess)
+	adminRouter.Handle("/jobs/{id}", httperror.LoggerHandler(h.deleteJob)).Methods(http.MethodDelete)
 
 	authenticatedRouter := subrouter.NewRoute().Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
-
 	authenticatedRouter.Handle("/allocation/{id}/events", httperror.LoggerHandler(h.getTaskEvents)).Methods(http.MethodGet)
 	authenticatedRouter.Handle("/allocation/{id}/logs", httperror.LoggerHandler(h.getTaskLogs)).Methods(http.MethodGet)
-
 	authenticatedRouter.Handle("/leader", httperror.LoggerHandler(h.getLeader)).Methods(http.MethodGet)
-
 	authenticatedRouter.Handle("/jobs", httperror.LoggerHandler(h.listJobs)).Methods(http.MethodGet)
-	adminRouter.Handle("/jobs/{id}", httperror.LoggerHandler(h.deleteJob)).Methods(http.MethodDelete)
-
 	authenticatedRouter.Handle("/dashboard", httperror.LoggerHandler(h.getDashboard)).Methods(http.MethodGet)
 
 	return h

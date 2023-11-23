@@ -256,8 +256,10 @@ var checkGatekeeperStatus = func(handler *Handler, endpoint *portaineree.Endpoin
 }
 
 // Check if the user is an admin or can edit OPA
+//
+// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 func canEditPodSecurity(user *portaineree.User, endpointID portainer.EndpointID) (bool, error) {
-	isAdmin := user.Role == portaineree.AdministratorRole
+	isAdmin := security.IsAdminOrEdgeAdmin(user.Role)
 	_, canEdit := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.OperationK8sPodSecurityW]
 	return isAdmin || canEdit, nil
 }

@@ -6,9 +6,10 @@ import (
 
 	portaineree "github.com/portainer/portainer-ee/api"
 	httperrors "github.com/portainer/portainer-ee/api/http/errors"
+	"github.com/portainer/portainer-ee/api/http/security"
 	"github.com/portainer/portainer-ee/api/internal/authorization"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/http/security"
+	cesecurity "github.com/portainer/portainer/api/http/security"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -86,7 +87,7 @@ func (handler *Handler) authenticate(rw http.ResponseWriter, r *http.Request) (*
 	}
 
 	// If the free subscription license is enforced, the standard user are not allowed to log in
-	if user != nil && user.Role != portaineree.AdministratorRole && handler.LicenseService.ShouldEnforceOveruse() {
+	if user != nil && !security.IsAdmin(user.Role) && handler.LicenseService.ShouldEnforceOveruse() {
 		return resp, httperror.NewError(http.StatusPaymentRequired, "Node limit exceeds the 5 node free license, please contact your administrator", httperrors.ErrLicenseOverused)
 	}
 
@@ -141,7 +142,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 				httperror.InternalServerError("Failed to search and match LDAP admin groups", err)
 		}
 
-		if isLDAPAdmin != (user.Role == portaineree.AdministratorRole) {
+		if isLDAPAdmin != security.IsAdmin(user.Role) {
 			userRole := portaineree.StandardUserRole
 			if isLDAPAdmin {
 				userRole = portaineree.AdministratorRole
@@ -166,7 +167,7 @@ func (handler *Handler) authenticateLDAP(w http.ResponseWriter, user *portainere
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole {
+	if !security.IsAdmin(user.Role) {
 		if !info.Valid {
 			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
@@ -194,7 +195,7 @@ func (handler *Handler) authenticateInternal(w http.ResponseWriter, user *portai
 
 	info := handler.LicenseService.Info()
 
-	if user.Role != portaineree.AdministratorRole {
+	if !security.IsAdmin(user.Role) {
 		if !info.Valid {
 			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
@@ -235,7 +236,7 @@ func (handler *Handler) persistAndWriteToken(w http.ResponseWriter, tokenData *p
 		return resp, httperror.InternalServerError("Unable to generate JWT token", err)
 	}
 
-	security.AddAuthCookie(w, token, expirationTime)
+	cesecurity.AddAuthCookie(w, token, expirationTime)
 
 	return resp, response.JSON(w, &authenticateResponse{JWT: token})
 

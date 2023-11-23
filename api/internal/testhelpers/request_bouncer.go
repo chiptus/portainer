@@ -15,6 +15,10 @@ func NewTestRequestBouncer() *testRequestBouncer {
 	return &testRequestBouncer{}
 }
 
+func (testRequestBouncer) PureAdminAccess(h http.Handler) http.Handler {
+	return h
+}
+
 func (testRequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler {
 	return h
 }

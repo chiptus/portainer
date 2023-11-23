@@ -8,7 +8,7 @@ import (
 // FilterUserTeams filters teams based on user role.
 // non-administrator users only have access to team they are member of.
 func FilterUserTeams(teams []portainer.Team, context *RestrictedRequestContext) []portainer.Team {
-	if context.IsAdmin {
+	if IsAdminOrEdgeAdminContext(context) {
 		return teams
 	}
 
@@ -56,13 +56,13 @@ func FilterLeaderTeams(teams []portainer.Team, context *RestrictedRequestContext
 // FilterUsers filters users based on user role.
 // Non-administrator users only have access to non-administrator users.
 func FilterUsers(users []portaineree.User, context *RestrictedRequestContext) []portaineree.User {
-	if context.IsAdmin {
+	if IsAdminOrEdgeAdminContext(context) {
 		return users
 	}
 
 	n := 0
 	for _, user := range users {
-		if user.Role != portaineree.AdministratorRole {
+		if !IsAdminOrEdgeAdmin(user.Role) {
 			users[n] = user
 			n++
 		}
@@ -74,7 +74,7 @@ func FilterUsers(users []portaineree.User, context *RestrictedRequestContext) []
 // FilterRegistries filters registries based on user role and team memberships.
 // Non administrator users only have access to authorized registries.
 func FilterRegistries(registries []portaineree.Registry, user *portaineree.User, teamMemberships []portainer.TeamMembership, endpointID portainer.EndpointID) []portaineree.Registry {
-	if user.Role == portaineree.AdministratorRole {
+	if IsAdminOrEdgeAdmin(user.Role) {
 		return registries
 	}
 
@@ -91,8 +91,9 @@ func FilterRegistries(registries []portaineree.Registry, user *portaineree.User,
 
 // FilterEndpoints filters environments(endpoints) based on user role and team memberships.
 // Non administrator only have access to authorized environments(endpoints) (can be inherited via endpoint groups).
+// Edge admins have access to all environments(endpoints)
 func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portainer.EndpointGroup, context *RestrictedRequestContext) []portaineree.Endpoint {
-	if context.IsAdmin {
+	if IsAdminOrEdgeAdminContext(context) {
 		return endpoints
 	}
 
@@ -113,7 +114,7 @@ func FilterEndpoints(endpoints []portaineree.Endpoint, groups []portainer.Endpoi
 // FilterEndpointGroups filters environment(endpoint) groups based on user role and team memberships.
 // Non administrator users only have access to authorized environment(endpoint) groups.
 func FilterEndpointGroups(endpointGroups []portainer.EndpointGroup, context *RestrictedRequestContext) []portainer.EndpointGroup {
-	if context.IsAdmin {
+	if IsAdminOrEdgeAdminContext(context) {
 		return endpointGroups
 	}
 

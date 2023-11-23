@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// isAdmin = true for admin and edge admin
 	registryAccessContext struct {
 		isAdmin         bool
 		user            *portaineree.User

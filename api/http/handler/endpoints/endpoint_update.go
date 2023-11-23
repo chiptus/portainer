@@ -130,7 +130,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to find an environment with the specified identifier inside the database", err)
 	}
 
-	isAdmin := tokenData.Role == portaineree.AdministratorRole
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	isAdmin := security.IsAdmin(tokenData.Role)
 	canK8sClusterSetup := isAdmin || false
 	// if user is not a portainer admin, we might allow update k8s cluster config
 	if !isAdmin {

@@ -49,7 +49,7 @@ func (handler *Handler) customTemplateList(w http.ResponseWriter, r *http.Reques
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin {
+	if !security.IsAdminOrEdgeAdminContext(securityContext) {
 		user, err := handler.DataStore.User().Read(securityContext.UserID)
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve user information from the database", err)

@@ -67,7 +67,8 @@ func (handler *Handler) endpointPoolsAccessUpdate(w http.ResponseWriter, r *http
 		return httperror.Forbidden(permissionDeniedErr, err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminOrEdgeAdmin(tokenData.Role) {
 		// check if the user has Configuration RW access in the environment(endpoint)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpoint.ID))
 		if err != nil {

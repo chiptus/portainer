@@ -25,11 +25,12 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		Router: mux.NewRouter(),
 	}
 
-	h.Handle("/templates",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.templateList))).Methods(http.MethodGet)
-	h.Handle("/templates/{id}/file",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.templateFile))).Methods(http.MethodPost)
-	h.Handle("/templates/file",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.templateFileOld))).Methods(http.MethodPost)
+	authenticatedRouter := h.NewRoute().Subrouter()
+	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
+
+	authenticatedRouter.Handle("/templates", httperror.LoggerHandler(h.templateList)).Methods(http.MethodGet)
+	authenticatedRouter.Handle("/templates/{id}/file", httperror.LoggerHandler(h.templateFile)).Methods(http.MethodPost)
+	authenticatedRouter.Handle("/templates/file", httperror.LoggerHandler(h.templateFileOld)).Methods(http.MethodPost)
+
 	return h
 }

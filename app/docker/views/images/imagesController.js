@@ -16,7 +16,7 @@ angular.module('portainer.docker').controller('ImagesController', [
   'endpoint',
   function ($scope, $state, Authentication, ImageService, Notifications, HttpRequestHelper, FileSaver, Blob, endpoint) {
     $scope.endpoint = endpoint;
-    $scope.isAdmin = Authentication.isAdmin();
+    $scope.isAdmin = Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
 
     $scope.state = {
       actionInProgress: false,

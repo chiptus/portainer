@@ -125,7 +125,7 @@ angular.module('portainer.docker').controller('CreateServiceController', [
     }
 
     $scope.hasAuthorizations = function (authorizations) {
-      return $scope.isAdmin || Authentication.hasAuthorizations(authorizations);
+      return Authentication.hasAuthorizations(authorizations);
     };
 
     $scope.refreshSlider = function () {
@@ -552,10 +552,10 @@ angular.module('portainer.docker').controller('CreateServiceController', [
         });
     }
 
-    function validateForm(accessControlData, isAdmin) {
+    function validateForm(accessControlData) {
       $scope.state.formValidationError = '';
       var error = '';
-      error = FormValidator.validateAccessControl(accessControlData, isAdmin) || $scope.formValues.Secrets.$error || $scope.formValues.Configs.$error;
+      error = FormValidator.validateAccessControl(accessControlData, Authentication.isAdmin()) || $scope.formValues.Secrets.$error || $scope.formValues.Configs.$error;
 
       if (error) {
         $scope.state.formValidationError = error;
@@ -573,7 +573,7 @@ angular.module('portainer.docker').controller('CreateServiceController', [
     $scope.create = function createService() {
       var accessControlData = $scope.formValues.AccessControlData;
 
-      if (!validateForm(accessControlData, $scope.isAdmin)) {
+      if (!validateForm(accessControlData)) {
         return;
       }
 
@@ -608,6 +608,8 @@ angular.module('portainer.docker').controller('CreateServiceController', [
     function initView() {
       var apiVersion = $scope.applicationState.endpoint.apiVersion;
 
+      $scope.isAdmin = Authentication.isPureAdmin(); // only used for the registry selector to display link to registries page
+
       $q.all({
         volumes: VolumeService.volumes(),
         networks: NetworkService.networks(true, true, false),
@@ -624,7 +626,6 @@ angular.module('portainer.docker').controller('CreateServiceController', [
           $scope.availableConfigs = data.configs;
           $scope.availableLoggingDrivers = data.availableLoggingDrivers;
           initSlidersMaxValuesBasedOnNodeData(data.nodes);
-          $scope.isAdmin = Authentication.isAdmin();
           $scope.allowBindMounts = data.allowBindMounts;
         })
         .catch(function error(err) {

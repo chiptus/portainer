@@ -10,7 +10,7 @@ class GroupFormController {
     this.Authentication = Authentication;
 
     this.state = {
-      allowCreateTag: this.Authentication.isAdmin(),
+      allowCreateTag: this.Authentication.isPureAdmin(),
     };
 
     this.unassociatedQuery = {

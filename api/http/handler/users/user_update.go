@@ -30,17 +30,23 @@ type userUpdatePayload struct {
 	UseCache    *bool  `validate:"required" example:"true"`
 	Theme       *themePayload
 
-	// User role (1 for administrator account and 2 for regular account)
-	Role int `validate:"required" enums:"1,2" example:"2"`
+	// User role
+	// 1 = administrator account
+	// 2 = regular account
+	// 3 = edge administrator account
+	Role portainer.UserRole `validate:"required" enums:"1,2,3" example:"2"`
 }
 
 func (payload *userUpdatePayload) Validate(r *http.Request) error {
 	if govalidator.Contains(payload.Username, " ") {
-		return errors.New("Invalid username. Must not contain any whitespace")
+		return errors.New("invalid username. Must not contain any whitespace")
 	}
 
-	if payload.Role != 0 && payload.Role != 1 && payload.Role != 2 {
-		return errors.New("Invalid role value. Value must be one of: 1 (administrator) or 2 (regular user)")
+	if payload.Role != 0 &&
+		payload.Role != portainer.AdministratorRole &&
+		payload.Role != portainer.StandardUserRole &&
+		payload.Role != portaineree.EdgeAdminRole {
+		return errors.New("invalid role value. Value must be one of: 1 (administrator), 2 (regular user), 3 (edge administrator)")
 	}
 
 	return nil
@@ -80,7 +86,8 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && tokenData.ID != portainer.UserID(userID) {
+	// if requesting user is not admin and target user is not himself, deny
+	if !security.IsAdmin(tokenData.Role) && tokenData.ID != portainer.UserID(userID) {
 		return httperror.Forbidden("Permission denied to update user", httperrors.ErrUnauthorized)
 	}
 
@@ -90,8 +97,9 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 		return httperror.BadRequest("Invalid request payload", err)
 	}
 
-	if tokenData.Role != portaineree.AdministratorRole && payload.Role != 0 {
-		return httperror.Forbidden("Permission denied to update user to administrator role", httperrors.ErrResourceAccessDenied)
+	// Only allow admins to change user role
+	if !security.IsAdmin(tokenData.Role) && payload.Role != 0 {
+		return httperror.Forbidden("Permission denied to update user role", httperrors.ErrResourceAccessDenied)
 	}
 
 	user, err := handler.DataStore.User().Read(portainer.UserID(userID))
@@ -102,7 +110,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if payload.Username != "" && payload.Username != user.Username {
-		if tokenData.Role != portaineree.AdministratorRole {
+		if !security.IsAdmin(tokenData.Role) {
 			return httperror.Forbidden("Permission denied. Unable to update username", httperrors.ErrResourceAccessDenied)
 		}
 
@@ -118,7 +126,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if payload.Password != "" && payload.NewPassword == "" {
-		if tokenData.Role == portaineree.AdministratorRole {
+		if security.IsAdmin(tokenData.Role) {
 			return httperror.BadRequest("Existing password field specified without new password field.", errors.New("To change the password as an admin, you only need 'newPassword' in your request"))
 		}
 
@@ -127,7 +135,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 
 	if payload.NewPassword != "" {
 		// Non-admins need to supply the previous password
-		if tokenData.Role != portaineree.AdministratorRole {
+		if !security.IsAdmin(tokenData.Role) {
 			err := handler.CryptoService.CompareHashAndData(user.Password, payload.Password)
 			if err != nil {
 				return httperror.Forbidden("Current password doesn't match. Password left unchanged", errors.New("Current password does not match the password provided. Please try again"))
@@ -160,7 +168,7 @@ func (handler *Handler) userUpdate(w http.ResponseWriter, r *http.Request) *http
 	}
 
 	if payload.Role != 0 {
-		user.Role = portainer.UserRole(payload.Role)
+		user.Role = payload.Role
 		user.TokenIssueAt = time.Now().Unix()
 	}
 

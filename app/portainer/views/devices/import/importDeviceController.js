@@ -13,7 +13,7 @@ angular
         vouchersUploading: false,
         vouchersUploaded: false,
         deviceIDs: [],
-        allowCreateTag: Authentication.isAdmin(),
+        allowCreateTag: Authentication.isPureAdmin(),
       };
 
       $scope.formValues = {

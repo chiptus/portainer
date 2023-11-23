@@ -11,8 +11,10 @@ import (
 	gittypes "github.com/portainer/portainer/api/git/types"
 )
 
+// EE-6176 doc: can't use security package because of import cycles
+// EE-6176 doc: checks if user is admin, edge admin or endpoint admin despite the func name
 func UserIsAdminOrEndpointAdmin(user *portaineree.User, endpointID portainer.EndpointID) (bool, error) {
-	isAdmin := user.Role == portaineree.AdministratorRole
+	isAdmin := user.Role == portaineree.AdministratorRole || user.Role == portaineree.EdgeAdminRole
 
 	_, endpointResourceAccess := user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.EndpointResourcesAccess]
 

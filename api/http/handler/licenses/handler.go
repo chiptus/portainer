@@ -29,14 +29,14 @@ func NewHandler(bouncer security.BouncerService, userActivityService portaineree
 	}
 
 	adminRouter := h.Router.NewRoute().Subrouter()
-	adminRouter.Use(bouncer.AdminAccess, useractivity.LogUserActivity(h.userActivityService))
-
-	publicRouter := h.Router.NewRoute().Subrouter()
-	publicRouter.Use(bouncer.PublicAccess)
-
+	adminRouter.Use(bouncer.PureAdminAccess, useractivity.LogUserActivity(h.userActivityService))
 	adminRouter.Handle("/licenses", httperror.LoggerHandler(h.licensesList)).Methods(http.MethodGet)
 	adminRouter.Handle("/licenses/add", httperror.LoggerHandler(h.licensesAttach)).Methods(http.MethodPost)
 	adminRouter.Handle("/licenses/remove", httperror.LoggerHandler(h.licensesDelete)).Methods(http.MethodPost)
+
+	publicRouter := h.Router.NewRoute().Subrouter()
+	publicRouter.Use(bouncer.PublicAccess)
 	publicRouter.Handle("/licenses/info", httperror.LoggerHandler(h.licensesInfo)).Methods(http.MethodGet)
+
 	return h
 }

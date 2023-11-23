@@ -25,8 +25,15 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		requestBouncer: bouncer,
 	}
 
-	h.Handle("/edge_templates",
-		bouncer.AdminAccess(middlewares.Deprecated(httperror.LoggerHandler(h.edgeTemplateList), func(w http.ResponseWriter, r *http.Request) (string, *httperror.HandlerError) { return "", nil }))).Methods(http.MethodGet)
+	adminRouter := h.NewRoute().Subrouter()
+	adminRouter.Use(bouncer.AdminAccess)
+
+	adminRouter.Handle("/edge_templates", middlewares.Deprecated(
+		httperror.LoggerHandler(h.edgeTemplateList),
+		func(w http.ResponseWriter, r *http.Request) (string, *httperror.HandlerError) {
+			return "", nil
+		},
+	)).Methods(http.MethodGet)
 
 	return h
 }

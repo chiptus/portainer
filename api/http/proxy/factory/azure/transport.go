@@ -31,6 +31,7 @@ type (
 		userActivityService portaineree.UserActivityService
 	}
 
+	// isAdmin = true for admins and edge admins
 	azureRequestContext struct {
 		isAdmin                bool
 		endpointResourceAccess bool

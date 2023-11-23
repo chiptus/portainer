@@ -7,7 +7,7 @@ import {
   withInvalidate,
 } from '@/react-tools/react-query';
 import { userQueryKeys } from '@/portainer/users/queries/queryKeys';
-import { buildUrl } from '@/portainer/users/user.service';
+import { buildUrl } from '@/portainer/users/buildUrl';
 import { UserId } from '@/portainer/users/types';
 import { useCurrentUser } from '@/react/hooks/useUser';
 

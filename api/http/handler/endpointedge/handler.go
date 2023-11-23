@@ -60,7 +60,7 @@ func NewHandler(bouncer security.BouncerService,
 	h.Handle("/api/endpoints/{id}/edge/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeStatusInspect))).Methods(http.MethodGet)
 
 	h.Handle("/api/endpoints/edge/async", handlers.CompressHandler(bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeAsync)))).Methods(http.MethodPost)
-	h.Handle("/api/endpoints/edge/generate-key", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
+	h.Handle("/api/endpoints/edge/generate-key", bouncer.PureAdminAccess(httperror.LoggerHandler(h.endpointEdgeGenerateKey))).Methods(http.MethodPost)
 
 	endpointRouter := h.PathPrefix("/api/endpoints/{id}").Subrouter()
 	endpointRouter.Use(middlewares.WithEndpoint(dataStore.Endpoint(), "id"))
@@ -71,6 +71,7 @@ func NewHandler(bouncer security.BouncerService,
 	endpointRouter.PathPrefix("/edge/jobs/{jobID}/logs").Handler(
 		bouncer.PublicAccess(httperror.LoggerHandler(h.endpointEdgeJobsLogs))).Methods(http.MethodPost)
 
+	// used in waiting room
 	endpointRouter.PathPrefix("/edge/trust").Handler(bouncer.AdminAccess(license.RecalculateLicenseUsage(licenseService, httperror.LoggerHandler(h.endpointTrust)))).Methods(http.MethodPost)
 
 	endpointRouter.Handle("/edge/async/commands/stack/{stackId}", bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.createNormalStackCommand))).Methods(http.MethodPost)

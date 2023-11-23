@@ -77,7 +77,8 @@ func (handler *Handler) teamMembershipUpdate(w http.ResponseWriter, r *http.Requ
 
 	isLeadingBothTeam := security.AuthorizedTeamManagement(portainer.TeamID(payload.TeamID), securityContext) &&
 		security.AuthorizedTeamManagement(membership.TeamID, securityContext)
-	if !(securityContext.IsAdmin || isLeadingBothTeam) {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !(security.IsAdminContext(securityContext) || isLeadingBothTeam) {
 		return httperror.Forbidden("Permission denied to update the membership", httperrors.ErrResourceAccessDenied)
 	}
 

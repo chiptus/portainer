@@ -44,7 +44,7 @@ function StacksController($scope, $state, Notifications, StackService, Authentic
     const endpointMode = $scope.applicationState.endpoint.mode;
     const endpointId = endpoint.Id;
 
-    const includeOrphanedStacks = Authentication.isAdmin() || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
+    const includeOrphanedStacks = Authentication.hasAuthorizations(['EndpointResourcesAccess']);
     StackService.stacks(true, endpointMode.provider === 'DOCKER_SWARM_MODE' && endpointMode.role === 'MANAGER', endpointId, includeOrphanedStacks)
       .then(function success(stacks) {
         $scope.stacks = stacks;
@@ -56,7 +56,7 @@ function StacksController($scope, $state, Notifications, StackService, Authentic
   }
 
   async function canManageStacks() {
-    return endpoint.SecuritySettings.allowStackManagementForRegularUsers || Authentication.isAdmin() || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
+    return endpoint.SecuritySettings.allowStackManagementForRegularUsers || Authentication.hasAuthorizations(['EndpointResourcesAccess']);
   }
 
   async function initView() {

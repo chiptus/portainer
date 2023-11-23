@@ -104,7 +104,8 @@ func (handler *Handler) registryConfigure(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
-	if !securityContext.IsAdmin {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	if !security.IsAdminContext(securityContext) {
 		return httperror.Forbidden("Permission denied to configure registry", httperrors.ErrResourceAccessDenied)
 	}
 

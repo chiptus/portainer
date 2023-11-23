@@ -66,6 +66,7 @@ func NewHandler(
 		requestBouncer:         bouncer,
 	}
 
+	// EE-6176 doc: RBAC performed inside handlers
 	endpointRouter := h.NewRoute().Subrouter()
 	endpointRouter.Use(bouncer.AuthenticatedAccess, middlewares.WithEndpoint(dataStore.Endpoint(), "endpointid"))
 
@@ -102,8 +103,10 @@ func NewHandler(
 }
 
 // Check if the user is an admin or can write to the cluster node
+//
+// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
 func canWriteK8sClusterNode(user *portaineree.User, endpointID portainer.EndpointID) bool {
-	isAdmin := user.Role == portaineree.AdministratorRole
+	isAdmin := security.IsAdminOrEdgeAdmin(user.Role)
 	hasAccess := false
 	if user.EndpointAuthorizations[portainer.EndpointID(endpointID)] != nil {
 		_, hasAccess = user.EndpointAuthorizations[portainer.EndpointID(endpointID)][portaineree.OperationK8sClusterNodeW]

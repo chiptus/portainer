@@ -15,7 +15,7 @@ import (
 // @id EndpointSnapshot
 // @summary Snapshots an environment(endpoint)
 // @description Snapshots an environment(endpoint)
-// @description **Access policy**: administrator
+// @description **Access policy**: authenticated
 // @tags endpoints
 // @security ApiKeyAuth
 // @security jwt
