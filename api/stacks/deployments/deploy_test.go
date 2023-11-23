@@ -140,10 +140,15 @@ func (s *noopDeployer) StopRemoteSwarmStack(stack *portaineree.Stack, endpoint *
 	return nil
 }
 
-func agentServer(t *testing.T) string {
+func agentServer(t *testing.T, online bool) string {
 	h := http.NewServeMux()
 
 	h.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		if !online {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
 		w.Header().Set(portaineree.PortainerAgentHeader, "v2.19.0")
 		w.Header().Set(portaineree.HTTPResponseAgentPlatform, strconv.Itoa(int(portaineree.AgentPlatformDocker)))
 
@@ -195,11 +200,12 @@ func Test_redeployWhenChanged_DoesNothingWhenNotAGitBasedStack(t *testing.T) {
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 	stack := portaineree.Stack{ID: 1, CreatedBy: "admin"}
@@ -230,11 +236,12 @@ func Test_redeployWhenChanged_FailsWhenCannotClone(t *testing.T) {
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -260,11 +267,12 @@ func Test_redeployWhenChanged_ForceUpdateOn_WithAdditionalEnv(t *testing.T) {
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{
 		ID:  1,
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -341,11 +349,12 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff(t *testing.T) {
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -386,11 +395,12 @@ func Test_redeployWhenChanged_RepoNotChanged_ForceUpdateOff_ForcePullImageEnable
 		ChangeWindow: portaineree.EndpointChangeWindow{
 			Enabled: false,
 		},
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -426,11 +436,12 @@ func Test_redeployWhenChanged_RepoChanged_ForceUpdateOff(t *testing.T) {
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{
 		ID:  1,
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -699,11 +710,12 @@ func Test_redeployWhenChanged_RepoChanged_VersionFolderRemoved(t *testing.T) {
 
 	err := store.Endpoint().Create(&portaineree.Endpoint{
 		ID:  1,
-		URL: agentServer(t),
+		URL: agentServer(t, true),
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
 		},
+		Type: portainer.AgentOnDockerEnvironment,
 	})
 	assert.NoError(t, err, "error creating environment")
 
@@ -768,7 +780,15 @@ func Test_redeployWhenChanged_NoDeployWhenEnvironmentOffline(t *testing.T) {
 	err := store.User().Create(admin)
 	assert.NoError(t, err, "error creating an admin")
 
-	err = store.Endpoint().Create(&portaineree.Endpoint{ID: 0})
+	err = store.Endpoint().Create(&portaineree.Endpoint{
+		ID:  0,
+		URL: agentServer(t, false),
+		TLSConfig: portainer.TLSConfiguration{
+			TLS:           true,
+			TLSSkipVerify: true,
+		},
+		Type: portaineree.AgentOnDockerEnvironment,
+	})
 	assert.NoError(t, err, "error creating environment")
 
 	err = store.Stack().Create(&portaineree.Stack{
@@ -791,7 +811,87 @@ func Test_redeployWhenChanged_NoDeployWhenEnvironmentOffline(t *testing.T) {
 	noopDeployer := &noopDeployer{}
 	err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, noopDeployer.ComposeStackDeployed, false)
-	assert.Equal(t, noopDeployer.SwarmStackDeployed, false)
-	assert.Equal(t, noopDeployer.KubernetesStackDeployed, false)
+	assert.Equal(t, false, noopDeployer.ComposeStackDeployed)
+	assert.Equal(t, false, noopDeployer.SwarmStackDeployed)
+	assert.Equal(t, false, noopDeployer.KubernetesStackDeployed)
+}
+
+func Test_redeployWhenChanged_LocalEnvironment(t *testing.T) {
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	tmpDir := t.TempDir()
+
+	admin := &portaineree.User{ID: 1, Username: "admin"}
+	err := store.User().Create(admin)
+	assert.NoError(t, err, "error creating an admin")
+
+	err = store.Endpoint().Create(&portaineree.Endpoint{
+		ID:   0,
+		Type: portaineree.DockerEnvironment,
+	})
+	assert.NoError(t, err, "error creating environment")
+
+	err = store.Stack().Create(&portaineree.Stack{
+		ID:          1,
+		CreatedBy:   "admin",
+		ProjectPath: tmpDir,
+		GitConfig: &gittypes.RepoConfig{
+			URL:           "url",
+			ReferenceName: "ref",
+			ConfigHash:    "oldHash",
+		},
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			ForceUpdate:    false,
+			ForcePullImage: true,
+		},
+		Type: portaineree.DockerComposeStack,
+	})
+	assert.NoError(t, err, "failed to create a test stack")
+
+	noopDeployer := &noopDeployer{}
+	err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, true, noopDeployer.ComposeStackDeployed)
+	assert.Equal(t, false, noopDeployer.SwarmStackDeployed)
+	assert.Equal(t, false, noopDeployer.KubernetesStackDeployed)
+}
+
+func Test_redeployWhenChanged_EdgeEnvironment(t *testing.T) {
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	tmpDir := t.TempDir()
+
+	admin := &portaineree.User{ID: 1, Username: "admin"}
+	err := store.User().Create(admin)
+	assert.NoError(t, err, "error creating an admin")
+
+	err = store.Endpoint().Create(&portaineree.Endpoint{
+		ID:   0,
+		Type: portaineree.EdgeAgentOnDockerEnvironment,
+	})
+	assert.NoError(t, err, "error creating environment")
+
+	err = store.Stack().Create(&portaineree.Stack{
+		ID:          1,
+		CreatedBy:   "admin",
+		ProjectPath: tmpDir,
+		GitConfig: &gittypes.RepoConfig{
+			URL:           "url",
+			ReferenceName: "ref",
+			ConfigHash:    "oldHash",
+		},
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			ForceUpdate:    false,
+			ForcePullImage: true,
+		},
+		Type: portaineree.DockerComposeStack,
+	})
+	assert.NoError(t, err, "failed to create a test stack")
+
+	noopDeployer := &noopDeployer{}
+	err = RedeployWhenChanged(1, noopDeployer, store, testhelpers.NewGitService(nil, "oldHash"), nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, true, noopDeployer.ComposeStackDeployed)
+	assert.Equal(t, false, noopDeployer.SwarmStackDeployed)
+	assert.Equal(t, false, noopDeployer.KubernetesStackDeployed)
 }

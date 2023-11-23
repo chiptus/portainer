@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer-ee/api/dataservices"
 	"github.com/portainer/portainer-ee/api/git"
 	"github.com/portainer/portainer-ee/api/http/security"
-	"github.com/portainer/portainer-ee/api/internal/endpointutils"
 	"github.com/portainer/portainer-ee/api/scheduler"
 	"github.com/portainer/portainer-ee/api/stacks/stackutils"
 	consts "github.com/portainer/portainer-ee/api/useractivity"
@@ -313,7 +312,8 @@ func getUserRegistries(datastore dataservices.DataStore, user *portaineree.User,
 }
 
 func isEnvironmentOnline(endpoint *portaineree.Endpoint) bool {
-	if endpointutils.IsLocalEndpoint(endpoint) {
+	if endpoint.Type != portainer.AgentOnDockerEnvironment &&
+		endpoint.Type != portainer.AgentOnKubernetesEnvironment {
 		return true
 	}
 
