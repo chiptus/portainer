@@ -283,7 +283,7 @@ func (m *Migrator) initMigrations() {
 		m.migrateCloudProviderAddonsForDB100,
 		m.moveEnvironmentPreviousVersionFromEdgeUpdatesDB100,
 	)
-	m.addMigrations("2.20.0-beta.1",
+	m.addMigrations("2.20.0-alpha.1",
 		m.setDefaultCategoryForEdgeConfigForDB110,
 		m.updateAppTemplatesVersionForDB110,
 		m.setUserCacheForDB110,
@@ -291,12 +291,16 @@ func (m *Migrator) initMigrations() {
 
 	// Add new migrations above...
 
-	// !NOTE: From 2.19 onwards, Portainer introduces the beta version. This means that a beta version
-	// migrator should be added before the official release. For example,
-	// m.addMigrations("2.20.0-beta.1", migrationFunc1 ) instead of m.addMigrations("2.20.0", migrationFunc1 )
-	// beta.1 is the first beta version of 2.20.0. If there is a beta.2, then the migrator should be
-	// m.addMigrations("2.20.0-beta.2", migrationFunc2 ). When the official release is out and new migrators are
-	// required, the migrator should be m.addMigrations("2.20.0", migrationFunc3 )
+	// !NOTE: From 2.19 onwards, Portainer introduces the alpha and beta version. This means that a alpha version
+	// migrator should be added before the beta version, and the beta version should be added before the official
+	// release. For example,
+	// m.addMigrations("2.20.0-alpha.1", migrationFunc1 ) instead of m.addMigrations("2.20.0", migrationFunc1 )
+	// After the alpha version is released, if there is new migrators required, the migrator should be added as
+	// beta version. For example,
+	// m.addMigrations("2.20.0-beta.1", migrationFunc3 )
+	// alpha.1 is the first pre-release version of 2.20.0. If there is a alpha.2, then the migrator should be
+	// m.addMigrations("2.20.0-alpha.2", migrationFunc2 ). When the official release is out and new migrators are
+	// required, the migrator should be m.addMigrations("2.20.0", migrationFunc4 )
 
 	// !NOTE: One function per migration, each versions migration funcs should be placed in the same file.
 	// Don't create one function called from here that calls many other migration functions for the same version.
@@ -341,11 +345,11 @@ func dbTooOldError() error {
 }
 
 // shortVersion returns a short version string for semantic version based
-// on API version. If API version is not beta version, Major.Minor.Patch will
+// on API version. If API version is not alpha or beta version, Major.Minor.Patch will
 // return. Otherwise, the full semantic version will return.
 func shortVersion(semVer *semver.Version, apiVersion string) string {
 	version := fmt.Sprintf("%d.%d.%d", semVer.Major(), semVer.Minor(), semVer.Patch())
-	if strings.Contains(apiVersion, "beta") {
+	if strings.Contains(apiVersion, "beta") || strings.Contains(apiVersion, "alpha") {
 		version = semVer.String()
 	}
 	return version

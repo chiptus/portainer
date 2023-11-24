@@ -37,6 +37,21 @@ func TestShortVersion(t *testing.T) {
 			apiVersion:      "2.20.0-beta.1",
 			expect:          "2.20.0-beta.1",
 		},
+		{
+			semanticVersion: "2.20.0-alpha.1",
+			apiVersion:      "2.20.0",
+			expect:          "2.20.0",
+		},
+		{
+			semanticVersion: "2.20.0",
+			apiVersion:      "2.20.0-alpha.1",
+			expect:          "2.20.0",
+		},
+		{
+			semanticVersion: "2.20.0-alpha.1",
+			apiVersion:      "2.20.0-alpha.1",
+			expect:          "2.20.0-alpha.1",
+		},
 	}
 
 	for _, tc := range testCases {
