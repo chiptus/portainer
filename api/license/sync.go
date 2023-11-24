@@ -273,11 +273,11 @@ func (service *Service) cpuCount() int {
 	}
 
 	for _, e := range endpoints {
-		if e.Status != portaineree.EndpointStatusUp {
-			continue
-		}
 		switch e.Type {
 		case portaineree.DockerEnvironment, portaineree.AgentOnDockerEnvironment:
+			if e.Status != portaineree.EndpointStatusUp {
+				continue
+			}
 			dcl, err := service.dockerClientFactory.CreateClient(&e, "", nil)
 			if err != nil {
 				log.Err(err).Msg("failed fetching dockerclient for cpu count")
@@ -290,6 +290,9 @@ func (service *Service) cpuCount() int {
 			}
 			count += info.NCPU
 		case portaineree.KubernetesLocalEnvironment, portaineree.AgentOnKubernetesEnvironment:
+			if e.Status != portaineree.EndpointStatusUp {
+				continue
+			}
 			kcl, err := service.kubernetesClientFactory.GetKubeClient(&e)
 			if err != nil {
 				log.Err(err).Msg("failed fetching kubeclient for cpu count")
@@ -302,8 +305,13 @@ func (service *Service) cpuCount() int {
 			}
 			count += c
 		case portaineree.EdgeAgentOnDockerEnvironment, portaineree.EdgeAgentOnKubernetesEnvironment:
-			snapshot, err := service.dataStore.Snapshot().Read(portainer.EndpointID(e.ID))
+			if !e.UserTrusted {
+				// skip waiting room endpoints
+				continue
+			}
+			snapshot, err := service.dataStore.Snapshot().Read(e.ID)
 			if err != nil {
+				log.Debug().Msgf("failed reading snapshot for endpoint %d", e.ID)
 				continue
 			}
 			if snapshot.Docker != nil {
