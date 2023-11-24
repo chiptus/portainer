@@ -126,6 +126,7 @@ export class EditEdgeStackViewController {
         prePullImage: values.prePullImage,
         updateVersion,
         rePullImage,
+        retryDeploy: values.retryDeploy,
         webhook: values.webhookEnabled ? this.stack.Webhook || createWebhookId() : '',
         envVars: values.envVars,
         rollbackTo: values.rollbackTo ? values.rollbackTo : undefined,
