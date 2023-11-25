@@ -131,22 +131,17 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
-	isAdmin := security.IsAdmin(tokenData.Role)
-	canK8sClusterSetup := isAdmin || false
+	// EE-6176 TODO later: create specific routes to edit parts of the env config (for example k8s cluster that require another Authorization)
+	isAdminOrEdgeAdmin := security.IsAdminOrEdgeAdmin(tokenData.Role)
+	canK8sClusterSetup := isAdminOrEdgeAdmin
 	// if user is not a portainer admin, we might allow update k8s cluster config
-	if !isAdmin {
+	if !isAdminOrEdgeAdmin {
 		// check if the user can access cluster setup in the environment(endpoint) (environment admin)
 		endpointRole, err := handler.AuthorizationService.GetUserEndpointRoleTx(handler.DataStore, int(tokenData.ID), int(endpoint.ID))
 		if err != nil {
 			return httperror.Forbidden(permissionDeniedErr, err)
 		} else if !endpointRole.Authorizations[portaineree.OperationK8sClusterSetupRW] {
-			err = errors.New(permissionDeniedErr)
-			return httperror.Forbidden(permissionDeniedErr, err)
-		}
-		// deny access if user can not access all namespaces
-		if !endpointRole.Authorizations[portaineree.OperationK8sAccessAllNamespaces] {
-			err = errors.New(permissionDeniedErr)
-			return httperror.Forbidden(permissionDeniedErr, err)
+			return httperror.Forbidden(permissionDeniedErr, errors.New(permissionDeniedErr))
 		} else {
 			canK8sClusterSetup = true
 		}
@@ -163,7 +158,9 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	updateRelations := false
-	if isAdmin {
+	// EE-6176 TODO later: move this check to RBAC layer performed before the handler exec
+	// EE-6176 TODO later: create specific routes to edit parts of the env config (for example k8s cluster that require another Authorization)
+	if security.IsAdmin(tokenData.Role) {
 		updateEndpointProxy := shouldReloadTLSConfiguration(endpoint, &payload)
 
 		if payload.Name != nil {

@@ -141,7 +141,7 @@ func (handler *Handler) validateOAuth(w http.ResponseWriter, r *http.Request) (*
 
 	info := handler.LicenseService.Info()
 
-	if security.IsAdmin(user.Role) {
+	if !security.IsAdmin(user.Role) {
 		if !info.Valid {
 			return resp, httperror.Forbidden("License is not valid", httperrors.ErrNoValidLicense)
 		}
