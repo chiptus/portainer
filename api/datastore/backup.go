@@ -54,7 +54,7 @@ func (store *Store) createBackupFolders() {
 // - db rollback
 func getBackupRestoreOptions(backupDir string) *BackupOptions {
 	return &BackupOptions{
-		BackupDir:      backupDir, //connection.commonBackupDir(),
+		BackupDir:      backupDir,
 		BackupFileName: beforePortainerVersionUpgradeBackup,
 	}
 }
@@ -91,7 +91,7 @@ type BackupOptions struct {
 	BackupPath     string
 }
 
-func (store *Store) setupOptions(options *BackupOptions) *BackupOptions {
+func (store *Store) setDefaultBackupOptions(options *BackupOptions) *BackupOptions {
 	if options == nil {
 		options = &BackupOptions{}
 	}
@@ -154,7 +154,7 @@ func (store *Store) LatestEditionBackup() (string, error) {
 	}
 
 	if len(files) == 0 {
-		return "", nil
+		return "", fmt.Errorf("no backup files found for Portainer %s", edition.GetEditionLabel())
 	}
 
 	return files[len(files)-1], nil
@@ -166,7 +166,7 @@ func (store *Store) backupWithOptions(options *BackupOptions) (string, error) {
 
 	store.createBackupFolders()
 
-	options = store.setupOptions(options)
+	options = store.setDefaultBackupOptions(options)
 	dbPath := store.databasePath()
 
 	if err := store.Close(); err != nil {
@@ -207,20 +207,18 @@ func (store *Store) Backup(version *models.Version) (string, error) {
 // - default: restore latest from current edition
 // - restore a specific
 func (store *Store) restoreWithOptions(options *BackupOptions) error {
-	options = store.setupOptions(options)
+	options = store.setDefaultBackupOptions(options)
 
 	// Check if backup file exist before restoring
 	_, err := os.Stat(options.BackupPath)
 	if os.IsNotExist(err) {
-		log.Error().Str("path", options.BackupPath).Err(err).Msg("backup file to restore does not exist %s")
-
+		log.Error().Str("path", options.BackupPath).Err(err).Msg("backup file to restore does not exist")
 		return err
 	}
 
 	err = store.Close()
 	if err != nil {
 		log.Error().Err(err).Msg("error while closing store before restore")
-
 		return err
 	}
 
@@ -250,7 +248,7 @@ func (store *Store) Restore() error {
 func (store *Store) removeWithOptions(options *BackupOptions) error {
 	log.Info().Msg("removing DB backup")
 
-	options = store.setupOptions(options)
+	options = store.setDefaultBackupOptions(options)
 	_, err := os.Stat(options.BackupPath)
 
 	if os.IsNotExist(err) {

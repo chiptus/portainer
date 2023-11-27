@@ -81,13 +81,30 @@ func TestMigrateData(t *testing.T) {
 
 	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
 		_, store := MustNewTestStore(t, true, false)
-		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: "1.0"})
+		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: "1.0", Edition: int(portaineree.PortainerEE)})
 		store.MigrateData()
 
 		backupfile, err := store.LatestEditionBackup()
 		if err != nil && backupfile == "" {
 			t.Errorf("Backup file should exist")
 		}
+	})
+
+	t.Run("MigrateData should recover and restore backup during migration critical failure", func(t *testing.T) {
+		os.Setenv("PORTAINER_TEST_MIGRATE_FAIL", "FAIL")
+
+		version := "2.15"
+		_, store := MustNewTestStore(t, true, false)
+		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: version, Edition: int(portaineree.PortainerEE)})
+		store.MigrateData()
+
+		backupfile, err := store.LatestEditionBackup()
+		if err != nil && backupfile == "" {
+			t.Errorf("Backup file should exist")
+		}
+
+		store.Open()
+		testVersion(store, version, t)
 	})
 
 	t.Run("MigrateData should fail to create backup if database file is set to updating", func(t *testing.T) {
@@ -110,6 +127,10 @@ func TestMigrateData(t *testing.T) {
 		// Set migrator the count to match our migrations array (simulate no changes).
 		// Should not create a backup
 		v, err := store.VersionService.Version()
+		if err != nil {
+			t.Errorf("Unable to read version from db: %s", err)
+			t.FailNow()
+		}
 
 		migratorParams := store.newMigratorParameters(v, &portaineree.CLIFlags{})
 		m := migrator.NewMigrator(migratorParams)
@@ -137,6 +158,11 @@ func TestMigrateData(t *testing.T) {
 		// Set migrator count very large to simulate changes
 		// Should not create a backup
 		v, err := store.VersionService.Version()
+		if err != nil {
+			t.Errorf("Unable to read version from db: %s", err)
+			t.FailNow()
+		}
+
 		v.MigratorCount = 1000
 		store.VersionService.UpdateVersion(v)
 		store.MigrateData()
@@ -178,7 +204,41 @@ func TestRollback(t *testing.T) {
 		_, store := MustNewTestStore(t, false, false)
 		store.VersionService.UpdateVersion(&v)
 
-		_, err := store.backupWithOptions(getBackupRestoreOptions(store.commonBackupDir()))
+		_, err := store.Backup(nil)
+		if err != nil {
+			log.Fatal().Err(err).Msg("")
+		}
+
+		v.SchemaVersion = "2.14"
+		// Change the current edition
+		err = store.VersionService.UpdateVersion(&v)
+		if err != nil {
+			log.Fatal().Err(err).Msg("")
+		}
+
+		err = store.Rollback(true)
+		if err != nil {
+			t.Logf("Rollback failed: %s", err)
+			t.Fail()
+			return
+		}
+
+		store.Open()
+		testVersion(store, version, t)
+	})
+
+	t.Run("Rollback should restore upgrade after backup", func(t *testing.T) {
+		version := "2.15"
+
+		v := models.Version{
+			SchemaVersion: version,
+			Edition:       int(portaineree.PortainerEE),
+		}
+
+		_, store := MustNewTestStore(t, true, false)
+		store.VersionService.UpdateVersion(&v)
+
+		_, err := store.Backup(nil)
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}

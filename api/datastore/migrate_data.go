@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"fmt"
+	"os"
 	"runtime/debug"
 	"strconv"
 
@@ -93,6 +94,11 @@ func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version *models
 	err = migrator.Migrate()
 	if err != nil {
 		return err
+	}
+
+	// Special test code to simulate a failure (used by migrate_data_test.go).  Do not remove...
+	if os.Getenv("PORTAINER_TEST_MIGRATE_FAIL") == "FAIL" {
+		panic("test migration failure")
 	}
 
 	// If DB is CE Edition we need to upgrade settings to EE
@@ -317,9 +323,7 @@ func (store *Store) connectionRollback(force bool) error {
 		}
 	}
 
-	options := getBackupRestoreOptions(store.commonBackupDir())
-
-	err := store.restoreWithOptions(options)
+	err := store.Restore()
 	if err != nil {
 		return err
 	}

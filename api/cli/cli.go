@@ -46,7 +46,7 @@ func (*Service) ParseFlags(version string) (*portaineree.CLIFlags, error) {
 		TLSCacert:                 kingpin.Flag("tlscacert", "Path to the CA").Default(defaultTLSCACertPath).String(),
 		TLSCert:                   kingpin.Flag("tlscert", "Path to the TLS certificate file").Default(defaultTLSCertPath).String(),
 		TLSKey:                    kingpin.Flag("tlskey", "Path to the TLS key").Default(defaultTLSKeyPath).String(),
-		Rollback:                  kingpin.Flag("rollback", "Rollback the database store to the previous version").Bool(),
+		Rollback:                  kingpin.Flag("rollback", "Rollback the database to the previous backup").Bool(),
 		RollbackToCE:              kingpin.Flag("rollback-to-ce", "Rollback the database store to CE").Bool(),
 		HTTPDisabled:              kingpin.Flag("http-disabled", "Serve portainer only on https").Default(defaultHTTPDisabled).Bool(),
 		HTTPEnabled:               kingpin.Flag("http-enabled", "Serve portainer on http").Default(defaultHTTPEnabled).Bool(),
