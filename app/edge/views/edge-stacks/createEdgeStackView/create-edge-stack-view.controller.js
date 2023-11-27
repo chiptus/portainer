@@ -11,6 +11,10 @@ import { getCustomTemplateFile } from '@/react/portainer/templates/custom-templa
 import { getDefaultStaggerConfig } from '@/react/edge/edge-stacks/components/StaggerFieldset.types';
 import { toGitFormModel } from '@/react/portainer/gitops/types';
 import { StackType } from '@/react/common/stacks/types';
+import { applySetStateAction } from '@/react-tools/apply-set-state-action';
+import { getVariablesFieldDefaultValues } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesField';
+import { renderTemplate } from '@/react/portainer/custom-templates/components/utils';
+import { parseRegistries } from '@/react/edge/edge-stacks/queries/useParseRegistries';
 
 export default class CreateEdgeStackViewController {
   /* @ngInject */
@@ -34,7 +38,7 @@ export default class CreateEdgeStackViewController {
       Groups: [],
       DeploymentType: EditorType.Compose,
       RegistryOptions: [],
-      Registries: [],
+      PrivateRegistryId: null,
       UseManifestNamespaces: false,
       PrePullImage: false,
       RetryDeploy: false,
@@ -61,7 +65,11 @@ export default class CreateEdgeStackViewController {
       baseWebhookUrl: baseEdgeStackWebhookUrl(),
       webhookId: createWebhookId(),
       isEdit: false,
-      selectedTemplate: null,
+      templateValues: {
+        template: null,
+        variables: [],
+        file: '',
+      },
     };
 
     this.edgeGroups = null;
@@ -85,15 +93,40 @@ export default class CreateEdgeStackViewController {
     this.onChangeWebhookState = this.onChangeWebhookState.bind(this);
     this.onEnvVarChange = this.onEnvVarChange.bind(this);
     this.onChangeStaggerConfig = this.onChangeStaggerConfig.bind(this);
+    this.setTemplateValues = this.setTemplateValues.bind(this);
     this.onChangeTemplate = this.onChangeTemplate.bind(this);
   }
 
   /**
-   * @param {import('@/react/portainer/templates/custom-templates/types').CustomTemplate} template
+   * @param {import('react').SetStateAction<import('@/react/edge/edge-stacks/CreateView/TemplateFieldset').Values>} templateAction
    */
+  setTemplateValues(templateAction) {
+    return this.$async(async () => {
+      const newTemplateValues = applySetStateAction(templateAction, this.state.templateValues);
+      const oldTemplateId = this.state.templateValues.template && this.state.templateValues.template.Id;
+      const newTemplateId = newTemplateValues.template && newTemplateValues.template.Id;
+      this.state.templateValues = newTemplateValues;
+      if (newTemplateId !== oldTemplateId) {
+        await this.onChangeTemplate(newTemplateValues.template);
+      }
+
+      const newFile = renderTemplate(this.state.templateValues.file, this.state.templateValues.variables, this.state.templateValues.template.Variables);
+
+      this.formValues.StackFileContent = newFile;
+    });
+  }
+
   onChangeTemplate(template) {
-    return this.$scope.$evalAsync(() => {
-      this.state.selectedTemplate = template;
+    return this.$async(async () => {
+      if (!template) {
+        return;
+      }
+
+      this.state.templateValues.template = template;
+      this.state.templateValues.variables = getVariablesFieldDefaultValues(template.Variables);
+
+      const fileContent = await getCustomTemplateFile({ id: template.Id, git: !!template.GitConfig });
+      this.state.templateValues.file = fileContent;
 
       this.formValues = {
         ...this.formValues,
@@ -103,7 +136,7 @@ export default class CreateEdgeStackViewController {
           ? {
               PrePullImage: template.EdgeSettings.PrePullImage || false,
               RetryDeploy: template.EdgeSettings.RetryDeploy || false,
-              Registries: template.EdgeSettings.PrivateRegistryId ? [template.EdgeSettings.PrivateRegistryId] : [],
+              PrivateRegistryId: template.EdgeSettings.PrivateRegistryId || null,
               SupportRelativePath: template.EdgeSettings.RelativePathSettings.SupportRelativePath || false,
               FilesystemPath: template.EdgeSettings.RelativePathSettings.FilesystemPath || '',
               staggerConfig: template.EdgeSettings.StaggerConfig || getDefaultStaggerConfig(),
@@ -156,24 +189,23 @@ export default class CreateEdgeStackViewController {
   }
 
   async preSelectTemplate(templateId) {
-    try {
-      this.state.Method = 'template';
-      const template = await getCustomTemplate(templateId);
-      this.onChangeTemplate(template);
-      const fileContent = await getCustomTemplateFile({ id: templateId, git: !!template.GitConfig });
-      this.formValues.StackFileContent = fileContent;
-    } catch (e) {
-      notifyError('Failed loading template', e);
-    }
+    return this.$async(async () => {
+      try {
+        this.state.Method = 'template';
+        const template = await getCustomTemplate(templateId);
+
+        this.setTemplateValues({ template });
+      } catch (e) {
+        notifyError('Failed loading template', e);
+      }
+    });
   }
 
   async $onInit() {
     // Initial Registry Options for selector
     this.formValues.RegistryOptions = await this.RegistryService.registries();
 
-    this.registryID = '';
     this.errorMessage = '';
-    this.dryrun = false;
 
     try {
       this.edgeGroups = await this.EdgeGroupService.groups();
@@ -208,62 +240,41 @@ export default class CreateEdgeStackViewController {
   }
 
   clearRegistries() {
-    this.formValues.Registries = [];
-    this.registryID = '';
-    this.dryrun = false;
+    this.formValues.PrivateRegistryId = null;
   }
 
-  selectedRegistry(e) {
+  selectedRegistry(selectedRegistry) {
     return this.$async(async () => {
-      const selectedRegistry = e;
-      this.registryID = selectedRegistry;
-      this.formValues.Registries = [this.registryID];
+      this.formValues.PrivateRegistryId = selectedRegistry;
     });
   }
 
   matchRegistry() {
     return this.$async(async () => {
-      const name = this.formValues.Name;
-      this.state.actionInProgress = true;
       this.errorMessage = '';
-      this.dryrun = true;
-      let response = '';
-      let method = this.state.Method;
+      const method = this.state.Method;
 
-      if (method === 'template') {
-        method = 'editor';
+      if (method === 'repository' || !this.formValues.StackFileContent || !this.formValues.StackFile) {
+        return;
       }
 
-      if (method === 'editor' || method === 'upload') {
-        try {
-          if (method === 'editor') {
-            response = await this.createStackFromFileContent(name, this.dryrun);
-          }
-          if (method === 'upload') {
-            const responseFromUpload = await this.createStackFromFileUpload(name, this.dryrun);
-            response = responseFromUpload.data;
-          }
-          if (response.Registries.length !== 0) {
-            const validRegistry = this.checkRegistries(response.Registries);
-            if (validRegistry) {
-              this.registryID = response.Registries[0];
-              this.formValues.Registries = [this.registryID];
-            } else {
-              this.registryID = '';
-              this.errorMessage = ' Images need to be from a single registry, please edit and reload';
-            }
-          } else {
-            this.registryID = '';
-          }
-        } catch (err) {
-          this.Notifications.error('Failure', err, 'Unable to retrieve registries');
-        } finally {
-          this.dryrun = false;
-          this.state.actionInProgress = false;
+      this.state.actionInProgress = true;
+      try {
+        const registries = await parseRegistries({ fileContent: this.formValues.StackFileContent, file: this.formValues.StackFile });
+
+        if (registries.length === 0) {
+          this.formValues.PrivateRegistryId = null;
         }
-      } else {
-        // Git Repository does not has dryrun
-        this.dryrun = false;
+        const validRegistry = this.checkRegistries(registries);
+        if (validRegistry) {
+          this.formValues.PrivateRegistryId = registries[0];
+        } else {
+          this.formValues.PrivateRegistryId = null;
+          this.errorMessage = ' Images need to be from a single registry, please edit and reload';
+        }
+      } catch (err) {
+        this.Notifications.error('Failure', err, 'Unable to retrieve registries');
+      } finally {
         this.state.actionInProgress = false;
       }
     });
@@ -284,7 +295,7 @@ export default class CreateEdgeStackViewController {
 
       this.state.actionInProgress = true;
       try {
-        await this.createStackByMethod(name, method, this.dryrun);
+        await this.createStackByMethod(name, method);
 
         this.Notifications.success('Success', 'Stack successfully deployed');
         this.state.isEditorDirty = false;
@@ -340,45 +351,43 @@ export default class CreateEdgeStackViewController {
     return true;
   }
 
-  createStackByMethod(name, method, dryrun) {
+  createStackByMethod(name, method) {
     switch (method) {
       case 'editor':
-        return this.createStackFromFileContent(name, dryrun);
+        return this.createStackFromFileContent(name);
       case 'upload':
-        return this.createStackFromFileUpload(name, dryrun);
+        return this.createStackFromFileUpload(name);
       case 'repository':
         return this.createStackFromGitRepository(name);
     }
   }
 
-  createStackFromFileContent(name, dryrun) {
-    const { StackFileContent, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } = this.formValues;
+  createStackFromFileContent(name) {
+    const { StackFileContent, Groups, DeploymentType, PrivateRegistryId, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } =
+      this.formValues;
 
     let webhookId = '';
     if (webhookEnabled) {
       webhookId = this.state.webhookId;
     }
 
-    return this.EdgeStackService.createStackFromFileContent(
-      {
-        name,
-        StackFileContent,
-        EdgeGroups: Groups,
-        DeploymentType,
-        Registries: dryrun ? [] : Registries,
-        UseManifestNamespaces,
-        PrePullImage,
-        RetryDeploy,
-        webhook: webhookId,
-        envVars,
-        staggerConfig,
-      },
-      dryrun
-    );
+    return this.EdgeStackService.createStackFromFileContent({
+      name,
+      StackFileContent,
+      EdgeGroups: Groups,
+      DeploymentType,
+      Registries: [PrivateRegistryId],
+      UseManifestNamespaces,
+      PrePullImage,
+      RetryDeploy,
+      webhook: webhookId,
+      envVars,
+      staggerConfig,
+    });
   }
 
-  createStackFromFileUpload(name, dryrun) {
-    const { StackFile, Groups, DeploymentType, Registries, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } = this.formValues;
+  createStackFromFileUpload(name) {
+    const { StackFile, Groups, DeploymentType, PrivateRegistryId, UseManifestNamespaces, PrePullImage, RetryDeploy, webhookEnabled, envVars, staggerConfig } = this.formValues;
     let webhookId = '';
     if (webhookEnabled) {
       webhookId = this.state.webhookId;
@@ -389,7 +398,7 @@ export default class CreateEdgeStackViewController {
         Name: name,
         EdgeGroups: Groups,
         DeploymentType,
-        Registries: dryrun ? [] : Registries,
+        Registries: [PrivateRegistryId],
         UseManifestNamespaces,
         PrePullImage,
         RetryDeploy,
@@ -397,8 +406,7 @@ export default class CreateEdgeStackViewController {
         envVars,
         staggerConfig,
       },
-      StackFile,
-      dryrun
+      StackFile
     );
   }
 
@@ -406,7 +414,7 @@ export default class CreateEdgeStackViewController {
     const {
       Groups,
       DeploymentType,
-      Registries,
+      PrivateRegistryId,
       UseManifestNamespaces,
       PrePullImage,
       RetryDeploy,
@@ -448,7 +456,7 @@ export default class CreateEdgeStackViewController {
         name,
         EdgeGroups: Groups,
         DeploymentType,
-        Registries: Registries,
+        Registries: [PrivateRegistryId],
         UseManifestNamespaces,
         PrePullImage,
         RetryDeploy,

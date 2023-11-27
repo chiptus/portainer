@@ -57,7 +57,6 @@ export function PrivateRegistryFieldsetWrapper({
       const registries = await dryRunMutation.mutateAsync(values);
 
       if (registries.length === 0) {
-        onChange(undefined);
         return;
       }
 

@@ -124,7 +124,7 @@ type (
 		// Retry deploy
 		RetryDeploy bool `example:"false"`
 
-		PrivateRegistryID portainer.RegistryID `json:"PrivateRegistryID,omitempty"`
+		PrivateRegistryID portainer.RegistryID `json:"PrivateRegistryId,omitempty"`
 
 		RelativePathSettings CustomTemplateRelativePathSettings
 
@@ -1525,14 +1525,6 @@ const (
 	EdgeUpdateFailureActionPause
 	// EdgeUpdateFailureActionRollback represents that stagger update will rollback as long as one endpoint update status is failed
 	EdgeUpdateFailureActionRollback
-)
-
-const (
-	_ portainer.CustomTemplatePlatform = iota
-	// CustomTemplatePlatformLinux represents a custom template for linux
-	CustomTemplatePlatformLinux
-	// CustomTemplatePlatformWindows represents a custom template for windows
-	CustomTemplatePlatformWindows
 )
 
 const (

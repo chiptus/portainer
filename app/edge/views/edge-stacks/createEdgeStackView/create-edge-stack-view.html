@@ -57,8 +57,8 @@
             ng-if="$ctrl.formValues.DeploymentType == $ctrl.EditorType.Compose"
             form-values="$ctrl.formValues"
             state="$ctrl.state"
-            template="$ctrl.state.selectedTemplate"
-            on-change-template="($ctrl.onChangeTemplate)"
+            template-values="$ctrl.state.templateValues"
+            set-template-values="$ctrl.setTemplateValues"
           ></edge-stacks-docker-compose-form>
 
           <edge-stacks-kube-manifest-form
@@ -94,13 +94,14 @@
 
           <private-registry-fieldset
             method="$ctrl.state.Method"
-            value="$ctrl.registryID"
+            value="$ctrl.formValues.PrivateRegistryId"
             registries="$ctrl.formValues.RegistryOptions"
             on-change="($ctrl.matchRegistry)"
             form-invalid="$ctrl.formIsInvalid()"
             error-message="$ctrl.errorMessage"
             on-select="($ctrl.selectedRegistry)"
             clear-registries="($ctrl.clearRegistries)"
+            is-active="!!$ctrl.formValues.PrivateRegistryId"
           ></private-registry-fieldset>
 
           <div class="form-group">
