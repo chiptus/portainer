@@ -34,11 +34,11 @@ const tabs: Tab[] = [
     widget: <div />,
     selectedTabParam: 'configurations',
   },
-  {
-    name: 'Secrets',
-    widget: <div />,
-    selectedTabParam: 'secrets',
-  },
+  // {
+  //   name: 'Secrets',
+  //   widget: <div />,
+  //   selectedTabParam: 'secrets',
+  // },
 ];
 
 const categories = [
