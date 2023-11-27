@@ -55,6 +55,7 @@ angular.module('portainer.app').factory('Authentication', [
       EndpointProvider.clean();
       LocalStorage.cleanAuthData();
       LocalStorage.storeLoginStateUUID('');
+      cleanUserData();
     }
 
     function logout() {
@@ -89,6 +90,10 @@ angular.module('portainer.app').factory('Authentication', [
 
     function getUserDetails() {
       return user;
+    }
+
+    function cleanUserData() {
+      user = {};
     }
 
     async function loadUserData() {
