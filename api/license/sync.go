@@ -25,7 +25,7 @@ const (
 )
 
 func (service *Service) startSyncLoop() error {
-	err := service.SyncLicenses()
+	err := service.SyncLicenses(liblicense.StartupCheckIn)
 	if err != nil {
 		log.Err(err).Msg("failed initial license sync")
 	}
@@ -41,7 +41,7 @@ func (service *Service) startSyncLoop() error {
 
 				return
 			case <-ticker.C:
-				service.SyncLicenses()
+				service.SyncLicenses(liblicense.IntervalCheckIn)
 			}
 		}
 	}()
@@ -51,7 +51,7 @@ func (service *Service) startSyncLoop() error {
 
 // syncLiceses checks all of the licenses with the license server to determine
 // if any of them have been revoked or otherwise to not exist on the server.
-func (service *Service) SyncLicenses() error {
+func (service *Service) SyncLicenses(checkinType liblicense.CheckInType) error {
 	licenses, err := service.dataStore.License().Licenses()
 	if err != nil {
 		return err
@@ -63,6 +63,7 @@ func (service *Service) SyncLicenses() error {
 	}
 	info := liblicense.CheckInInfo{
 		Licenses: licenses,
+		Type:     checkinType,
 		Meta:     meta,
 	}
 	resp, err := liblicense.CheckIn(info)
@@ -407,7 +408,7 @@ func RecalculateLicenseUsage(licenseService portaineree.LicenseService, next htt
 		next.ServeHTTP(rw, r)
 
 		if licenseService != nil {
-			licenseService.SyncLicenses()
+			licenseService.SyncLicenses(liblicense.StartupCheckIn)
 		}
 	})
 }

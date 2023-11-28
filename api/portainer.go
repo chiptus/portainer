@@ -118,7 +118,6 @@ type (
 
 	// CustomTemplateEdgeSettings represents the settings of a custom template for Edge
 	CustomTemplateEdgeSettings struct {
-
 		// Pre Pull Image
 		PrePullImage bool
 		// Retry deploy
@@ -240,7 +239,7 @@ type (
 		UpdateFailureAction EdgeUpdateFailureAction
 	}
 
-	//EdgeStack represents an edge stack
+	// EdgeStack represents an edge stack
 	EdgeStack struct {
 		// EdgeStack Identifier
 		ID             portainer.EdgeStackID                              `json:"Id" example:"1"`
@@ -1310,7 +1309,7 @@ type (
 		Info() LicenseInfo
 		Licenses() []liblicense.PortainerLicense
 		ShouldEnforceOveruse() bool
-		SyncLicenses() error
+		SyncLicenses(checkinType liblicense.CheckInType) error
 		Start() error
 		WillBeEnforcedAt() int64
 	}
