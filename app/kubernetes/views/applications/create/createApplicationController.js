@@ -1270,7 +1270,8 @@ class KubernetesCreateApplicationController {
   }
 
   isAnnotationsValid() {
-    return !this.state.annotationsErrors && this.state.isServiceAnnotationsValid;
+    const noAnnotationErrors = !this.state.annotationsErrors || Object.keys(this.state.annotationsErrors).length === 0;
+    return noAnnotationErrors && this.state.isServiceAnnotationsValid;
   }
 
   isNoteValid() {
