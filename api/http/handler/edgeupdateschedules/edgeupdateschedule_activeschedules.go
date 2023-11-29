@@ -28,7 +28,7 @@ func (payload *activeSchedulePayload) Validate(r *http.Request) error {
 // @produce json
 // @success 200 {array} types.EndpointUpdateScheduleRelation
 // @failure 500
-// @router /edge_update_schedules/active [get]
+// @router /edge_update_schedules/active [post]
 func (handler *Handler) activeSchedules(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	var payload activeSchedulePayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)

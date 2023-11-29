@@ -17,6 +17,7 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
+// @param includeEdgeStacks query boolean false "Include Edge Stacks in the response"
 // @success 200 {array} decoratedUpdateSchedule
 // @failure 500
 // @router /edge_update_schedules [get]
