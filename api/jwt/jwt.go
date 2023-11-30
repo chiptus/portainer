@@ -125,10 +125,11 @@ func (service *Service) ParseAndVerifyToken(token string) (*portainer.TokenData,
 			}
 
 			return &portainer.TokenData{
-				ID:       portainer.UserID(cl.UserID),
-				Username: cl.Username,
-				Role:     portainer.UserRole(cl.Role),
-				Token:    token,
+				ID:                  portainer.UserID(cl.UserID),
+				Username:            cl.Username,
+				Role:                portainer.UserRole(cl.Role),
+				Token:               token,
+				ForceChangePassword: cl.ForceChangePassword,
 			}, nil
 		}
 	}
