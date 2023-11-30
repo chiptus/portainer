@@ -6,18 +6,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
+	"github.com/Masterminds/semver/v3"
 	portaineree "github.com/portainer/portainer-ee/api"
 	"github.com/portainer/portainer-ee/api/database/boltdb"
 	"github.com/portainer/portainer-ee/api/datastore/migrator"
 	"github.com/portainer/portainer/api/database/models"
+	"github.com/rs/zerolog/log"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/rs/zerolog/log"
 	"github.com/segmentio/encoding/json"
 )
 
@@ -66,27 +65,14 @@ func TestMigrateData(t *testing.T) {
 		}
 	})
 
-	t.Run("Error in MigrateData should restore backup before MigrateData", func(t *testing.T) {
-		_, store := MustNewTestStore(t, false, false)
-
-		v := models.Version{
-			SchemaVersion: "2.14",
-		}
-
-		store.VersionService.UpdateVersion(&v)
-		store.MigrateData()
-
-		testVersion(store, v.SchemaVersion, t)
-	})
-
 	t.Run("MigrateData should create backup file upon update", func(t *testing.T) {
 		_, store := MustNewTestStore(t, true, false)
 		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: "1.0", Edition: int(portaineree.PortainerEE)})
 		store.MigrateData()
 
-		backupfile, err := store.LatestEditionBackup()
-		if err != nil && backupfile == "" {
-			t.Errorf("Backup file should exist")
+		backupfilename := store.backupFilename()
+		if exists, _ := store.fileService.FileExists(backupfilename); !exists {
+			t.Errorf("Expect backup file to be created %s", backupfilename)
 		}
 	})
 
@@ -97,11 +83,6 @@ func TestMigrateData(t *testing.T) {
 		_, store := MustNewTestStore(t, true, false)
 		store.VersionService.UpdateVersion(&models.Version{SchemaVersion: version, Edition: int(portaineree.PortainerEE)})
 		store.MigrateData()
-
-		backupfile, err := store.LatestEditionBackup()
-		if err != nil && backupfile == "" {
-			t.Errorf("Backup file should exist")
-		}
 
 		store.Open()
 		testVersion(store, version, t)
@@ -115,8 +96,8 @@ func TestMigrateData(t *testing.T) {
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
 		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
 		// only create a backup when the version changes.
-		backupfile, err := store.LatestEditionBackup()
-		if err == nil && backupfile != "" {
+		backupfilename := store.backupFilename()
+		if exists, _ := store.fileService.FileExists(backupfilename); exists {
 			t.Errorf("Backup file should not exist for dirty database")
 		}
 	})
@@ -146,8 +127,8 @@ func TestMigrateData(t *testing.T) {
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
 		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
 		// only create a backup when the version changes.
-		backupfile, err := store.LatestEditionBackup()
-		if err == nil || backupfile != "" {
+		backupfilename := store.backupFilename()
+		if exists, _ := store.fileService.FileExists(backupfilename); exists {
 			t.Errorf("Backup file should not exist for dirty database")
 		}
 	})
@@ -170,27 +151,11 @@ func TestMigrateData(t *testing.T) {
 		// If you get an error, it usually means that the backup folder doesn't exist (no backups). Expected!
 		// If the backup file is not blank, then it means a backup was created.  We don't want that because we
 		// only create a backup when the version changes.
-		backupfile, err := store.LatestEditionBackup()
-		if err != nil && backupfile == "" {
+		backupfilename := store.backupFilename()
+		if exists, _ := store.fileService.FileExists(backupfilename); !exists {
 			t.Errorf("DB backup should exist and there should be no error")
 		}
 	})
-}
-
-func Test_getBackupRestoreOptions(t *testing.T) {
-	_, store := MustNewTestStore(t, true, false)
-
-	options := getBackupRestoreOptions(store.commonBackupDir())
-
-	wantDir := store.commonBackupDir()
-	if !strings.HasSuffix(options.BackupDir, wantDir) {
-		log.Fatal().Str("got", options.BackupDir).Str("want", wantDir).Msg("incorrect backup dir")
-	}
-
-	wantFilename := "portainer.db.bak"
-	if options.BackupFileName != wantFilename {
-		log.Fatal().Str("got", options.BackupFileName).Str("want", wantFilename).Msg("incorrect backup file")
-	}
 }
 
 func TestRollback(t *testing.T) {
@@ -204,7 +169,7 @@ func TestRollback(t *testing.T) {
 		_, store := MustNewTestStore(t, false, false)
 		store.VersionService.UpdateVersion(&v)
 
-		_, err := store.Backup(nil)
+		_, err := store.Backup()
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}
@@ -238,7 +203,7 @@ func TestRollback(t *testing.T) {
 		_, store := MustNewTestStore(t, true, false)
 		store.VersionService.UpdateVersion(&v)
 
-		_, err := store.Backup(nil)
+		_, err := store.Backup()
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}

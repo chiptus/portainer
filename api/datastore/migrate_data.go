@@ -18,11 +18,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	beforePortainerVersionUpgradeBackup = "portainer.db.bak"
-	beforePortainerUpgradeToEEBackup    = "portainer.db.before-EE-upgrade"
-)
-
 func (store *Store) MigrateData() error {
 	updating, err := store.VersionService.IsUpdating()
 	if err != nil {
@@ -47,7 +42,7 @@ func (store *Store) MigrateData() error {
 	}
 
 	// before we alter anything in the DB, create a backup
-	backupPath, err := store.Backup(version)
+	_, err = store.Backup()
 	if err != nil {
 		return errors.Wrap(err, "while backing up database")
 	}
@@ -57,9 +52,9 @@ func (store *Store) MigrateData() error {
 		err = errors.Wrap(err, "failed to migrate database")
 
 		log.Warn().Err(err).Msg("migration failed, restoring database to previous version")
-		restorErr := store.restoreWithOptions(&BackupOptions{BackupPath: backupPath})
-		if restorErr != nil {
-			return errors.Wrap(restorErr, "failed to restore database")
+		restoreErr := store.Restore()
+		if restoreErr != nil {
+			return errors.Wrap(restoreErr, "failed to restore database")
 		}
 
 		log.Info().Msg("database restored to previous version")
@@ -89,6 +84,14 @@ func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version *models
 		return errors.Wrap(err, "while updating version")
 	}
 
+	// If DB is CE Edition we need to upgrade settings to EE
+	if portainer.SoftwareEdition(version.Edition) < portaineree.PortainerEE {
+		err = migrator.UpgradeToEE()
+		if err != nil {
+			return errors.Wrap(err, "while upgrading to EE")
+		}
+	}
+
 	log.Info().Msg("migrating database from version " + version.SchemaVersion + " to " + portaineree.APIVersion)
 
 	err = migrator.Migrate()
@@ -99,14 +102,6 @@ func (store *Store) FailSafeMigrate(migrator *migrator.Migrator, version *models
 	// Special test code to simulate a failure (used by migrate_data_test.go).  Do not remove...
 	if os.Getenv("PORTAINER_TEST_MIGRATE_FAIL") == "FAIL" {
 		panic("test migration failure")
-	}
-
-	// If DB is CE Edition we need to upgrade settings to EE
-	if portainer.SoftwareEdition(version.Edition) < portaineree.PortainerEE {
-		err = migrator.UpgradeToEE()
-		if err != nil {
-			return errors.Wrap(err, "while upgrading to EE")
-		}
 	}
 
 	err = store.VersionService.StoreIsUpdating(false)
@@ -154,10 +149,7 @@ func (store *Store) newMigratorParameters(version *models.Version, flags *portai
 
 // RollbackFailedUpgradeToEE down migrate to previous version
 func (store *Store) RollbackFailedUpgradeToEE() error {
-	return store.restoreWithOptions(&BackupOptions{
-		BackupFileName: beforePortainerUpgradeToEEBackup,
-		Edition:        portaineree.PortainerCE,
-	})
+	return store.Restore()
 }
 
 func (store *Store) rollbackToCE(forceUpdate bool) error {
