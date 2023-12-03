@@ -20,3 +20,8 @@ export function getValidEditorTypes(
     ? _.intersection(...endpointTypes.map((type) => right[type]))
     : [EditorType.Compose, EditorType.Kubernetes];
 }
+
+export function removeTrailingGitExtension(url: string) {
+  // the url could have the .git extension. Remove it if it does.
+  return url.replace(/\.git$/, '');
+}
