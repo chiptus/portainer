@@ -34,15 +34,14 @@ import {
 } from '@/react/edge/edge-stacks/types';
 import { EdgeGroupsSelector } from '@/react/edge/edge-stacks/components/EdgeGroupsSelector';
 import { EdgeStackDeploymentTypeSelector } from '@/react/edge/edge-stacks/components/EdgeStackDeploymentTypeSelector';
-import { useCurrentUser } from '@/react/hooks/useUser';
-import { useCreateGitCredentialMutation } from '@/react/portainer/account/git-credentials/git-credentials.service';
-import { notifyError, notifySuccess } from '@/portainer/services/notifications';
+import { notifySuccess } from '@/portainer/services/notifications';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { Registry } from '@/react/portainer/registries/types';
 import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
 import { RelativePathFieldset } from '@/react/portainer/gitops/RelativePathFieldset/RelativePathFieldset';
 import { parseRelativePathResponse } from '@/react/portainer/gitops/RelativePathFieldset/utils';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
+import { useSaveCredentialsIfRequired } from '@/react/portainer/account/git-credentials/queries/useCreateGitCredentialsMutation';
 
 import { LoadingButton } from '@@/buttons';
 import { FormSection } from '@@/form-components/FormSection';
@@ -79,8 +78,8 @@ interface FormValues {
 export function GitForm({ stack }: { stack: EdgeStack }) {
   const router = useRouter();
   const updateStackMutation = useUpdateEdgeStackGitMutation();
-  const saveCredentialsMutation = useCreateGitCredentialMutation();
-  const { user } = useCurrentUser();
+  const { saveCredentials, isLoading: isSaveCredentialsLoading } =
+    useSaveCredentialsIfRequired();
 
   if (!stack.GitConfig) {
     return null;
@@ -124,7 +123,9 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
             gitPath={gitConfig.ConfigFilePath}
             gitUrl={gitConfig.URL}
             gitCommitHash={gitConfig.ConfigHash}
-            isLoading={updateStackMutation.isLoading}
+            isLoading={
+              updateStackMutation.isLoading || isSaveCredentialsLoading
+            }
             isUpdateVersion={!!updateStackMutation.variables?.updateVersion}
             stackId={stack.Id}
           />
@@ -135,9 +136,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
             return;
           }
 
-          const credentialId = await saveCredentialsIfRequired(
-            values.authentication
-          );
+          const credentialId = await saveCredentials(values.authentication);
 
           updateStackMutation.mutate(getPayload(values, credentialId, false), {
             onSuccess() {
@@ -151,7 +150,7 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
   );
 
   async function handleSubmit(values: FormValues) {
-    const credentialId = await saveCredentialsIfRequired(values.authentication);
+    const credentialId = await saveCredentials(values.authentication);
 
     updateStackMutation.mutate(getPayload(values, credentialId, true), {
       onSuccess() {
@@ -180,29 +179,6 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
           : undefined,
       ...values,
     };
-  }
-
-  async function saveCredentialsIfRequired(authentication: GitAuthModel) {
-    if (
-      !authentication.SaveCredential ||
-      !authentication.RepositoryPassword ||
-      !authentication.NewCredentialName
-    ) {
-      return authentication.RepositoryGitCredentialID;
-    }
-
-    try {
-      const credential = await saveCredentialsMutation.mutateAsync({
-        userId: user.Id,
-        username: authentication.RepositoryUsername,
-        password: authentication.RepositoryPassword,
-        name: authentication.NewCredentialName,
-      });
-      return credential.id;
-    } catch (err) {
-      notifyError('Error', err as Error, 'Unable to save credentials');
-      return undefined;
-    }
   }
 }
 

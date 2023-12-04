@@ -2,12 +2,10 @@ import { useRouter } from '@uirouter/react';
 
 import { useUser } from '@/react/hooks/useUser';
 
-import { CreateGitCredentialPayload, GitCredentialFormValues } from '../types';
-import {
-  useCreateGitCredentialMutation,
-  useGitCredentials,
-} from '../git-credentials.service';
+import { GitCredentialFormValues } from '../types';
+import { useGitCredentials } from '../git-credentials.service';
 import { GitCredentialForm } from '../components/GitCredentialForm';
+import { useCreateGitCredentialMutation } from '../queries/useCreateGitCredentialsMutation';
 
 type Props = {
   routeOnSuccess?: string;
@@ -30,16 +28,18 @@ export function CreateGitCredentialForm({ routeOnSuccess }: Props) {
   );
 
   function onSubmit(values: GitCredentialFormValues) {
-    const payload: CreateGitCredentialPayload = {
-      ...values,
-      userId: currentUser.user.Id,
-    };
-    createGitCredentialMutation.mutate(payload, {
-      onSuccess: () => {
-        if (routeOnSuccess) {
-          router.stateService.go(routeOnSuccess);
-        }
+    createGitCredentialMutation.mutate(
+      {
+        ...values,
+        userId: currentUser.user.Id,
       },
-    });
+      {
+        onSuccess: () => {
+          if (routeOnSuccess) {
+            router.stateService.go(routeOnSuccess);
+          }
+        },
+      }
+    );
   }
 }

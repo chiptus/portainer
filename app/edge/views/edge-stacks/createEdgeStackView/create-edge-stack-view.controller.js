@@ -134,9 +134,8 @@ export default class CreateEdgeStackViewController {
               PrePullImage: template.EdgeSettings.PrePullImage || false,
               RetryDeploy: template.EdgeSettings.RetryDeploy || false,
               PrivateRegistryId: template.EdgeSettings.PrivateRegistryId || null,
-              SupportRelativePath: template.EdgeSettings.RelativePathSettings.SupportRelativePath || false,
-              FilesystemPath: template.EdgeSettings.RelativePathSettings.FilesystemPath || '',
               staggerConfig: template.EdgeSettings.StaggerConfig || getDefaultStaggerConfig(),
+              ...template.EdgeSettings.RelativePathSettings,
             }
           : {}),
       };
@@ -249,8 +248,7 @@ export default class CreateEdgeStackViewController {
   matchRegistry() {
     return this.$async(async () => {
       this.errorMessage = '';
-      const method = this.state.Method;
-
+      const method = getMethod(this.state.Method, this.state.templateValues.template);
       if (method === 'repository' || !this.formValues.StackFileContent || !this.formValues.StackFile) {
         return;
       }
@@ -280,11 +278,7 @@ export default class CreateEdgeStackViewController {
   createStack() {
     return this.$async(async () => {
       const name = this.formValues.Name;
-      let method = this.state.Method;
-
-      if (method === 'template') {
-        method = 'editor';
-      }
+      const method = getMethod(this.state.Method, this.state.templateValues.template);
 
       if (!this.validateForm(method)) {
         return;
@@ -500,4 +494,21 @@ export default class CreateEdgeStackViewController {
       ('upload' === this.state.Method && !this.formValues.StackFile)
     );
   }
+}
+
+/**
+ *
+ * @param {'template'|'repository' | 'editor' | 'upload'} method
+ * @param {import('@/react/portainer/templates/custom-templates/types').CustomTemplate | undefined} template
+ * @returns 'repository' | 'editor' | 'upload'
+ */
+function getMethod(method, template) {
+  if (method !== 'template') {
+    return method;
+  }
+
+  if (template && template.GitConfig) {
+    return 'repository';
+  }
+  return 'editor';
 }

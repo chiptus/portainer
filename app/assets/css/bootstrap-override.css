@@ -213,6 +213,7 @@ input:checked + .slider:before {
   justify-content: center;
   align-items: center;
   padding: 1.5%;
+  overflow: hidden;
 }
 
 .widget .widget-icon .icon {

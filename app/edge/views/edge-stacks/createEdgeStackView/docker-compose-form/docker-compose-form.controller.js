@@ -15,6 +15,11 @@ class DockerComposeFormController {
     this.onEnableRelativePathsChange = this.onEnableRelativePathsChange.bind(this);
     this.onEnablePerDeviceConfigsChange = this.onEnablePerDeviceConfigsChange.bind(this);
     this.onPerDeviceConfigsPathChange = this.onPerDeviceConfigsPathChange.bind(this);
+    this.isGitTemplate = this.isGitTemplate.bind(this);
+  }
+
+  isGitTemplate() {
+    return this.state.Method === 'template' && !!this.templateValues.template && !!this.templateValues.template.GitConfig;
   }
 
   onChangeFormValues(newValues) {

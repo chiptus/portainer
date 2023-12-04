@@ -51,7 +51,7 @@ export function InnerForm({
   usePreventExit(
     initialValues.FileContent,
     values.FileContent,
-    !isEditorReadonly && !isSubmitting
+    !isEditorReadonly && !isSubmitting && !isLoading
   );
   return (
     <Form className="form-horizontal">
@@ -99,15 +99,6 @@ export function InnerForm({
         </p>
       </WebEditorForm>
 
-      {isTemplateVariablesEnabled && (
-        <CustomTemplatesVariablesDefinitionField
-          value={values.Variables}
-          onChange={(values) => setFieldValue('Variables', values)}
-          isVariablesNamesFromParent={!isEditorReadonly}
-          errors={errors.Variables}
-        />
-      )}
-
       {values.Git && (
         <>
           <GitForm
@@ -136,6 +127,15 @@ export function InnerForm({
             )}
           </div>
         </>
+      )}
+
+      {isTemplateVariablesEnabled && (
+        <CustomTemplatesVariablesDefinitionField
+          value={values.Variables}
+          onChange={(values) => setFieldValue('Variables', values)}
+          isVariablesNamesFromParent={!isEditorReadonly}
+          errors={errors.Variables}
+        />
       )}
 
       {values.EdgeSettings && (
