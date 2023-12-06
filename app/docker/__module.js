@@ -129,7 +129,7 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
 
       views: {
         'content@': {
-          component: 'createCustomTemplateView',
+          component: 'createCustomTemplatesView',
         },
       },
     };

@@ -27,10 +27,10 @@ export function useEnvironment<T = Environment | null>(
   );
 }
 
-export function useEnvironmentDeploymentOptions(id: EnvironmentId) {
+export function useEnvironmentDeploymentOptions(id: EnvironmentId | undefined) {
   return useQuery(
-    [...environmentQueryKeys.item(id), 'deploymentOptions'],
-    () => getDeploymentOptions(id),
+    [...environmentQueryKeys.item(id!), 'deploymentOptions'],
+    () => getDeploymentOptions(id!),
     {
       enabled: !!id,
       ...withError('Failed loading deployment options'),
