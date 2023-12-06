@@ -1343,8 +1343,8 @@ class KubernetesCreateApplicationController {
           }
 
           namespace = this.formValues.ResourcePool.Namespace.Name;
-          const namespaceWithQuota = await this.KubernetesResourcePoolService.get(namespace);
-          this.formValues.ResourcePool.Quota = namespaceWithQuota.Quota;
+          this.namespaceWithQuota = await this.KubernetesResourcePoolService.get(namespace);
+          this.formValues.ResourcePool.Quota = this.namespaceWithQuota.Quota;
 
           // this.savedFormValues is being used in updateNamespaceLimits behind a check to see isEdit
           if (this.state.isEdit) {
@@ -1352,8 +1352,8 @@ class KubernetesCreateApplicationController {
           }
           delete this.formValues.ApplicationType;
 
-          this.updateNamespaceLimits(namespaceWithQuota);
-          this.updateSliders(namespaceWithQuota);
+          this.updateNamespaceLimits(this.namespaceWithQuota);
+          this.updateSliders(this.namespaceWithQuota);
         }
 
         if (!this.formValues.ResourcePool || !namespace) {
@@ -1397,6 +1397,8 @@ class KubernetesCreateApplicationController {
           this.formValues.OriginalIngresses = this.ingresses;
           this.formValues.ImageModel = await this.parseImageConfiguration(this.formValues.ImageModel);
           this.savedFormValues = angular.copy(this.formValues);
+          this.updateNamespaceLimits(this.namespaceWithQuota);
+          this.updateSliders(this.namespaceWithQuota);
           delete this.formValues.ApplicationType;
 
           if (this.application.ApplicationType !== KubernetesApplicationTypes.STATEFULSET) {
