@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { removeTrailingGitExtension } from '@/react/edge/edge-stacks/utils';
+import { cleanGitRepoUrl } from './utils';
 
 interface Props {
   url: string;
@@ -26,7 +26,7 @@ export function InfoPanel({
           This {type} was deployed from the git repository <code>{url}</code>{' '}
           and the current version deployed is{' '}
           <a
-            href={`${removeTrailingGitExtension(url)}/commit/${commitHash}`}
+            href={`${cleanGitRepoUrl(url)}/commit/${commitHash}`}
             target="_blank"
             rel="noreferrer"
           >
