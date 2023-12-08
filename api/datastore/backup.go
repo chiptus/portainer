@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -15,10 +16,23 @@ func (store *Store) Backup() (string, error) {
 
 	backupFilename := store.backupFilename()
 	log.Info().Str("from", store.connection.GetDatabaseFilePath()).Str("to", backupFilename).Msgf("Backing up database")
-	err := store.fileService.Copy(store.connection.GetDatabaseFilePath(), backupFilename, true)
+
+	// Close the store before backing up
+	err := store.Close()
+	if err != nil {
+		return "", fmt.Errorf("failed to close store before backup: %w", err)
+	}
+
+	err = store.fileService.Copy(store.connection.GetDatabaseFilePath(), backupFilename, true)
 	if err != nil {
 		log.Warn().Err(err).Msg("failed to create backup file")
 		return "", err
+	}
+
+	// reopen the store
+	_, err = store.Open()
+	if err != nil {
+		return "", fmt.Errorf("failed to reopen store after backup: %w", err)
 	}
 
 	return backupFilename, nil
@@ -30,26 +44,25 @@ func (store *Store) Restore() error {
 }
 
 func (store *Store) RestoreFromFile(backupFilename string) error {
-	if exists, _ := store.fileService.FileExists(backupFilename); !exists {
-		log.Error().Str("backupFilename", backupFilename).Msg("backup file does not exist")
-		return os.ErrNotExist
-	}
-
 	if err := store.fileService.Copy(backupFilename, store.connection.GetDatabaseFilePath(), true); err != nil {
-		log.Error().Err(err).Msg("error while restoring backup.")
-		return err
+		return fmt.Errorf("unable to restore backup file %q. err: %w", backupFilename, err)
 	}
 
 	log.Info().Str("from", store.connection.GetDatabaseFilePath()).Str("to", backupFilename).Msgf("database restored")
 
-	// determine the db version
-	store.Open()
-	version, err := store.VersionService.Version()
-	editionLabel := portainer.SoftwareEdition(version.Edition).GetEditionLabel()
-	if err == nil {
-		log.Info().Str("version", version.SchemaVersion).Msgf("Restored database version: Portainer %s %s ", editionLabel, version.SchemaVersion)
+	_, err := store.Open()
+	if err != nil {
+		return fmt.Errorf("unable to determine version of restored portainer backup file: %w", err)
 	}
 
+	// determine the db version
+	version, err := store.VersionService.Version()
+	if err != nil {
+		return fmt.Errorf("unable to determine restored database version. err: %w", err)
+	}
+
+	editionLabel := portainer.SoftwareEdition(version.Edition).GetEditionLabel()
+	log.Info().Str("version", version.SchemaVersion).Msgf("Restored database version: Portainer %s %s ", editionLabel, version.SchemaVersion)
 	return nil
 }
 
