@@ -72,7 +72,7 @@ func (service *Service) SyncLicenses(checkinType liblicense.CheckInType) error {
 	}
 
 	for _, l := range licenses {
-		if !resp[l.LicenseKey] {
+		if resp.LicenseKeys != nil && !resp.LicenseKeys[l.LicenseKey] {
 			service.revokeLicense(l.LicenseKey)
 		}
 	}

@@ -64,168 +64,73 @@ func (service *Service) Licenses() []liblicense.PortainerLicense {
 func (service *Service) AddLicense(key string, force bool) ([]string, error) {
 	// Validate the given license key and parse it into a license object.
 	l := ParseLicense(key, service.expireAbsolute, false)
+	if isExpiredOrRevoked(l) {
+		return nil, fmt.Errorf("license key is expired or revoked")
+	}
 
 	meta, err := service.Metadata(service.licenses)
 	if err != nil {
 		return nil, err
 	}
-	licenses := []liblicense.PortainerLicense{l}
-	licenses = append(licenses, service.licenses...)
+
 	info := liblicense.CheckInInfo{
-		Licenses: licenses,
+		License:  &l,
+		Licenses: service.licenses,
 		Meta:     meta,
+		Force:    force,
 	}
 	log.Debug().Str("license", l.Company).Msg("validating license with remote server")
-	resp, err := liblicense.CheckIn(info)
-	if err != nil {
-		return nil, err
-	}
-	if !resp[key] {
-		return nil, fmt.Errorf("license key is invalid")
-	}
-	if isExpiredOrRevoked(l) {
-		return nil, fmt.Errorf("license key is expired or revoked")
-	}
-
-	// If there are no existing licenses we accept their given license.
-	if len(service.licenses) == 0 {
-		err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
-		if err != nil {
-			return nil, err
-		}
-		licenses, err := service.dataStore.License().Licenses()
-		if err != nil {
-			return nil, err
-		}
-		service.licenses = licenses
-		return nil, nil
-	}
 
 	// Subscription licenses are stackable with other subscription licenses.
 	// V2 Free licenses are stackable with V2 Subscription licenses.
 	// With all other license types, you must remove your existing
 	// licenses in order to add a new license. We warn the user of this.
-	conflicts, _ := service.getConflictingLicenses(l, force)
-	if len(conflicts) != 0 && !force {
-		return conflicts, nil
+	resp, err := liblicense.CheckIn(info)
+	if len(resp.ConflictingLicenses) > 0 && !force {
+		conflictsResp := make([]string, 0)
+		for _, l := range resp.ConflictingLicenses {
+			conflictsResp = append(conflictsResp,
+				fmt.Sprintf(
+					"%s (type %d %s - %s)",
+					l.Company,
+					l.Type,
+					displayType(l.Type),
+					displayNodes(l.Nodes),
+				),
+			)
+		}
+
+		return conflictsResp, nil
+	}
+	if len(resp.ConflictingLicenses) == 0 && err != nil {
+		return nil, err
+	}
+
+	if !resp.LicenseKeys[key] {
+		return nil, fmt.Errorf("license key is invalid")
+	}
+
+	log.Debug().Msgf("conflicting licenses being removed: %d", len(resp.ConflictingLicenses))
+	// If we have any conflicting licenses,
+	// we remove them.
+	for _, l := range resp.ConflictingLicenses {
+		log.Debug().Str("license", l.Company).Msg("removing conflicting license")
+		err := service.DeleteLicense(l.LicenseKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = service.dataStore.License().AddLicense(l.LicenseKey, &l)
 	if err != nil {
 		return nil, err
 	}
-	licenses, err = service.dataStore.License().Licenses()
+	licenses, err := service.dataStore.License().Licenses()
 	if err != nil {
 		return nil, err
 	}
 	service.licenses = licenses
-
-	// Now the issue is, in case of conflicting licenses, if user cancel the popup in the FE,
-	// the checkin info is still incorrect
-	if force {
-		// Do another checkin to send an accurate count in case we replaced a license.
-		// We can ignore the error and response since we validated it above.
-		info.Licenses = service.licenses
-		liblicense.CheckIn(info)
-	}
-
-	return conflicts, nil
-}
-
-func (service *Service) getConflictingLicenses(license liblicense.PortainerLicense, force bool) ([]string, error) {
-	var conflicts []string
-	switch {
-	case license.Type == liblicense.PortainerLicenseSubscription && license.Version == 3:
-		// V3 Subscription licenses can only be added if all existing licenses
-		// are also subscription licenses.
-		for _, l := range service.licenses {
-			if l.Type != liblicense.PortainerLicenseSubscription {
-				if force {
-					err := service.DeleteLicense(l.LicenseKey)
-					if err != nil {
-						return nil, err
-					}
-				}
-				conflicts = append(conflicts,
-					fmt.Sprintf(
-						"%s (type %d %s - %s)",
-						l.Company,
-						l.Type,
-						displayType(l.Type),
-						displayNodes(l.Nodes),
-					),
-				)
-			}
-		}
-	case license.Type == liblicense.PortainerLicenseSubscription && license.Version != 3:
-		// V2 Subscription licenses can be added if all existing licenses
-		// are subscription licenses OR V2 free licenses.
-		for _, l := range service.licenses {
-			if l.Type == liblicense.PortainerLicenseSubscription ||
-				(l.Type == liblicense.PortainerLicenseFree && l.Version != 3) {
-				continue
-			}
-			if force {
-				err := service.DeleteLicense(l.LicenseKey)
-				if err != nil {
-					return nil, err
-				}
-			}
-			conflicts = append(conflicts,
-				fmt.Sprintf(
-					"%s (type %d %s - %s)",
-					l.Company,
-					l.Type,
-					displayType(l.Type),
-					displayNodes(l.Nodes),
-				),
-			)
-		}
-	case license.Type == liblicense.PortainerLicenseFree && license.Version != 3:
-		// V2 Free licenses are stackable with other V2 Free licenses or V2
-		// Subscription licenses.
-		for _, l := range service.licenses {
-			if l.Version != 3 {
-				if l.Type == liblicense.PortainerLicenseSubscription {
-					continue
-				}
-			}
-			if force {
-				err := service.DeleteLicense(l.LicenseKey)
-				if err != nil {
-					return nil, err
-				}
-			}
-			conflicts = append(conflicts,
-				fmt.Sprintf(
-					"%s (type %d %s - %s)",
-					l.Company,
-					l.Type,
-					displayType(l.Type),
-					displayNodes(l.Nodes),
-				),
-			)
-		}
-	default:
-		for _, l := range service.licenses {
-			if force {
-				err := service.DeleteLicense(l.LicenseKey)
-				if err != nil {
-					return nil, err
-				}
-			}
-			conflicts = append(conflicts,
-				fmt.Sprintf(
-					"%s (type %d %s - %s)",
-					l.Company,
-					l.Type,
-					displayType(l.Type),
-					displayNodes(l.Nodes),
-				),
-			)
-		}
-	}
-	return conflicts, nil
+	return nil, nil
 }
 
 func displayType(t liblicense.PortainerLicenseType) string {

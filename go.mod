@@ -9,7 +9,6 @@ require (
 	github.com/Azure/azure-sdk-for-go v63.4.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.27
 	github.com/Azure/go-autorest/autorest/adal v0.9.20
-	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/Microsoft/go-winio v0.6.1
 	github.com/VictoriaMetrics/fastcache v1.12.0
@@ -54,7 +53,7 @@ require (
 	github.com/orcaman/concurrent-map v1.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/portainer/liblicense/v3 v3.0.1-0.20231113040038-90490ceed07f
+	github.com/portainer/liblicense/v3 v3.0.1-0.20231204235358-4010a88ad2bb
 	github.com/portainer/portainer v0.6.1-0.20231123014122-26953d0b1579
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.30.0
