@@ -174,7 +174,7 @@ func isValidNote(note string) bool {
 // @success 200 {object} portaineree.CustomTemplate
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /custom_templates/string [post]
+// @router /custom_templates/create/string [post]
 func (handler *Handler) createCustomTemplateFromFileContent(r *http.Request) (*portaineree.CustomTemplate, error) {
 	var payload customTemplateFromFileContentPayload
 	err := request.DecodeAndValidateJSONPayload(r, &payload)
