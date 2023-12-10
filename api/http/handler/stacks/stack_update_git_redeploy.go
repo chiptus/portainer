@@ -189,7 +189,8 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the stack %v", stack.ID))
 	}
 
-	if stack.GitConfig.ConfigHash != newHash {
+	hashChanged := stack.GitConfig.ConfigHash != newHash
+	if hashChanged {
 		folderToBeRemoved := stackutils.GetStackVersionFoldersToRemove(true, stack.ProjectPath, stack.GitConfig, stack.PreviousDeploymentInfo, true)
 
 		stack.PreviousDeploymentInfo = &portainer.StackDeploymentInfo{
@@ -201,7 +202,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 		stack.StackFileVersion++
 
 		// Although the git clone operation will be executed in portainer-unpacker if relative path feature is
-		// enabled, it is still necessasry to clone the repository in our data volume to keep the stack file
+		// enabled, it is still necessary to clone the repository in our data volume to keep the stack file
 		// consistency, especially after introducing the new feature of stack file versioning.
 		projectVersionPath := handler.FileService.FormProjectPathByVersion(stack.ProjectPath, 0, stack.GitConfig.ConfigHash)
 		err = handler.GitService.CloneRepository(projectVersionPath,
@@ -226,7 +227,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 
 	log.Debug().Bool("pull_image_flag", payload.PullImage).Msg("")
 
-	httpErr := handler.deployStack(r, stack, payload.PullImage, endpoint)
+	httpErr := handler.deployStack(r, stack, payload.PullImage, hashChanged, endpoint)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -261,7 +262,7 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 	return response.JSON(w, stack)
 }
 
-func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, pullImage bool, endpoint *portaineree.Endpoint) *httperror.HandlerError {
+func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, pullImage bool, hashChanged bool, endpoint *portaineree.Endpoint) *httperror.HandlerError {
 	var (
 		deploymentConfiger deployments.StackDeploymentConfiger
 		err                error
@@ -287,21 +288,8 @@ func (handler *Handler) deployStack(r *http.Request, stack *portaineree.Stack, p
 		// The reason is that Docker swarm needs to forcibly recreate a docker container in
 		// every redeployment in order to mount the relative path, this check will avoid
 		// unnecessary docker container recreation.
-		if isRelativePathEnabled(stack) && !pullImage {
-			repositoryName := ""
-			repositoryPwd := ""
-			if stack.GitConfig.Authentication != nil {
-				repositoryName = stack.GitConfig.Authentication.Username
-				repositoryPwd = stack.GitConfig.Authentication.Password
-			}
-			newHash, err := handler.GitService.LatestCommitID(stack.GitConfig.URL, stack.GitConfig.ReferenceName, repositoryName, repositoryPwd, stack.GitConfig.TLSSkipVerify)
-			if err != nil {
-				return httperror.InternalServerError("Unable get latest commit id", errors.WithMessagef(err, "failed to fetch latest commit id of the remote swarm stack %v", stack.ID))
-			}
-			if stack.GitConfig.ConfigHash == newHash {
-				// Skip the swarm stack redeployment
-				return nil
-			}
+		if isRelativePathEnabled(stack) && !pullImage && !hashChanged {
+			return nil
 		}
 
 		deploymentConfiger, err = deployments.CreateSwarmStackDeploymentConfig(securityContext, stack, endpoint, handler.DataStore, handler.FileService, handler.StackDeployer, prune, pullImage)
