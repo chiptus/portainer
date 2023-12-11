@@ -92,7 +92,7 @@ export class EditEdgeStackViewController {
   deployStack(values) {
     return this.$async(async () => {
       let pullImage = false;
-      if (this.formValues.DeploymentType == EditorType.Compose) {
+      if (values.deploymentType == EditorType.Compose) {
         const defaultToggle = values.PrePullImage;
         const result = await confirmStackUpdate('Do you want to force an update of the stack?', defaultToggle);
         if (!result) {
