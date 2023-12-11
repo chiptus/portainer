@@ -37,12 +37,22 @@ function formatMainLog(
   newLogs.push(log);
 }
 
+function isNumeric(str: string) {
+  if (typeof str !== 'string') return false;
+  return !Number.isNaN(str) && !Number.isNaN(parseFloat(str));
+}
+
 export function prettifyJSONLog(
   newLogs: LogInterface[],
   line: string,
   timestamp: string
 ) {
   let json: JSONLog;
+
+  // Return false for lines which only contain numbers.
+  if (isNumeric(line)) {
+    return false;
+  }
 
   try {
     json = JSON.parse(line);
