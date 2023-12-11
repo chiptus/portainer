@@ -24,6 +24,8 @@ export interface UpdateEdgeStackGitPayload {
   deploymentType: DeploymentType;
   updateVersion: boolean;
   registries?: Array<Registry['Id']>;
+  prePullImage: boolean;
+  retryDeploy: boolean;
   staggerConfig: StaggerConfig;
 }
 

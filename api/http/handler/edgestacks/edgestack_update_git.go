@@ -35,6 +35,8 @@ type stackGitUpdatePayload struct {
 	// If this is set to true, it indicates that the stack is being redeployed,
 	// if it is false, it indicates that the stack is being updated
 	UpdateVersion bool
+	PrePullImage  bool
+	RetryDeploy   bool
 	EnvVars       []portainer.Pair
 	// List of Registries to use for this stack
 	Registries []portainer.RegistryID
@@ -160,6 +162,8 @@ func (handler *Handler) edgeStackUpdateFromGitHandler(w http.ResponseWriter, r *
 			}
 		}
 
+		edgeStack.PrePullImage = payload.PrePullImage
+		edgeStack.RetryDeploy = payload.RetryDeploy
 		edgeStack.GitConfig = gitConfig
 		edgeStack.EdgeGroups = groupIds
 		edgeStack.EnvVars = payload.EnvVars

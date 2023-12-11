@@ -49,6 +49,7 @@ import { TextTip } from '@@/Tip/TextTip';
 import { FormError } from '@@/form-components/FormError';
 import { EnvironmentVariablesPanel } from '@@/form-components/EnvironmentVariablesFieldset';
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
+import { SwitchField } from '@@/form-components/SwitchField';
 
 import {
   staggerConfigValidation,
@@ -69,6 +70,8 @@ interface FormValues {
   autoUpdate: AutoUpdateModel;
   refName: string;
   authentication: GitAuthModel;
+  prePullImage: boolean;
+  retryDeploy: boolean;
   envVars: EnvVar[];
   privateRegistryId?: Registry['Id'];
   staggerConfig: StaggerConfig;
@@ -94,6 +97,8 @@ export function GitForm({ stack }: { stack: EdgeStack }) {
     refName: stack.GitConfig.ReferenceName,
     authentication: parseAuthResponse(stack.GitConfig.Authentication),
     relativePath: parseRelativePathResponse(stack),
+    prePullImage: stack.PrePullImage,
+    retryDeploy: stack.RetryDeploy,
     envVars: stack.EnvVars || [],
     staggerConfig: stack.StaggerConfig || {
       StaggerOption: StaggerOption.AllAtOnce,
@@ -316,6 +321,36 @@ function InnerForm({
         method="repository"
         errorMessage={errors.privateRegistryId}
       />
+
+      {values.deploymentType === DeploymentType.Compose && (
+        <>
+          <div className="form-group">
+            <div className="col-sm-12">
+              <SwitchField
+                checked={values.prePullImage}
+                name="prePullImage"
+                label="Pre-pull images"
+                tooltip="When enabled, redeployment will be executed when image(s) is pulled successfully"
+                labelClass="col-sm-3 col-lg-2"
+                onChange={(value) => setFieldValue('prePullImage', value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <div className="col-sm-12">
+              <SwitchField
+                checked={values.retryDeploy}
+                name="retryDeploy"
+                label="Retry deployment"
+                tooltip="When enabled, this will allow the edge agent to retry deployment if failed to deploy initially"
+                labelClass="col-sm-3 col-lg-2"
+                onChange={(value) => setFieldValue('retryDeploy', value)}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       <StaggerFieldset
         values={values.staggerConfig}
