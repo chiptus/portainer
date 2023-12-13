@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -35,7 +34,7 @@ const (
 // @produce json
 // @param start query int false "Start searching from"
 // @param limit query int false "Limit results to this value"
-// @param sort query int false "Sort results by this value"
+// @param sort query sortKey false "Sort results by this value" Enum("Name", "Group", "Status", "LastCheckIn", "EdgeID")
 // @param order query int false "Order sorted results by desc/asc" Enum("asc", "desc")
 // @param search query string false "Search query"
 // @param groupIds query []int false "List environments(endpoints) of these groups"
@@ -111,7 +110,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.InternalServerError("Unable to filter endpoints", err)
 	}
 
-	sortEndpointsByField(filteredEndpoints, endpointGroups, sortField, sortOrder == "desc")
+	sortEnvironmentsByField(filteredEndpoints, endpointGroups, getSortKey(sortField), sortOrder == "desc")
 
 	filteredEndpointCount := len(filteredEndpoints)
 
@@ -159,46 +158,6 @@ func paginateEndpoints(endpoints []portaineree.Endpoint, start, limit int) []por
 	}
 
 	return endpoints[start:end]
-}
-
-func sortEndpointsByField(endpoints []portaineree.Endpoint, endpointGroups []portainer.EndpointGroup, sortField string, isSortDesc bool) {
-
-	switch sortField {
-	case "Name":
-		if isSortDesc {
-			sort.Stable(sort.Reverse(EndpointsByName(endpoints)))
-		} else {
-			sort.Stable(EndpointsByName(endpoints))
-		}
-
-	case "Group":
-		endpointGroupNames := make(map[portainer.EndpointGroupID]string, 0)
-		for _, group := range endpointGroups {
-			endpointGroupNames[group.ID] = group.Name
-		}
-
-		endpointsByGroup := EndpointsByGroup{
-			endpointGroupNames: endpointGroupNames,
-			endpoints:          endpoints,
-		}
-
-		if isSortDesc {
-			sort.Stable(sort.Reverse(endpointsByGroup))
-		} else {
-			sort.Stable(endpointsByGroup)
-		}
-
-	case "Status":
-		if isSortDesc {
-			sort.Slice(endpoints, func(i, j int) bool {
-				return endpoints[i].Status > endpoints[j].Status
-			})
-		} else {
-			sort.Slice(endpoints, func(i, j int) bool {
-				return endpoints[i].Status < endpoints[j].Status
-			})
-		}
-	}
 }
 
 func getEndpointGroup(groupID portainer.EndpointGroupID, groups []portainer.EndpointGroup) portainer.EndpointGroup {
