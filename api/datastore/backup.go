@@ -25,8 +25,7 @@ func (store *Store) Backup() (string, error) {
 
 	err = store.fileService.Copy(store.connection.GetDatabaseFilePath(), backupFilename, true)
 	if err != nil {
-		log.Warn().Err(err).Msg("failed to create backup file")
-		return "", err
+		return "", fmt.Errorf("failed to create backup file: %w", err)
 	}
 
 	// reopen the store
@@ -44,11 +43,12 @@ func (store *Store) Restore() error {
 }
 
 func (store *Store) RestoreFromFile(backupFilename string) error {
+	store.Close()
 	if err := store.fileService.Copy(backupFilename, store.connection.GetDatabaseFilePath(), true); err != nil {
 		return fmt.Errorf("unable to restore backup file %q. err: %w", backupFilename, err)
 	}
 
-	log.Info().Str("from", store.connection.GetDatabaseFilePath()).Str("to", backupFilename).Msgf("database restored")
+	log.Info().Str("from", backupFilename).Str("to", store.connection.GetDatabaseFilePath()).Msgf("database restored")
 
 	_, err := store.Open()
 	if err != nil {
@@ -62,23 +62,22 @@ func (store *Store) RestoreFromFile(backupFilename string) error {
 	}
 
 	editionLabel := portainer.SoftwareEdition(version.Edition).GetEditionLabel()
-	log.Info().Str("version", version.SchemaVersion).Msgf("Restored database version: Portainer %s %s ", editionLabel, version.SchemaVersion)
+	log.Info().Msgf("Restored database version: Portainer %s %s", editionLabel, version.SchemaVersion)
 	return nil
 }
 
 func (store *Store) createBackupPath() error {
-	backupDir := path.Join(store.path, "backups")
+	backupDir := path.Join(store.connection.GetStorePath(), "backups")
 	if exists, _ := store.fileService.FileExists(backupDir); !exists {
 		if err := os.MkdirAll(backupDir, 0700); err != nil {
-			log.Error().Err(err).Msg("error while creating backup folder")
-			return err
+			return fmt.Errorf("unable to create backup folder: %w", err)
 		}
 	}
 	return nil
 }
 
 func (store *Store) backupFilename() string {
-	return path.Join(store.path, "backups", store.connection.GetDatabaseFileName()+".bak")
+	return path.Join(store.connection.GetStorePath(), "backups", store.connection.GetDatabaseFileName()+".bak")
 }
 
 func (store *Store) databasePath() string {
