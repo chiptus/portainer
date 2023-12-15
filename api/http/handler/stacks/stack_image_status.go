@@ -23,7 +23,7 @@ import (
 // @summary Fetch image status for stack
 // @description
 // @description **Access policy**:
-// @tags docker
+// @tags stacks
 // @security jwt
 // @accept json
 // @produce json
@@ -32,7 +32,7 @@ import (
 // @success 200 "Success"
 // @failure 400 "Bad request"
 // @failure 500 "Internal server error"
-// @router /docker/{environmentId}/stacks/{id}/images_status [get]
+// @router /stacks/{id}/images_status [get]
 func (handler *Handler) stackImagesStatus(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	stackID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
