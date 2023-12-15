@@ -15,7 +15,7 @@ import (
 )
 
 // @id provisionClusterAzure
-// @summary Provision a new KaaS cluster on azure and create an environment
+// @summary Provision a new Microsoft Azure cluster and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
 // @tags kaas
@@ -29,9 +29,14 @@ import (
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
 // @router /cloud/azure/provision [post]
+//
+//lint:ignore U1000 Ignore unused function for documentation purposes
+func (handler *Handler) dummyProvisionAzure(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	return nil
+}
 
 // @id provisionClusterGKE
-// @summary Provision a new KaaS cluster on GKE and create an environment
+// @summary Provision a new Google Kubernetes (GKE) cluster and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
 // @tags kaas
@@ -45,9 +50,14 @@ import (
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
 // @router /cloud/gke/provision [post]
+//
+//lint:ignore U1000 Ignore unused function for documentation purposes
+func (handler *Handler) dummyProvisionGKE(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	return nil
+}
 
-// @id provisionCluster
-// @summary Provision a new KaaS cluster and create an environment
+// @id provisionClusterAmazon
+// @summary Provision a new Amazon EKS and create an environment
 // @description Provision a new KaaS cluster and create an environment.
 // @description **Access policy**: administrator
 // @tags kaas
@@ -55,15 +65,41 @@ import (
 // @security jwt
 // @accept json
 // @produce json
+// @param body body providers.AmazonProvisionPayload true "KaaS cluster provisioning details"
+// @success 200 {object} portaineree.Endpoint "Success"
+// @failure 400 "Invalid request"
+// @failure 500 "Server error"
+// @failure 503 "Missing configuration"
+// @router /cloud/amazon/provision [post]
+//
+//lint:ignore U1000 Ignore unused function for documentation purposes
+func (handler *Handler) dummyProvisionAmazon(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	return nil
+}
+
+// @id provisionCluster
+// @summary Provision a new CIVO, Linode or Digital Ocean cluster and create an environment
+// @description Provision a new KaaS cluster and create an environment.
+// @description This documentation is specifically for civo, digitial ocean and linode.
+// @description
+// @description For Azure, GKE and Amazon see:
+// @description **/cloud/amazon/provision**
+// @description **/cloud/azure/provision**
+// @description **/cloud/gke/provision**
+// @description
+// @description **Access policy**: administrator
+// @tags kaas
+// @security ApiKeyAuth
+// @security jwt
+// @accept json
+// @produce json
+// @param provider path string true "Provider" Enums("civo", "digitalocean", "linode")
 // @param body body providers.DefaultProvisionPayload true "KaaS cluster provisioning details"
 // @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/civo/provision [post]
-// @router /cloud/digitalocean/provision [post]
-// @router /cloud/linode/provision [post]
-
+// @router /cloud/{provider}/provision [post]
 func (handler *Handler) provisionCluster(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	provider, err := request.RetrieveRouteVariableValue(r, "provider")
 	if err != nil {
@@ -174,7 +210,7 @@ func (handler *Handler) createEndpoint(name string, provider portaineree.CloudPr
 // @security jwt
 // @accept json
 // @produce json
-// @param provider path int true "Provider" Enum("azure", "gke", "amazon", "civo", "digitalocean", "linode")
+// @param provider path string true "Provider" Enums("azure", "gke", "amazon", "civo", "digitalocean", "linode")
 // @param body body object true "for body documentation see the relevant /cloud/{provider}/provision endpoint"
 // @success 200 {object} portaineree.Endpoint "Success"
 // @failure 400 "Invalid request"

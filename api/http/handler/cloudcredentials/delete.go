@@ -10,8 +10,8 @@ import (
 )
 
 // @id cloudCredsDelete
-// @summary delete delete a cloud credential by ID
-// @description delete delete a cloud credential by ID
+// @summary Delete a cloud credential
+// @description Delete a cloud credential
 // @description **Access policy**: authenticated
 // @tags cloud_credentials
 // @security ApiKeyAuth
@@ -21,7 +21,7 @@ import (
 // @success 200 {object} models.CloudCredential
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
-// @router /cloud/credentials/{id} [post]
+// @router /cloud/credentials/{id} [delete]
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
 	id, _ := request.RetrieveNumericRouteVariableValue(r, "id")

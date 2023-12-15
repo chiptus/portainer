@@ -42,6 +42,7 @@ func (p *edgeConfigUpdatePayload) Validate(r *http.Request) error {
 // @security jwt
 // @accept multipart/form-data
 // @produce json
+// @param id path int true "Edge configuration identifier"
 // @param EdgeConfiguration formData edgeConfigUpdatePayload true "JSON stringified edgeConfigUpdatePayload object"
 // @param File formData file true "File"
 // @success 204

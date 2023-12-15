@@ -58,6 +58,7 @@ func (payload *updatePayload) Validate(r *http.Request) error {
 // @security ApiKeyAuth
 // @security jwt
 // @accept json
+// @param id path int true "EdgeUpdate Id"
 // @param body body updatePayload true "Schedule details"
 // @produce json
 // @success 204

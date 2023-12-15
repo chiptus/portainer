@@ -41,8 +41,8 @@ import (
 // @router /cloudcredentials [post]
 
 // @id cloudCredsDeleteDeprecated
-// @summary delete delete a cloud credential by ID
-// @description delete delete a cloud credential by ID
+// @summary Delete a cloud credential
+// @description Delete a cloud credential
 // @description **Access policy**: authenticated
 // @tags cloud_credentials
 // @security ApiKeyAuth
@@ -53,7 +53,7 @@ import (
 // @failure 400 "Invalid request"
 // @failure 500 "Server error"
 // @deprecated
-// @router /cloudcredentials/{id} [post]
+// @router /cloudcredentials/{id} [delete]
 
 // @id cloudCredsUpdateDeprecated
 // @summary Update a cloud credential

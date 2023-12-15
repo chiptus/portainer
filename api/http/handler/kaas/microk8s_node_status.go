@@ -19,14 +19,14 @@ import (
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @param endpointid path int true "Environment(Endpoint) identifier"
+// @param environmentId path int true "Environment(Endpoint) identifier"
 // @param nodeIP query string true "The external node ip of the control plane node."
 // @success 200 "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 500 "Server error"
 // @failure 503 "Missing configuration"
-// @router /cloud/endpoints/{endpointid}/nodes/nodestatus [get]
+// @router /cloud/endpoints/{environmentId}/nodes/nodestatus [get]
 func (handler *Handler) microk8sGetNodeStatus(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	environmentId, err := request.RetrieveNumericRouteVariableValue(r, "endpointid")
 
